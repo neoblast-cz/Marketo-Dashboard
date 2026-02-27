@@ -1,0 +1,2592 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo Database Analysis | Ansell</title>
+    <link rel="stylesheet" href="ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>Database Analysis</span></h1>
+                <div class="header-sub">
+                    Ansell Global Database
+                    <span class="export-badge" id="exportBadge" style="display:none">
+                        <span class="export-badge-dot"></span>
+                        <span id="exportDateLabel"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <button class="load-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+            <button class="export-btn" id="exportBtn" onclick="exportDashboard()" style="display:none" title="Export as standalone HTML">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+            </button>
+            <button class="api-btn" id="apiBtn" onclick="toggleApiPanel()" title="Marketo API Settings">
+                <span class="api-btn-dot"></span>
+                Marketo API
+            </button>
+            <a href="marketo-index.html" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- Marketo API Settings Bar -->
+    <div class="mkto-settings-bar" id="mktoSettingsBar">
+        <div class="mkto-settings-inner">
+            <div class="mkto-field">
+                <label for="mktoMunchkin">Munchkin ID</label>
+                <input type="text" id="mktoMunchkin" placeholder="xxx-XXX-xxx" autocomplete="off">
+            </div>
+            <div class="mkto-field">
+                <label for="mktoClientId">Client ID</label>
+                <input type="text" id="mktoClientId" placeholder="xxxxxxxx-…" autocomplete="off">
+            </div>
+            <div class="mkto-field">
+                <label for="mktoClientSecret">Client Secret</label>
+                <input type="password" id="mktoClientSecret" placeholder="••••••••" autocomplete="new-password">
+            </div>
+            <div class="mkto-field mkto-field-narrow">
+                <label for="mktoAdobeOrg">Adobe Org</label>
+                <input type="text" id="mktoAdobeOrg" placeholder="ansell" autocomplete="off">
+            </div>
+            <div class="mkto-actions">
+                <button class="mkto-save-btn" onclick="saveMktoConfig()">Save</button>
+                <button class="mkto-test-btn" onclick="testMktoConnection()">Test</button>
+                <span class="mkto-status" id="mktoStatus"></span>
+            </div>
+            <div class="mkto-proxy-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Requires local proxy for browser CORS — run once:
+                <code>powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav" id="tabNav" style="display:none">
+        <button class="tab-btn active" id="tabBtnAnalysis" onclick="switchTab('analysis')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Database Analysis
+        </button>
+        <button class="tab-btn" id="tabBtnDemand" onclick="switchTab('demand')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Lead Generation
+        </button>
+        <button class="tab-btn" id="tabBtnQuality" onclick="switchTab('quality')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Data Quality
+        </button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+        <span class="filter-label">Filter:</span>
+
+        <!-- Organisation -->
+        <div class="ms-wrap" id="ms-f-org">
+            <button class="ms-btn" onclick="toggleMs('f-org',event)">
+                <span id="ms-f-org-label">Organisation</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-org-panel" onclick="event.stopPropagation()">
+                <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterMsItems('f-org',this.value)"></div>
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-org')">Select All</button>
+                    <button onclick="clearMs('f-org')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-org-list"></div>
+            </div>
+        </div>
+
+        <!-- GBU -->
+        <div class="ms-wrap" id="ms-f-gbu">
+            <button class="ms-btn" onclick="toggleMs('f-gbu',event)">
+                <span id="ms-f-gbu-label">GBU</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-gbu-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-gbu')">Select All</button>
+                    <button onclick="clearMs('f-gbu')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-gbu-list"></div>
+            </div>
+        </div>
+
+        <!-- SFDC Type -->
+        <div class="ms-wrap" id="ms-f-sfdc">
+            <button class="ms-btn" onclick="toggleMs('f-sfdc',event)">
+                <span id="ms-f-sfdc-label">SFDC Type</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-sfdc-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-sfdc')">Select All</button>
+                    <button onclick="clearMs('f-sfdc')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-sfdc-list"></div>
+            </div>
+        </div>
+
+        <!-- Deliverability -->
+        <div class="ms-wrap" id="ms-f-deliv">
+            <button class="ms-btn" onclick="toggleMs('f-deliv',event)">
+                <span id="ms-f-deliv-label">Deliverability</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-deliv-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-deliv')">Select All</button>
+                    <button onclick="clearMs('f-deliv')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-deliv-list"></div>
+            </div>
+        </div>
+
+        <!-- Vertical -->
+        <div class="ms-wrap" id="ms-f-vertical">
+            <button class="ms-btn" onclick="toggleMs('f-vertical',event)">
+                <span id="ms-f-vertical-label">Vertical</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-vertical-panel" onclick="event.stopPropagation()">
+                <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterMsItems('f-vertical',this.value)"></div>
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-vertical')">Select All</button>
+                    <button onclick="clearMs('f-vertical')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-vertical-list"></div>
+            </div>
+        </div>
+
+        <button class="filter-reset" onclick="resetFilters()">Reset All</button>
+        <span class="filter-count" id="filterCount"></span>
+
+        <div id="drillFilterChip" class="drill-chip" style="display:none;margin-left:10px">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="opacity:.85"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v1.293a1 1 0 0 1-.293.707L9.5 9.707V13.5a.5.5 0 0 1-.777.416l-3-2A.5.5 0 0 1 5.5 11.5V9.707L1.293 4.5A1 1 0 0 1 1 3.793V2.5z"/></svg>
+            <span class="drill-chip-label"></span>
+            <button class="drill-chip-clear" onclick="clearDrillFilter()" title="Clear drill filter">&#10005;</button>
+        </div>
+
+        <span class="filter-label" style="margin-left:12px;padding-left:14px;border-left:1px solid var(--ansell-light-gray)">Stack by</span>
+        <select class="drill-select" id="drillMetricSelect" onchange="setDrillMetric(this.value)">
+            <option value="">— None —</option>
+            <option value="sfdcType">SFDC Type</option>
+            <option value="gbu">GBU</option>
+            <option value="deliverability">Deliverability</option>
+            <option value="recordType">Record Type (A)</option>
+            <option value="vertical">Vertical</option>
+            <option value="channel">Acquisition Channel</option>
+        </select>
+    </div>
+
+    <input type="file" id="fileInput" accept=".csv" onchange="handleFileInput(event)">
+
+    <!-- Loading State -->
+    <div id="loadingState" style="display:none; padding: 80px 30px; text-align:center">
+        <div class="loading-spinner"></div>
+        <p style="color:var(--ansell-gray); font-size:13px" id="loadingMsg">Loading data...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState">
+        <div class="state-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+            <h2>No data loaded</h2>
+            <p>Place your <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">YYYY-MM-DD Dashboard_Export.csv</code> in the <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">Reports/</code> folder for auto-load, or select a file manually.</p>
+            <button class="state-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashContent" style="display:none">
+        <div class="main">
+
+            <!-- KPIs -->
+            <div class="section-label">Overview</div>
+            <div class="kpi-grid">
+                <div class="kpi-card blue">
+                    <div class="kpi-label">Total Records</div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-sub" id="kpiTotalSub">as of export date</div>
+                </div>
+                <div class="kpi-card teal">
+                    <div class="kpi-label">Contactable</div>
+                    <div class="kpi-value" id="kpiContactable">—<span class="kpi-pct" id="kpiContactablePct"></span></div>
+                    <div class="kpi-sub">Opted-In Explicit + Implicit</div>
+                </div>
+                <div class="kpi-card green">
+                    <div class="kpi-label">Opted-In Explicit</div>
+                    <div class="kpi-value" id="kpiExplicit">—<span class="kpi-pct" id="kpiExplicitPct"></span></div>
+                    <div class="kpi-sub">Active consent confirmed</div>
+                </div>
+                <div class="kpi-card red">
+                    <div class="kpi-label">Suppressed</div>
+                    <div class="kpi-value" id="kpiSuppressed">—<span class="kpi-pct" id="kpiSuppressedPct"></span></div>
+                    <div class="kpi-sub">Cannot receive marketing</div>
+                </div>
+            </div>
+
+            <!-- Deliverability -->
+            <div class="section-label">Deliverability Health</div>
+            <div class="chart-card">
+                <div class="chart-title">Deliverability Segment Breakdown</div>
+                <div class="chart-wrap" style="position:relative">
+                    <canvas id="chartDeliverability"></canvas>
+                </div>
+            </div>
+
+            <!-- Composition -->
+            <div class="section-label">Database Composition</div>
+            <div class="chart-grid-2">
+                <div class="chart-card">
+                    <div class="chart-title">Global Business Unit (GBU)</div>
+                    <div class="chart-wrap" style="height:220px">
+                        <canvas id="chartGBU"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Organisation</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartOrg"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Record Classification -->
+            <div class="chart-grid-3">
+                <div class="chart-card">
+                    <div class="chart-title">SFDC Type</div>
+                    <div class="chart-wrap" style="height:200px">
+                        <canvas id="chartSFDC"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Record Type (A) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Account record type — Contacts only</span></div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartRecordType"></canvas>
+                    </div>
+                    <div class="chart-title" style="margin-top:20px;">Account Reach</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;padding-top:12px;border-top:1px solid #f0f0f0">
+                        <div style="padding-right:12px">
+                            <div class="kpi-label" style="margin-bottom:3px">End-User</div>
+                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiEndUsers">—</div>
+                            <div class="kpi-sub" id="kpiEndUsersSub" style="margin-top:2px">unique accounts</div>
+                        </div>
+                        <div style="padding:0 12px;border-left:1px solid #f0f0f0">
+                            <div class="kpi-label" style="margin-bottom:3px">Distributor</div>
+                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiDistributors">—</div>
+                            <div class="kpi-sub" id="kpiDistributorsSub" style="margin-top:2px">unique accounts</div>
+                        </div>
+                        <div style="padding-left:12px;border-left:1px solid #f0f0f0">
+                            <div class="kpi-label" style="margin-bottom:3px">Webstore</div>
+                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiWebstore">—</div>
+                            <div class="kpi-sub" id="kpiWebstoreSub" style="margin-top:2px">unique accounts</div>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Acquisition Channel</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartChannel"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Growth -->
+            <div class="section-label">Database Growth</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Records Created by Year</div>
+                    <div class="chart-wrap" style="height:250px">
+                        <canvas id="chartGrowth"></canvas>
+                    </div>
+                    <div id="growthMonthWrap" class="expand-month-wrap">
+                        <div class="expand-month-inner">
+                            <div class="expand-month-label" id="growthMonthLabel"></div>
+                            <div class="chart-wrap" style="height:200px"><canvas id="chartGrowthMonthly"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Opt-In Acquisitions by Year</div>
+                    <div class="chart-wrap" style="height:250px">
+                        <canvas id="chartOptInGrowth"></canvas>
+                    </div>
+                    <div id="optInMonthWrap" class="expand-month-wrap">
+                        <div class="expand-month-inner">
+                            <div class="expand-month-label" id="optInMonthLabel"></div>
+                            <div class="chart-wrap" style="height:200px"><canvas id="chartOptInMonthly"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geography -->
+            <div class="section-label">Geographic Distribution</div>
+            <div class="chart-card">
+                <div class="chart-title">Top 20 Countries</div>
+                <div class="chart-wrap" style="position:relative">
+                    <canvas id="chartCountries"></canvas>
+                </div>
+            </div>
+
+            <!-- Segmentation -->
+            <div class="section-label">Market Segmentation</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Vertical <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">click bar to expand sub verticals</span></div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartVertical"></canvas>
+                    </div>
+                    <div id="vertSubWrap" class="expand-month-wrap">
+                        <div class="expand-month-inner">
+                            <div class="expand-month-label" id="vertSubLabel"></div>
+                            <div class="chart-wrap" style="position:relative"><canvas id="chartSubVertical"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Language Segment</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartLanguage"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Demand Generation Tab -->
+    <div id="demandContent" style="display:none">
+        <!-- Demand Filter Bar -->
+        <div class="filter-bar" id="demandFilterBar">
+            <span class="filter-label">Filter:</span>
+
+            <!-- Organisation -->
+            <div class="ms-wrap" id="dms-org">
+                <button class="ms-btn" onclick="toggleDms('org',event)">
+                    <span id="dms-org-label">Organisation</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-org-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('org',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('org')">Select All</button>
+                        <button onclick="clearDms('org')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-org-list"></div>
+                </div>
+            </div>
+
+            <!-- GBU -->
+            <div class="ms-wrap" id="dms-gbu">
+                <button class="ms-btn" onclick="toggleDms('gbu',event)">
+                    <span id="dms-gbu-label">GBU</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-gbu-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('gbu')">Select All</button>
+                        <button onclick="clearDms('gbu')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-gbu-list"></div>
+                </div>
+            </div>
+
+            <!-- Deliverability -->
+            <div class="ms-wrap" id="dms-deliv">
+                <button class="ms-btn" onclick="toggleDms('deliv',event)">
+                    <span id="dms-deliv-label">Deliverability</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-deliv-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('deliv')">Select All</button>
+                        <button onclick="clearDms('deliv')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-deliv-list"></div>
+                </div>
+            </div>
+
+            <!-- Vertical -->
+            <div class="ms-wrap" id="dms-vertical">
+                <button class="ms-btn" onclick="toggleDms('vertical',event)">
+                    <span id="dms-vertical-label">Vertical</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-vertical-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('vertical',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('vertical')">Select All</button>
+                        <button onclick="clearDms('vertical')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-vertical-list"></div>
+                </div>
+            </div>
+
+            <!-- Country -->
+            <div class="ms-wrap" id="dms-country">
+                <button class="ms-btn" onclick="toggleDms('country',event)">
+                    <span id="dms-country-label">Country</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-country-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('country',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('country')">Select All</button>
+                        <button onclick="clearDms('country')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-country-list"></div>
+                </div>
+            </div>
+
+            <button class="filter-reset" onclick="resetDemandFilters()">Reset All</button>
+            <span class="filter-count" id="demandFilterCount"></span>
+        </div>
+
+        <div class="main">
+            <div class="section-label">Lead Management Process
+                <span class="section-label-note" id="demandLeadCount"></span>
+            </div>
+            <div class="chart-card">
+                <div class="lmp-flow">
+                    <!-- Banner -->
+                    <div class="lmp-banner">
+                        <div class="lmp-banner-mkt">Marketing <span class="lmp-banner-tag">Marketo</span></div>
+                        <div class="lmp-banner-sales">Sales <span class="lmp-banner-tag">Salesforce</span></div>
+                    </div>
+                    <!-- Grid: 7 cols × 3 rows -->
+                    <div class="lmp-grid">
+                        <!-- Row 1: Main stages (auto-placed) -->
+                        <div class="lmp-stage lmp-demand" id="lmpBoxDemand">
+                            <div class="lmp-stage-name">Demand Capture</div>
+                            <div class="lmp-stage-val" id="ffDemand">—</div>
+                            <div class="lmp-stage-pct" id="ffDemandPct"></div>
+                            <div class="lmp-stage-sub">No Person Status</div>
+                        </div>
+                        <div class="lmp-h-arr"></div>
+                        <div class="lmp-stage-group">
+                            <div class="lmp-stage lmp-assigned" id="lmpBoxAssigned">
+                                <div class="lmp-stage-name">Assigned</div>
+                                <div class="lmp-stage-val" id="ffAssigned">—</div>
+                                <div class="lmp-stage-pct" id="ffAssignedPct"></div>
+                            </div>
+                            <div class="lmp-stage lmp-prospect" id="lmpBoxProspect">
+                                <div class="lmp-stage-name">Prospect</div>
+                                <div class="lmp-stage-val" id="ffProspect">—</div>
+                                <div class="lmp-stage-pct" id="ffProspectPct"></div>
+                            </div>
+                        </div>
+                        <div class="lmp-h-arr"></div>
+                        <div class="lmp-stage lmp-working" id="lmpBoxWorking">
+                            <div class="lmp-stage-name">Working</div>
+                            <div class="lmp-stage-val" id="ffWorking">—</div>
+                            <div class="lmp-stage-pct" id="ffWorkingPct"></div>
+                        </div>
+                        <div class="lmp-h-arr"></div>
+                        <div class="lmp-stage lmp-converted" id="lmpBoxConverted">
+                            <div class="lmp-stage-name">Converted</div>
+                            <div class="lmp-stage-val" id="ffConverted">—</div>
+                            <div class="lmp-stage-sub">&#8594; become Contacts</div>
+                        </div>
+
+                        <!-- Row 2: Branch connector — originates from Working, fans to all three outcomes -->
+                        <div class="lmp-branch" style="grid-column:3/8;grid-row:2"><span class="lmp-branch-u"></span></div>
+
+                        <!-- Row 3: Outcome stages (explicit placement) -->
+                        <div class="lmp-stage lmp-nurture" id="lmpBoxNurture" style="grid-column:1/4;grid-row:3;align-self:start">
+                            <div class="lmp-stage-name">Nurture</div>
+                            <div class="lmp-stage-val" id="ffNurture">—</div>
+                            <div class="lmp-stage-pct" id="ffNurturePct"></div>
+                        </div>
+                        <div class="lmp-stage lmp-referral" id="lmpBoxReferral" style="grid-column:5;grid-row:3;align-self:start">
+                            <div class="lmp-stage-name">Referral</div>
+                            <div class="lmp-stage-val" id="ffReferral">—</div>
+                            <div class="lmp-stage-pct" id="ffReferralPct"></div>
+                        </div>
+                        <div class="lmp-stage lmp-unqualified" id="lmpBoxUnqualified" style="grid-column:7;grid-row:3;align-self:start">
+                            <div class="lmp-stage-name">Unqualified</div>
+                            <div class="lmp-stage-val" id="ffUnqualified">—</div>
+                            <div class="lmp-stage-pct" id="ffUnqualifiedPct"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
+                <span class="section-label-note">Relative Urgency × Relative Score</span>
+            </div>
+            <div class="chart-card" style="overflow-x:auto">
+                <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+                    <div>
+                        <div class="chart-title" style="margin-bottom:6px">Count <span style="font-size:10px;font-weight:400;color:var(--ansell-light-gray)">records per cell</span></div>
+                        <div id="demandScoreMatrix"></div>
+                    </div>
+                    <div>
+                        <div class="chart-title" style="margin-bottom:6px">Share <span style="font-size:10px;font-weight:400;color:var(--ansell-light-gray)">% of scored leads</span></div>
+                        <div id="demandScoreMatrixPct"></div>
+                    </div>
+                </div>
+                <div style="font-size:9px;color:var(--ansell-light-gray);margin-top:10px">SFDC Leads with Urgency &amp; Score set · Darker = more leads · Top-right = high urgency + high score</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Data Quality Tab -->
+    <div id="qualityContent" style="display:none">
+        <div class="main">
+            <div class="section-label">Data Quality Overview</div>
+            <div class="dq-summary-grid" id="dqSummary"></div>
+            <div id="dqPicklistRef"></div>
+            <div id="dqClouds" class="hide-clean"></div>
+        </div>
+    </div>
+
+    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Database Analysis</div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    //  CONSTANTS
+    // ═══════════════════════════════════════════════════════════
+    const RECORD_TYPE_MAP = {
+        '0120o0000017h2RAAQ': 'Webstore',
+        '01290000000AEOiAAO': 'Distributors',
+        '01290000000AEOjAAO': 'End-Users'
+    };
+
+    const DELIV_COLORS = {
+        'Opted-In Explicit':                '#00A28F',
+        'Opted-In Implicit (No Response)':  '#0063AC',
+        'Unsubscribed':                     '#e53935',
+        'Email Invalid':                    '#ef6c00',
+        'Suspended Email':                  '#f59e0b',
+        'Suspended Marketing':              '#fb8c00',
+        'Noemail@ansell.com':               '#78909c',
+        'Blocklisted, Blacklisted, Competitors': '#b71c1c',
+        '(blank)':                          '#cfd8dc'
+    };
+
+    const ORG_COLORS = {
+        'Americas Healthcare': '#0063AC',
+        'Americas Industrial': '#1976d2',
+        'EMEA Healthcare':     '#00A28F',
+        'EMEA Industrial':     '#26a69a',
+        'APAC Healthcare':     '#7030A0',
+        'APAC Industrial':     '#9c27b0',
+        '(blank)':             '#cfd8dc'
+    };
+
+    const CHART_PALETTE = [
+        '#0063AC','#00A28F','#7030A0','#1976d2','#26a69a',
+        '#9c27b0','#0288d1','#00897b','#8e24aa','#1565c0',
+        '#00695c','#6a1b9a','#01579b','#004d40','#4a148c',
+        '#0d47a1','#006064','#311b92','#37474f','#546e7a'
+    ];
+
+    // ═══════════════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════════════
+    let allData = [];
+    let charts = {};
+    let exportDateStr = '';
+
+    // ═══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function fmt(n) {
+        if (n === undefined || n === null) return '—';
+        return n.toLocaleString('en-US');
+    }
+
+    function pct(n, total) {
+        if (!total) return '0%';
+        return (n / total * 100).toFixed(1) + '%';
+    }
+
+    function ordinal(d) {
+        if (d > 3 && d < 21) return d + 'th';
+        switch (d % 10) {
+            case 1: return d + 'st';
+            case 2: return d + 'nd';
+            case 3: return d + 'rd';
+            default: return d + 'th';
+        }
+    }
+
+    function formatExportDate(dateStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${ordinal(d)} of ${months[m - 1]} '${String(y).slice(-2)}`;
+    }
+
+    function parseYear(str) {
+        if (!str || !str.trim()) return null;
+        str = str.trim();
+        // ISO: YYYY-MM-DD ...
+        if (/^\d{4}-\d{2}-\d{2}/.test(str)) return parseInt(str.slice(0, 4));
+        // DD-MM-YY ...
+        if (/^\d{2}-\d{2}-\d{2}/.test(str)) {
+            const yy = parseInt(str.slice(6, 8));
+            return 2000 + yy;
+        }
+        return null;
+    }
+
+    function parseMonth(str) {
+        if (!str || !str.trim()) return null;
+        str = str.trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(str)) return parseInt(str.slice(5, 7));
+        if (/^\d{2}-\d{2}-\d{2}/.test(str)) return parseInt(str.slice(3, 5));
+        return null;
+    }
+
+    function countBy(data, key) {
+        const counts = {};
+        for (const r of data) {
+            const v = r[key] || '(blank)';
+            counts[v] = (counts[v] || 0) + 1;
+        }
+        return counts;
+    }
+
+    function countByYear(data, key) {
+        const counts = {};
+        for (const r of data) {
+            const y = r[key];
+            if (y) counts[y] = (counts[y] || 0) + 1;
+        }
+        return counts;
+    }
+
+    function sortedTopN(counts, n) {
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, n);
+    }
+
+    function deriveChannel(name) {
+        if (!name || !name.trim()) return 'Unknown';
+        const n = name.toLowerCase();
+        if (n.includes('record created in salesforce')) return 'SFDC Direct';
+        if (n.includes('paid-social') || n.includes('paid social') || n.includes('-fb_') || n.includes('-li_')) return 'Paid Social';
+        if (n.includes('_ev_') || (n.includes('event') && !n.includes('webinar'))) return 'Events';
+        if (n.includes('webinar') || n.includes('webn')) return 'Webinar';
+        if (n.includes('web-form') || n.includes('webform') || n.includes(' wf ') || n.includes('_wf_') || n.includes('contact-us') || n.includes('web form')) return 'Web Form';
+        if (n.includes('download') || n.includes('gated') || n.includes('content')) return 'Content / Download';
+        if (n.includes('email') || n.includes('_em_') || n.includes('nurture')) return 'Email';
+        if (n.includes('direct-mail') || n.includes('direct mail')) return 'Direct Mail';
+        if (n.includes('seo') || n.includes('organic')) return 'Organic / SEO';
+        if (n.includes('operational') || n.includes('central-upload') || n.includes('admin')) return 'Operational';
+        if (n.includes('deleted') || n.includes('archived')) return 'Archived Programs';
+        return 'Other';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILE DETECTION & LOADING
+    // ═══════════════════════════════════════════════════════════
+    async function detectLatestExport() {
+        const today = new Date();
+        for (let i = 0; i < 90; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${dd}`;
+            const path = `Reports/${dateStr} Dashboard_Export.csv`;
+            try {
+                const r = await fetch(path, { method: 'HEAD' });
+                if (r.ok) return { path, dateStr };
+            } catch {}
+        }
+        return null;
+    }
+
+    function handleFileInput(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        // Try to extract date from filename
+        const match = file.name.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) exportDateStr = match[1];
+        else exportDateStr = '';
+        showLoading(`Parsing ${file.name}…`);
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (res) => processData(res.data),
+            error: (err) => { console.error(err); showEmpty(); }
+        });
+        e.target.value = '';
+    }
+
+    async function exportDashboard() {
+        if (!allData.length) { alert('Please load data first.'); return; }
+
+        const btn = document.getElementById('exportBtn');
+        const origText = btn.innerHTML;
+        btn.innerHTML = '…';
+        btn.disabled = true;
+
+        // ── Inline the CSS so the export is fully self-contained ──
+        let cssText = '';
+        try {
+            cssText = await fetch('ansell.digital.css').then(r => r.text());
+        } catch (_) {
+            try {
+                const sheet = Array.from(document.styleSheets)
+                    .find(s => s.href && s.href.includes('ansell'));
+                if (sheet) cssText = Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
+            } catch (_2) {}
+        }
+
+        // ── Clone the full DOM ──
+        const clone = document.documentElement.cloneNode(true);
+        const rm = sel => { const el = clone.querySelector(sel); if (el) el.remove(); };
+
+        rm('#exportBtn');        // don't include the export button itself
+        rm('#apiBtn');           // Marketo API button
+        rm('#mktoSettingsBar');  // settings panel
+        rm('#dqFixPanel');       // DQ Fix floating panel
+        rm('.load-btn');         // Load Data button
+        rm('#fileInput');        // file input
+        rm('.home-btn');         // Hub link (relative path breaks when shared)
+
+        // Remove PapaParse (not needed in export)
+        clone.querySelectorAll('script[src]').forEach(s => {
+            if (s.getAttribute('src').includes('papaparse')) s.remove();
+        });
+
+        // Replace <link rel="stylesheet"> with inline <style>
+        const linkEl = clone.querySelector('link[rel="stylesheet"]');
+        if (linkEl && cssText) {
+            const styleEl = document.createElement('style');
+            styleEl.textContent = cssText;
+            linkEl.replaceWith(styleEl);
+        }
+
+        // ── Encode allData in compact columnar format ──
+        const cols = ['org','gbu','country','sfdcType','acqProgram','deliverability',
+                      'language','optInYear','optInMonth','createdYear','createdMonth',
+                      'vertical','subVertical','recordType','channel','accountId18',
+                      'personStatus','relUrgency','relScore'];
+        const rows = allData.map(r => cols.map(c => r[c] || null));
+
+        // ── Inject init script at end of <body> ──
+        const initScript = document.createElement('script');
+        initScript.textContent = `
+(function() {
+    var cols = ${JSON.stringify(cols)};
+    var rows = ${JSON.stringify(rows)};
+    allData = rows.map(function(r) {
+        var o = {};
+        cols.forEach(function(c, i) { o[c] = r[i] == null ? '' : r[i]; });
+        return o;
+    });
+    exportDateStr = ${JSON.stringify(exportDateStr || '')};
+    window.openDqFix = function() {};
+    initMultiSelects();
+    renderAll(allData);
+    showDash();
+})();`;
+        clone.getElementsByTagName('body')[0].appendChild(initScript);
+
+        // ── Serialize and download ──
+        const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'marketo-dashboard-' + (exportDateStr || new Date().toISOString().slice(0, 10)) + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        btn.innerHTML = origText;
+        btn.disabled = false;
+    }
+
+    function loadCSV(path, dateStr) {
+        exportDateStr = dateStr;
+        showLoading('Auto-loading latest export…');
+        Papa.parse(path, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (res) => processData(res.data),
+            error: () => showEmpty()
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DATA PROCESSING
+    // ═══════════════════════════════════════════════════════════
+    function processData(raw) {
+        demandFiltersInitialized = false; // force filter rebuild on next demand tab visit
+        allData = raw.map(r => ({
+            createdYear:  parseYear(r['Created At']),
+            createdMonth: parseMonth(r['Created At']),
+            country:      (r['Country'] || '').trim(),
+            sfdcType:     (r['SFDC Type'] || '').trim(),
+            acqProgram:   (r['Acquisition Program Name'] || '').trim(),
+            deliverability:(r['Deliverability Segment'] || '').trim(),
+            language:     (r['Language 2025 Segment'] || '').trim(),
+            org:          (r['Organisation'] || '').trim(),
+            optInYear:    parseYear(r['1. Current Opt-In Timestamp']),
+            optInMonth:   parseMonth(r['1. Current Opt-In Timestamp']),
+            vertical:     (r['Vertical'] || '').trim(),
+            subVertical:  (r['Sub Vertical'] || '').trim(),
+            gbu:          (r['1. GBU'] || '').trim(),
+            recordType:   RECORD_TYPE_MAP[r['Record Type ID (A)']] || (r['Record Type ID (A)'] ? 'Other' : ''),
+            channel:      deriveChannel(r['Acquisition Program Name']),
+            accountId18:  (r['Account ID 18'] || '').trim(),
+            personStatus: (r['Person Status'] || '').trim(),
+            relUrgency:   (r['Relative Urgency'] || '').trim(),
+            relScore:     (r['Relative Score'] || '').trim()
+        }));
+
+        // Normalize casing on all free-text fields: group by lowercase, keep most-common casing
+        // so "INDUSTRIAL" and "Industrial" are treated as the same value everywhere
+        const NORMALIZE_FIELDS = ['org','gbu','country','sfdcType','deliverability',
+                                   'language','vertical','subVertical','acqProgram','channel','personStatus'];
+        NORMALIZE_FIELDS.forEach(field => {
+            const casings = {};
+            allData.forEach(r => {
+                const v = r[field]; if (!v) return;
+                const k = v.toLowerCase();
+                if (!casings[k]) casings[k] = {};
+                casings[k][v] = (casings[k][v] || 0) + 1;
+            });
+            const canonical = {};
+            Object.entries(casings).forEach(([k, counts]) => {
+                canonical[k] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+            });
+            allData.forEach(r => { if (r[field]) r[field] = canonical[r[field].toLowerCase()]; });
+        });
+
+        initMultiSelects();
+        renderAll(allData);
+        showDash();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  MULTI-SELECT FILTERS
+    // ═══════════════════════════════════════════════════════════
+    const MS_LABELS = {
+        'f-org':      'Organisation',
+        'f-gbu':      'GBU',
+        'f-sfdc':     'SFDC Type',
+        'f-deliv':    'Deliverability',
+        'f-vertical': 'Vertical'
+    };
+
+    const STATIC_OPTIONS = {
+        'f-gbu':  ['Healthcare', 'Industrial', '(blank)'],
+        'f-sfdc': ['Contact', 'Lead', '(blank)'],
+        'f-deliv': [
+            'Opted-In Explicit',
+            'Opted-In Implicit (No Response)',
+            'Unsubscribed',
+            'Email Invalid',
+            'Suspended Email',
+            'Suspended Marketing',
+            'Noemail@ansell.com',
+            'Blocklisted, Blacklisted, Competitors'
+        ]
+    };
+
+    // id → Set of selected values (empty Set = no filter / show all)
+    const msState = {
+        'f-org': new Set(), 'f-gbu': new Set(),
+        'f-sfdc': new Set(), 'f-deliv': new Set(), 'f-vertical': new Set()
+    };
+
+    function initMultiSelects() {
+        // Static options
+        for (const [id, opts] of Object.entries(STATIC_OPTIONS)) {
+            buildMsList(id, opts);
+        }
+        // Dynamic: Organisation
+        const orgs = [...new Set(allData.map(r => r.org))].filter(v => v).sort();
+        buildMsList('f-org', orgs);
+        // Dynamic: Vertical
+        const verts = [...new Set(allData.map(r => r.vertical))].filter(v => v).sort();
+        buildMsList('f-vertical', verts);
+    }
+
+    function buildMsList(id, options) {
+        const list = document.getElementById(`ms-${id}-list`);
+        if (!list) return;
+        list.innerHTML = options.map(opt =>
+            `<label class="ms-item">
+                <input type="checkbox" value="${opt.replace(/"/g, '&quot;')}"
+                    onchange="toggleMsOption('${id}', this.value, this.checked)">
+                <span>${opt}</span>
+            </label>`
+        ).join('');
+    }
+
+    function toggleMs(id, e) {
+        e.stopPropagation();
+        const panel = document.getElementById(`ms-${id}-panel`);
+        const btn   = document.querySelector(`#ms-${id} .ms-btn`);
+        const isOpen = panel.style.display === 'block';
+        // Close all first
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+        if (!isOpen) {
+            panel.style.display = 'block';
+            btn.classList.add('open');
+        }
+    }
+
+    function filterMsItems(id, query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll(`#ms-${id}-list .ms-item`).forEach(item => {
+            const text = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = text.includes(q) ? '' : 'none';
+        });
+    }
+
+    function toggleMsOption(id, value, checked) {
+        if (checked) msState[id].add(value);
+        else         msState[id].delete(value);
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function selectAllMs(id) {
+        document.querySelectorAll(`#ms-${id}-list .ms-item`).forEach(item => {
+            if (item.style.display !== 'none') {
+                const cb = item.querySelector('input');
+                cb.checked = true;
+                msState[id].add(cb.value);
+            }
+        });
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function clearMs(id) {
+        msState[id].clear();
+        document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = false);
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function updateMsBtn(id) {
+        const sel = msState[id].size;
+        const label = document.getElementById(`ms-${id}-label`);
+        const btn   = document.querySelector(`#ms-${id} .ms-btn`);
+        if (sel === 0) {
+            label.textContent = MS_LABELS[id];
+            btn.classList.remove('active');
+        } else if (sel === 1) {
+            label.textContent = [...msState[id]][0];
+            btn.classList.add('active');
+        } else {
+            label.textContent = `${sel} selected`;
+            btn.classList.add('active');
+        }
+    }
+
+    function onMsChange() {
+        const filtered = applyFilters();
+        updateFilterCount(filtered.length);
+        renderAll(filtered);
+    }
+
+    function applyFilters() {
+        return allData.filter(r => {
+            const org   = msState['f-org'];
+            if (org.size   && !org.has(r.org || '(blank)'))            return false;
+            const gbu   = msState['f-gbu'];
+            if (gbu.size   && !gbu.has(r.gbu || '(blank)'))            return false;
+            const sfdc  = msState['f-sfdc'];
+            if (sfdc.size  && !sfdc.has(r.sfdcType || '(blank)'))      return false;
+            const deliv = msState['f-deliv'];
+            if (deliv.size && !deliv.has(r.deliverability || '(blank)')) return false;
+            const vert  = msState['f-vertical'];
+            if (vert.size  && !vert.has(r.vertical || '(blank)'))       return false;
+            if (activeDrillFilter) {
+                const { field, value } = activeDrillFilter;
+                if ((r[field] || '(blank)') !== value) return false;
+            }
+            return true;
+        });
+    }
+
+    function updateFilterCount(n) {
+        const el = document.getElementById('filterCount');
+        if (n === allData.length) {
+            el.innerHTML = `<strong>${fmt(n)}</strong> records`;
+        } else {
+            el.innerHTML = `Showing <strong>${fmt(n)}</strong> of ${fmt(allData.length)} records`;
+        }
+    }
+
+    function resetFilters() {
+        activeDrillFilter = null;
+        updateDrillChip();
+        for (const id of Object.keys(msState)) {
+            msState[id].clear();
+            document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = false);
+            const searchEl = document.querySelector(`#ms-${id}-panel .ms-search`);
+            if (searchEl) { searchEl.value = ''; filterMsItems(id, ''); }
+            updateMsBtn(id);
+        }
+        updateFilterCount(allData.length);
+        renderAll(allData);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  RENDER ALL
+    // ═══════════════════════════════════════════════════════════
+    let currentFilteredData = [];
+
+    function renderAll(data) {
+        currentFilteredData = data;
+        renderKPIs(data);
+        renderCompanyKPIs(data);
+        renderDeliverability(data);
+        renderGBU(data);
+        renderOrg(data);
+        renderSFDC(data);
+        renderRecordType(data);
+        renderChannel(data);
+        renderGrowth(data);
+        renderOptInGrowth(data);
+        renderCountries(data);
+        renderVertical(data);
+        renderLanguage(data);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  KPIs
+    // ═══════════════════════════════════════════════════════════
+    function renderKPIs(data) {
+        const total = data.length;
+        const contactable = data.filter(r =>
+            r.deliverability === 'Opted-In Explicit' ||
+            r.deliverability === 'Opted-In Implicit (No Response)'
+        ).length;
+        const explicit = data.filter(r => r.deliverability === 'Opted-In Explicit').length;
+        const suppressed = data.filter(r =>
+            r.deliverability === 'Unsubscribed' ||
+            r.deliverability === 'Email Invalid' ||
+            r.deliverability === 'Suspended Email' ||
+            r.deliverability === 'Suspended Marketing' ||
+            r.deliverability === 'Noemail@ansell.com' ||
+            r.deliverability === 'Blocklisted, Blacklisted, Competitors'
+        ).length;
+
+        document.getElementById('kpiTotal').firstChild.textContent = fmt(total);
+        document.getElementById('kpiTotalSub').textContent = exportDateStr ? `as of ${formatExportDate(exportDateStr)}` : 'current export';
+
+        document.getElementById('kpiContactable').firstChild.textContent = fmt(contactable);
+        document.getElementById('kpiContactablePct').textContent = ` ${pct(contactable, total)}`;
+
+        document.getElementById('kpiExplicit').firstChild.textContent = fmt(explicit);
+        document.getElementById('kpiExplicitPct').textContent = ` ${pct(explicit, total)}`;
+
+        document.getElementById('kpiSuppressed').firstChild.textContent = fmt(suppressed);
+        document.getElementById('kpiSuppressedPct').textContent = ` ${pct(suppressed, total)}`;
+    }
+
+    function renderCompanyKPIs(data) {
+        // Only Contacts have a meaningful Account ID — Leads are not linked to accounts
+        const contacts = data.filter(r => r.sfdcType === 'Contact' && r.accountId18);
+
+        const endUserContacts     = contacts.filter(r => r.recordType === 'End-Users');
+        const distributorContacts = contacts.filter(r => r.recordType === 'Distributors');
+        const webstoreContacts    = contacts.filter(r => r.recordType === 'Webstore');
+
+        const endUserAccts     = new Set(endUserContacts.map(r => r.accountId18)).size;
+        const distributorAccts = new Set(distributorContacts.map(r => r.accountId18)).size;
+        const webstoreAccts    = new Set(webstoreContacts.map(r => r.accountId18)).size;
+
+        document.getElementById('kpiEndUsers').textContent     = fmt(endUserAccts);
+        document.getElementById('kpiEndUsersSub').textContent  = `unique accounts · ${fmt(endUserContacts.length)} contacts`;
+        document.getElementById('kpiDistributors').textContent    = fmt(distributorAccts);
+        document.getElementById('kpiDistributorsSub').textContent = `unique accounts · ${fmt(distributorContacts.length)} contacts`;
+        document.getElementById('kpiWebstore').textContent    = fmt(webstoreAccts);
+        document.getElementById('kpiWebstoreSub').textContent = `unique accounts · ${fmt(webstoreContacts.length)} contacts`;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHART HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function makeHBar(id, labels, values, colors, opts = {}) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const { datasets: overrideDatasets, onRightClick, ...chartOpts } = opts;
+        const stacked = !!overrideDatasets;
+        const rawDatasets = overrideDatasets || [{
+            data: values, backgroundColor: colors, borderWidth: 0, borderRadius: 2
+        }];
+        const total = (values || []).reduce((s, v) => s + v, 0);
+        const tooltipConfig = stacked
+            ? { mode: 'index', callbacks: {
+                label: c => ` ${c.dataset.label}: ${fmt(c.parsed.x)}`,
+                footer: items => `  Total: ${fmt(items.reduce((s, i) => s + i.parsed.x, 0))}`
+              }}
+            : { callbacks: { label: c => ` ${fmt(c.parsed.x)}  (${pct(c.parsed.x, total)})` } };
+        const options = {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: stacked, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                tooltip: tooltipConfig
+            },
+            scales: {
+                x: { stacked, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } },
+                y: { stacked, grid: { display: false }, ticks: { font: { size: 11 } } }
+            },
+            ...chartOpts
+        };
+        if ((options.onClick || onRightClick) && !options.onHover) {
+            options.onHover = (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; };
+        }
+        if (charts[id]) { charts[id].destroy(); }
+        const c = new Chart(ctx, { type: 'bar', data: { labels, datasets: rawDatasets }, options });
+        charts[id] = c;
+        const h = Math.max(180, labels.length * 30 + 50);
+        document.getElementById(id).parentElement.style.height = h + 'px';
+        // right-click handler
+        const canvasEl = document.getElementById(id);
+        if (canvasEl._rightClickHandler) {
+            canvasEl.removeEventListener('contextmenu', canvasEl._rightClickHandler);
+            canvasEl._rightClickHandler = null;
+        }
+        if (onRightClick) {
+            canvasEl._rightClickHandler = (e) => {
+                e.preventDefault();
+                const els = charts[id].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                onRightClick(e, els);
+            };
+            canvasEl.addEventListener('contextmenu', canvasEl._rightClickHandler);
+        }
+        return c;
+    }
+
+    function makeDonut(id, labels, values, colors, opts = {}) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const total = values.reduce((s, v) => s + v, 0);
+        const { onRightClick, ...chartOpts } = opts;
+        if (charts[id]) charts[id].destroy();
+        const donutOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 10 } },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmt(ctx.parsed)} (${pct(ctx.parsed, total)})` } }
+            },
+            ...chartOpts
+        };
+        if ((donutOptions.onClick || onRightClick) && !donutOptions.onHover) {
+            donutOptions.onHover = (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; };
+        }
+        charts[id] = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+            options: donutOptions
+        });
+        // right-click handler
+        const canvasEl = document.getElementById(id);
+        if (canvasEl._rightClickHandler) {
+            canvasEl.removeEventListener('contextmenu', canvasEl._rightClickHandler);
+            canvasEl._rightClickHandler = null;
+        }
+        if (onRightClick) {
+            canvasEl._rightClickHandler = (e) => {
+                e.preventDefault();
+                const els = charts[id].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                onRightClick(e, els);
+            };
+            canvasEl.addEventListener('contextmenu', canvasEl._rightClickHandler);
+        }
+    }
+
+    function makeVBar(id, labels, values, color) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        const total = values.reduce((s, v) => s + v, 0);
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: color || CHART_PALETTE[0],
+                    borderWidth: 0,
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${fmt(ctx.parsed.y)}  (${pct(ctx.parsed.y, total)})`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { font: { size: 11 }, callback: v => fmt(v) }
+                    }
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DRILL-DOWN HELPERS
+    // ═══════════════════════════════════════════════════════════
+    const DRILL_OPTIONS = [
+        { value: 'sfdcType',       label: 'SFDC Type',           fn: r => r.sfdcType === 'Contact' ? 'Contact' : r.sfdcType === 'Lead' ? 'Lead' : 'People',  colorFn: (k, i) => ({ Contact: '#0063AC', Lead: '#00A28F', People: '#BBBCBC' }[k] || '#90a4ae') },
+        { value: 'gbu',            label: 'GBU',                 fn: r => r.gbu || '(blank)',          colorFn: (k, i) => ({ Healthcare: '#0063AC', Industrial: '#00A28F', '(blank)': '#cfd8dc' }[k] || '#90a4ae') },
+        { value: 'deliverability', label: 'Deliverability',      fn: r => r.deliverability || '(blank)', colorFn: (k, i) => DELIV_COLORS[k] || '#90a4ae' },
+        { value: 'recordType',     label: 'Record Type (A)',     fn: r => r.recordType || '(blank)',   colorFn: (k, i) => (['#0063AC','#00A28F','#7030A0','#f59e0b','#cfd8dc'][i]) || CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'vertical',       label: 'Vertical',            fn: r => r.vertical || '(blank)',     colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'channel',        label: 'Acquisition Channel', fn: r => r.channel || '(blank)',      colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
+    ];
+
+    let drillMetric = '';
+    function getDrillOption() { return drillMetric ? DRILL_OPTIONS.find(o => o.value === drillMetric) || null : null; }
+
+    function buildDrillMatrix(data, pkFn) {
+        const opt = getDrillOption();
+        if (!opt) return { matrix: {}, drillKeys: [] };
+        const matrix = {}, keyTotals = {};
+        for (const r of data) {
+            const pk = pkFn(r);
+            if (pk === null || pk === undefined) continue;
+            const dk = opt.fn(r);
+            if (!matrix[pk]) matrix[pk] = {};
+            matrix[pk][dk] = (matrix[pk][dk] || 0) + 1;
+            keyTotals[dk] = (keyTotals[dk] || 0) + 1;
+        }
+        const drillKeys = Object.entries(keyTotals).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+        return { matrix, drillKeys };
+    }
+
+    function makeDrillDatasets(primaryKeys, matrix, drillKeys) {
+        const opt = getDrillOption();
+        return drillKeys.map((dk, i) => ({
+            label: dk,
+            data: primaryKeys.map(pk => (matrix[pk] && matrix[pk][dk]) || 0),
+            backgroundColor: opt.colorFn(dk, i),
+            borderWidth: 0, borderRadius: 2
+        }));
+    }
+
+    function setDrillMetric(value) {
+        drillMetric = value;
+        if (currentFilteredData.length) renderAll(currentFilteredData);
+    }
+
+    let activeDrillFilter = null;
+
+    function setDrillFilter(field, value, chartLabel, displayValue) {
+        activeDrillFilter = { field, value, chartLabel, displayValue: displayValue || value };
+        updateDrillChip();
+        const filtered = applyFilters();
+        updateFilterCount(filtered.length);
+        renderAll(filtered);
+    }
+
+    function clearDrillFilter() {
+        activeDrillFilter = null;
+        updateDrillChip();
+        const filtered = applyFilters();
+        updateFilterCount(filtered.length);
+        renderAll(filtered);
+    }
+
+    function updateDrillChip() {
+        const chip = document.getElementById('drillFilterChip');
+        if (!chip) return;
+        if (activeDrillFilter) {
+            chip.querySelector('.drill-chip-label').textContent =
+                `${activeDrillFilter.chartLabel}: ${activeDrillFilter.displayValue}`;
+            chip.style.display = 'inline-flex';
+        } else {
+            chip.style.display = 'none';
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  INDIVIDUAL CHARTS
+    // ═══════════════════════════════════════════════════════════
+    function renderDeliverability(data) {
+        const counts = countBy(data, 'deliverability');
+        const ordered = [
+            'Opted-In Explicit',
+            'Opted-In Implicit (No Response)',
+            'Unsubscribed',
+            'Email Invalid',
+            'Suspended Email',
+            'Suspended Marketing',
+            'Noemail@ansell.com',
+            'Blocklisted, Blacklisted, Competitors',
+            '(blank)'
+        ].filter(k => counts[k]);
+        const labels = ordered;
+        const values = ordered.map(k => counts[k] || 0);
+        const colors = ordered.map(k => DELIV_COLORS[k] || '#90a4ae');
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.deliverability || '(blank)');
+        makeHBar('chartDeliverability', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('deliverability', lbl, 'Deliverability'); }
+        });
+    }
+
+    function renderGBU(data) {
+        const counts = countBy(data, 'gbu');
+        const allLabels = Object.keys(counts).filter(k => k !== '(blank)');
+        allLabels.push('(blank)');
+        const allValues = allLabels.map(k => counts[k] || 0);
+        const allColors = allLabels.map(k => k === 'Healthcare' ? '#0063AC' : k === 'Industrial' ? '#00A28F' : '#cfd8dc');
+        const fLabels = allLabels.filter((_, i) => allValues[i] > 0);
+        const fValues = allValues.filter(v => v > 0);
+        const fColors = allColors.filter((_, i) => allValues[i] > 0);
+        makeDonut('chartGBU', fLabels, fValues, fColors, {
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = fLabels[els[0].index]; setDrillFilter('gbu', lbl, 'GBU'); }
+        });
+    }
+
+    function renderOrg(data) {
+        const counts = countBy(data, 'org');
+        const entries = sortedTopN(counts, 10);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map(k => ORG_COLORS[k] || '#90a4ae');
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.org || '(blank)');
+        makeHBar('chartOrg', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('org', lbl, 'Organisation'); }
+        });
+    }
+
+    function renderSFDC(data) {
+        const counts = countBy(data, 'sfdcType');
+        const keys = ['Contact','Lead','(blank)'].filter(k => counts[k]);
+        const values = keys.map(k => counts[k] || 0);
+        const colors = ['#0063AC','#00A28F','#cfd8dc'];
+        makeDonut('chartSFDC', keys, values, colors.slice(0, keys.length), {
+            onRightClick: (evt, els) => { if (!els.length) return; const key = keys[els[0].index]; setDrillFilter('sfdcType', key, 'SFDC Type', key === '(blank)' ? 'People (Marketo only)' : key); }
+        });
+    }
+
+    function renderRecordType(data) {
+        const counts = {};
+        for (const r of data) { const k = r.recordType || '(blank)'; counts[k] = (counts[k] || 0) + 1; }
+        const order = ['End-Users','Distributors','Webstore','Other','(blank)'].filter(k => counts[k]);
+        const values = order.map(k => counts[k] || 0);
+        const colors = ['#0063AC','#00A28F','#7030A0','#f59e0b','#cfd8dc'];
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.recordType || '(blank)');
+        makeHBar('chartRecordType', order, values, colors.slice(0, order.length), {
+            datasets: drillKeys.length ? makeDrillDatasets(order, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = order[els[0].index]; setDrillFilter('recordType', lbl, 'Record Type (A)'); }
+        });
+    }
+
+    function renderChannel(data) {
+        const counts = countBy(data, 'channel');
+        const entries = sortedTopN(counts, 10);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.channel || '(blank)');
+        makeHBar('chartChannel', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('channel', lbl, 'Acquisition Channel'); }
+        });
+    }
+
+    let currentGrowthData = [];
+    let expandedGrowthYear = null;
+    let currentOptInData  = [];
+    let expandedOptInYear = null;
+    let currentVerticalData = [];
+    let expandedVertical    = null;
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function makeGrowthChart(canvasId, labels, datasets, onClickFn) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if (charts[canvasId]) charts[canvasId].destroy();
+        const stacked = datasets.length > 1;
+        charts[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: stacked, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                    tooltip: stacked
+                        ? { mode: 'index', callbacks: {
+                            label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}`,
+                            footer: items => `  Total: ${fmt(items.reduce((s, i) => s + i.parsed.y, 0))}`
+                          }}
+                        : { callbacks: { label: c => ` ${fmt(c.parsed.y)}` } }
+                },
+                scales: {
+                    x: { stacked, grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: { stacked, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } }
+                },
+                onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+                onClick: onClickFn || undefined
+            }
+        });
+    }
+
+    function growthDatasets(keys, matrix, drillKeys, fallbackData, color) {
+        if (drillKeys.length) return makeDrillDatasets(keys, matrix, drillKeys);
+        return [{ label: '', data: keys.map(k => fallbackData[k] || 0), backgroundColor: color, borderWidth: 0, borderRadius: 2 }];
+    }
+
+    function renderGrowth(data) {
+        currentGrowthData = data;
+        expandedGrowthYear = null;
+        const wrap = document.getElementById('growthMonthWrap');
+        if (wrap) wrap.classList.remove('open');
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.createdYear);
+        const counts = {};
+        data.forEach(r => { if (r.createdYear) counts[r.createdYear] = (counts[r.createdYear] || 0) + 1; });
+        const years = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+        makeGrowthChart('chartGrowth', years.map(String), growthDatasets(years, matrix, drillKeys, counts, '#0063AC'),
+            (evt, elements) => { if (!elements.length) return; toggleGrowthMonthly(years[elements[0].index]); });
+    }
+
+    function toggleGrowthMonthly(year) {
+        const wrap = document.getElementById('growthMonthWrap');
+        if (expandedGrowthYear === year) {
+            expandedGrowthYear = null;
+            if (wrap) wrap.classList.remove('open');
+        } else {
+            expandedGrowthYear = year;
+            const lbl = document.getElementById('growthMonthLabel');
+            if (lbl) lbl.textContent = `Monthly breakdown — ${year}`;
+            const yearData = currentGrowthData.filter(r => r.createdYear === year);
+            const { matrix, drillKeys } = buildDrillMatrix(yearData, r => r.createdMonth);
+            const counts = {};
+            yearData.forEach(r => { if (r.createdMonth) counts[r.createdMonth] = (counts[r.createdMonth] || 0) + 1; });
+            const months = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+            makeGrowthChart('chartGrowthMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, '#0063AC'));
+            if (wrap) wrap.classList.add('open');
+        }
+    }
+
+    function renderOptInGrowth(data) {
+        currentOptInData = data;
+        expandedOptInYear = null;
+        const wrap = document.getElementById('optInMonthWrap');
+        if (wrap) wrap.classList.remove('open');
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.optInYear);
+        const counts = {};
+        data.forEach(r => { if (r.optInYear) counts[r.optInYear] = (counts[r.optInYear] || 0) + 1; });
+        const years = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+        makeGrowthChart('chartOptInGrowth', years.map(String), growthDatasets(years, matrix, drillKeys, counts, '#00A28F'),
+            (evt, elements) => { if (!elements.length) return; toggleOptInMonthly(years[elements[0].index]); });
+    }
+
+    function toggleOptInMonthly(year) {
+        const wrap = document.getElementById('optInMonthWrap');
+        if (expandedOptInYear === year) {
+            expandedOptInYear = null;
+            if (wrap) wrap.classList.remove('open');
+        } else {
+            expandedOptInYear = year;
+            const lbl = document.getElementById('optInMonthLabel');
+            if (lbl) lbl.textContent = `Monthly breakdown — ${year}`;
+            const yearData = currentOptInData.filter(r => r.optInYear === year);
+            const { matrix, drillKeys } = buildDrillMatrix(yearData, r => r.optInMonth);
+            const counts = {};
+            yearData.forEach(r => { if (r.optInMonth) counts[r.optInMonth] = (counts[r.optInMonth] || 0) + 1; });
+            const months = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+            makeGrowthChart('chartOptInMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, '#00A28F'));
+            if (wrap) wrap.classList.add('open');
+        }
+    }
+
+    function renderCountries(data) {
+        const counts = countBy(data, 'country');
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 20);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.country || null);
+        makeHBar('chartCountries', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('country', lbl, 'Country'); }
+        });
+    }
+
+    function renderVertical(data) {
+        currentVerticalData = data;
+        expandedVertical = null;
+        const wrap = document.getElementById('vertSubWrap');
+        if (wrap) wrap.classList.remove('open');
+
+        const counts = countBy(data, 'vertical');
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 16);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.vertical || null);
+        makeHBar('chartVertical', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onClick:  (evt, els) => { if (!els.length) return; toggleSubVertical(labels[els[0].index]); },
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('vertical', lbl, 'Vertical'); }
+        });
+    }
+
+    function toggleSubVertical(vertical) {
+        const wrap = document.getElementById('vertSubWrap');
+        if (expandedVertical === vertical) {
+            expandedVertical = null;
+            if (wrap) wrap.classList.remove('open');
+            return;
+        }
+        expandedVertical = vertical;
+        const lbl = document.getElementById('vertSubLabel');
+        if (lbl) lbl.textContent = `Sub Verticals — ${vertical}`;
+
+        const subData = currentVerticalData.filter(r => r.vertical === vertical && r.subVertical);
+        const counts  = countBy(subData, 'subVertical');
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 20);
+        const labels  = entries.map(e => e[0]);
+        const values  = entries.map(e => e[1]);
+        const colors  = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        makeHBar('chartSubVertical', labels, values, colors);
+
+        if (wrap) wrap.classList.add('open');
+    }
+
+    function renderLanguage(data) {
+        const counts = countBy(data, 'language');
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 20);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.language || null);
+        makeHBar('chartLanguage', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('language', lbl, 'Language'); }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  UI STATE TRANSITIONS
+    // ═══════════════════════════════════════════════════════════
+    function showLoading(msg) {
+        document.getElementById('emptyState').style.display    = 'none';
+        document.getElementById('dashContent').style.display   = 'none';
+        document.getElementById('demandContent').style.display = 'none';
+        document.getElementById('qualityContent').style.display = 'none';
+        document.getElementById('filterBar').style.display     = 'none';
+        document.getElementById('tabNav').style.display        = 'none';
+        document.getElementById('footerEl').style.display      = 'none';
+        document.getElementById('loadingState').style.display  = 'block';
+        document.getElementById('loadingMsg').textContent      = msg || 'Loading…';
+    }
+
+    function showEmpty() {
+        document.getElementById('loadingState').style.display   = 'none';
+        document.getElementById('dashContent').style.display    = 'none';
+        document.getElementById('demandContent').style.display  = 'none';
+        document.getElementById('qualityContent').style.display = 'none';
+        document.getElementById('filterBar').style.display      = 'none';
+        document.getElementById('tabNav').style.display         = 'none';
+        document.getElementById('footerEl').style.display       = 'none';
+        document.getElementById('emptyState').style.display     = 'block';
+    }
+
+    function showDash() {
+        document.getElementById('loadingState').style.display   = 'none';
+        document.getElementById('emptyState').style.display     = 'none';
+        document.getElementById('tabNav').style.display         = 'flex';
+        document.getElementById('exportBtn').style.display      = 'flex';
+        document.getElementById('filterBar').style.display      = activeTab === 'analysis' ? 'flex' : 'none';
+        document.getElementById('footerEl').style.display       = 'block';
+        document.getElementById('dashContent').style.display    = activeTab === 'analysis' ? 'block' : 'none';
+        document.getElementById('demandContent').style.display  = activeTab === 'demand'   ? 'block' : 'none';
+        document.getElementById('qualityContent').style.display = activeTab === 'quality'  ? 'block' : 'none';
+
+        // Export date badge
+        if (exportDateStr) {
+            document.getElementById('exportDateLabel').textContent = 'Last Export: ' + formatExportDate(exportDateStr);
+            document.getElementById('exportBadge').style.display = 'inline-flex';
+        }
+
+        updateFilterCount(allData.length);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  TAB NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    let activeTab = 'analysis';
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.getElementById('tabBtnAnalysis').classList.toggle('active', tab === 'analysis');
+        document.getElementById('tabBtnDemand').classList.toggle('active', tab === 'demand');
+        document.getElementById('tabBtnQuality').classList.toggle('active', tab === 'quality');
+        document.getElementById('dashContent').style.display    = tab === 'analysis' ? 'block' : 'none';
+        document.getElementById('demandContent').style.display  = tab === 'demand'   ? 'block' : 'none';
+        document.getElementById('qualityContent').style.display = tab === 'quality'  ? 'block' : 'none';
+        document.getElementById('filterBar').style.display      = tab === 'analysis' ? 'flex'  : 'none';
+        if (tab === 'quality') renderQualityTab();
+        if (tab === 'demand')  renderDemandTab();
+    }
+
+    function toggleCleanTags() {
+        const clouds = document.getElementById('dqClouds');
+        const btn    = document.getElementById('btnToggleClean');
+        const isNowHidden = clouds.classList.toggle('hide-clean');
+        if (btn) btn.textContent = isNowHidden ? 'Show standard values' : 'Hide standard values';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DATA QUALITY
+    // ═══════════════════════════════════════════════════════════
+    const DQ_FIELDS = [
+        {
+            field: 'org',
+            label: 'Organisation',
+            mktoField: 'Organisation__c',
+            templateId: 71484,
+            picklist: ['Americas Healthcare','Americas Industrial','EMEA Healthcare','EMEA Industrial','APAC Healthcare','APAC Industrial'],
+            desc: 'Should match one of 7 official organisation values'
+        },
+        {
+            field: 'gbu',
+            label: 'GBU',
+            mktoField: 'GBU__c',
+            templateId: 71483,
+            picklist: ['Healthcare','Industrial'],
+            desc: 'Should be Healthcare or Industrial only'
+        },
+        {
+            field: 'personStatus',
+            label: 'Person Status',
+            mktoField: 'Person_Status__c',
+            templateId: 71508,
+            picklist: ['Prospect','Assigned','Working','Nurture','Referral','Unqualified','Converted'],
+            blankOk: true,
+            blankLabel: 'Demand Gen',
+            blankDesc: 'No Person Status = Demand Generation pool (SFDC Type = Lead or empty)',
+            filterFn: r => r.sfdcType === 'Lead' || !r.sfdcType,
+            desc: 'SFDC Leads only — blank = Demand Generation pool (valid); non-standard values should be corrected'
+        },
+        {
+            field: 'vertical',
+            label: 'Vertical',
+            mktoField: 'Vertical__c',
+            templateId: 71480,
+            picklist: null,
+            desc: 'Free-text field — values appearing 3 or fewer times may indicate misspellings or non-standard entries'
+        },
+        {
+            field: 'subVertical',
+            label: 'Sub Vertical',
+            mktoField: 'Sub_Vertical__c',
+            templateId: 71481,
+            picklist: null,
+            desc: 'Free-text field — rare values may indicate inconsistency or misspellings compared to common sub-verticals'
+        },
+        {
+            field: 'country',
+            label: 'Country',
+            mktoField: 'country',
+            templateId: 71485,
+            picklist: null,
+            desc: 'Free-text field — variant spellings or abbreviations can fragment country-level reporting'
+        }
+    ];
+    const RARE_THRESHOLD = 3;
+
+    function wcFontSize(count, minC, maxC) {
+        if (maxC <= minC) return 15;
+        const logMin = Math.log(Math.max(minC, 1));
+        const logMax = Math.log(maxC);
+        const logC   = Math.log(Math.max(count, 1));
+        const t = logMax > logMin ? (logC - logMin) / (logMax - logMin) : 0.5;
+        return Math.round(11 + t * 31); // 11–42 px
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DEMAND GENERATION TAB
+    // ═══════════════════════════════════════════════════════════
+
+    // ── Demand filter state ──────────────────────────────────────
+    const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set() };
+    const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country' };
+    let demandFiltersInitialized = false;
+
+    function toggleDms(id, e) {
+        e.stopPropagation();
+        const panel = document.getElementById(`dms-${id}-panel`);
+        const btn   = document.querySelector(`#dms-${id} .ms-btn`);
+        const isOpen = panel.style.display === 'block';
+        // Close all panels (both global and demand)
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+        if (!isOpen) { panel.style.display = 'block'; btn.classList.add('open'); }
+    }
+
+    function filterDmsItems(id, query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll(`#dms-${id}-list .ms-item`).forEach(item => {
+            const text = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = text.includes(q) ? '' : 'none';
+        });
+    }
+
+    function toggleDmsOpt(id, value, checked) {
+        if (checked) dmsState[id].add(value);
+        else         dmsState[id].delete(value);
+        updateDmsBtn(id);
+        renderDemandTab();
+    }
+
+    function selectAllDms(id) {
+        document.querySelectorAll(`#dms-${id}-list .ms-item`).forEach(item => {
+            if (item.style.display !== 'none') {
+                const cb = item.querySelector('input');
+                cb.checked = true;
+                dmsState[id].add(cb.value);
+            }
+        });
+        updateDmsBtn(id);
+        renderDemandTab();
+    }
+
+    function clearDms(id) {
+        dmsState[id].clear();
+        document.querySelectorAll(`#dms-${id}-list input`).forEach(cb => cb.checked = false);
+        updateDmsBtn(id);
+        renderDemandTab();
+    }
+
+    function updateDmsBtn(id) {
+        const sel   = dmsState[id].size;
+        const label = document.getElementById(`dms-${id}-label`);
+        const btn   = document.querySelector(`#dms-${id} .ms-btn`);
+        if (!label) return;
+        if (sel === 0) { label.textContent = DMS_LABELS[id]; btn.classList.remove('active'); }
+        else if (sel === 1) { label.textContent = [...dmsState[id]][0]; btn.classList.add('active'); }
+        else { label.textContent = `${sel} selected`; btn.classList.add('active'); }
+    }
+
+    function resetDemandFilters() {
+        for (const id of Object.keys(dmsState)) {
+            dmsState[id].clear();
+            document.querySelectorAll(`#dms-${id}-list input`).forEach(cb => cb.checked = false);
+            const searchEl = document.querySelector(`#dms-${id}-panel .ms-search`);
+            if (searchEl) { searchEl.value = ''; filterDmsItems(id, ''); }
+            updateDmsBtn(id);
+        }
+        renderDemandTab();
+    }
+
+    function buildDmsList(id, options) {
+        const list = document.getElementById(`dms-${id}-list`);
+        if (!list) return;
+        list.innerHTML = options.map(opt =>
+            `<label class="ms-item">
+                <input type="checkbox" value="${opt.replace(/"/g, '&quot;')}"
+                    onchange="toggleDmsOpt('${id}', this.value, this.checked)">
+                <span>${opt}</span>
+            </label>`
+        ).join('');
+    }
+
+    function buildDemandFilters() {
+        // Base population: all leads (before demand filters, but using same allData)
+        const leads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType);
+        buildDmsList('org',      [...new Set(leads.map(r => r.org))].filter(v => v).sort());
+        buildDmsList('gbu',      [...new Set(leads.map(r => r.gbu))].filter(v => v).sort());
+        buildDmsList('deliv',    [...new Set(leads.map(r => r.deliverability))].filter(v => v).sort());
+        buildDmsList('vertical', [...new Set(leads.map(r => r.vertical))].filter(v => v).sort());
+        buildDmsList('country',  [...new Set(leads.map(r => r.country))].filter(v => v).sort());
+        demandFiltersInitialized = true;
+    }
+
+    function applyDemandFilters() {
+        return allData.filter(r => {
+            if (r.sfdcType !== 'Lead' && r.sfdcType !== '') return false;
+            if (dmsState.org.size      && !dmsState.org.has(r.org               || '(blank)')) return false;
+            if (dmsState.gbu.size      && !dmsState.gbu.has(r.gbu               || '(blank)')) return false;
+            if (dmsState.deliv.size    && !dmsState.deliv.has(r.deliverability   || '(blank)')) return false;
+            if (dmsState.vertical.size && !dmsState.vertical.has(r.vertical      || '(blank)')) return false;
+            if (dmsState.country.size  && !dmsState.country.has(r.country        || '(blank)')) return false;
+            return true;
+        });
+    }
+
+    function updateDemandFilterCount(filtered, total) {
+        const el = document.getElementById('demandFilterCount');
+        if (!el) return;
+        if (filtered === total) {
+            el.innerHTML = `<strong>${fmt(filtered)}</strong> leads`;
+        } else {
+            el.innerHTML = `Showing <strong>${fmt(filtered)}</strong> of ${fmt(total)} leads`;
+        }
+    }
+
+    // Funnel stage definitions — blank personStatus = Demand Generation pool
+
+    function renderDemandTab() {
+        // Build filter dropdowns on first render (or after new data load)
+        if (!demandFiltersInitialized) buildDemandFilters();
+
+        // All leads (before demand filters)
+        const totalLeads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType).length;
+
+        // Filtered leads
+        const leads = applyDemandFilters();
+
+        // Update count badges
+        updateDemandFilterCount(leads.length, totalLeads);
+        const countEl = document.getElementById('demandLeadCount');
+        if (countEl) countEl.textContent = fmt(leads.length) + ' leads';
+
+        // ── Lead management process flow diagram ─────────────────
+        const n = leads.length;
+        const stageCounts = {
+            demand:      leads.filter(r => r.personStatus === '').length,
+            assigned:    leads.filter(r => r.personStatus === 'Assigned').length,
+            prospect:    leads.filter(r => r.personStatus === 'Prospect').length,
+            working:     leads.filter(r => r.personStatus === 'Working').length,
+            converted:   leads.filter(r => r.personStatus === 'Converted').length,
+            nurture:     leads.filter(r => r.personStatus === 'Nurture').length,
+            referral:    leads.filter(r => r.personStatus === 'Referral').length,
+            unqualified: leads.filter(r => r.personStatus === 'Unqualified').length
+        };
+        function setFF(valId, pctId, count) {
+            const v = document.getElementById(valId);
+            const p = document.getElementById(pctId);
+            if (v) v.textContent = fmt(count);
+            if (p) p.textContent = n > 0 ? pct(count, n) + ' of leads' : '';
+        }
+        setFF('ffDemand',      'ffDemandPct',      stageCounts.demand);
+        setFF('ffAssigned',    'ffAssignedPct',    stageCounts.assigned);
+        setFF('ffProspect',    'ffProspectPct',    stageCounts.prospect);
+        setFF('ffWorking',     'ffWorkingPct',     stageCounts.working);
+        setFF('ffConverted',   null,               stageCounts.converted);
+        setFF('ffNurture',     'ffNurturePct',     stageCounts.nurture);
+        setFF('ffReferral',    'ffReferralPct',    stageCounts.referral);
+        setFF('ffUnqualified', 'ffUnqualifiedPct', stageCounts.unqualified);
+
+        // ── Proportional box sizing (sqrt scale) ─────────────────────
+        const maxCount = Math.max(...Object.values(stageCounts).filter(v => v > 0), 1);
+        function sizeStage(boxId, count) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
+            const t = Math.sqrt(count / maxCount);          // sqrt: more spread than log
+            box.style.minHeight = Math.round(48 + t * 120) + 'px';  // 48–168 px
+            box.style.borderWidth = (1.5 + t * 2).toFixed(1) + 'px'; // 1.5–3.5 px
+            const val = box.querySelector('.lmp-stage-val');
+            if (val) val.style.fontSize = Math.round(14 + t * 32) + 'px'; // 14–46 px
+        }
+        sizeStage('lmpBoxDemand',      stageCounts.demand);
+        sizeStage('lmpBoxAssigned',    stageCounts.assigned);
+        sizeStage('lmpBoxProspect',    stageCounts.prospect);
+        sizeStage('lmpBoxWorking',     stageCounts.working);
+        sizeStage('lmpBoxConverted',   stageCounts.converted);
+        sizeStage('lmpBoxNurture',     stageCounts.nurture);
+        sizeStage('lmpBoxReferral',    stageCounts.referral);
+        sizeStage('lmpBoxUnqualified', stageCounts.unqualified);
+
+        // ── Score matrix ─────────────────────────────────────────
+        // Rows = Relative Urgency (3 top → 0 bottom), Cols = Relative Score (0 left → 3 right)
+        const matrix = {};
+        let matMax = 0;
+        let matTotal = 0;
+        leads.forEach(r => {
+            const u = r.relUrgency;
+            const s = r.relScore;
+            if (u === '' || s === '') return;
+            const key = u + '|' + s;
+            matrix[key] = (matrix[key] || 0) + 1;
+            if (matrix[key] > matMax) matMax = matrix[key];
+            matTotal++;
+        });
+
+        const urgencyLevels = ['3', '2', '1', '0'];
+        const scoreLevels   = ['0', '1', '2', '3'];
+
+        function buildMatrixTable(displayFn) {
+            let t = '<table class="score-matrix">';
+            t += '<thead><tr><th class="score-matrix-corner">U \\ S</th>';
+            scoreLevels.forEach(s => { t += `<th>${s}</th>`; });
+            t += '</tr></thead><tbody>';
+            urgencyLevels.forEach(u => {
+                t += `<tr><th>${u}</th>`;
+                scoreLevels.forEach(s => {
+                    const cnt = matrix[u + '|' + s] || 0;
+                    const intensity = matMax > 0 ? cnt / matMax : 0;
+                    const isHot = (parseInt(u) + parseInt(s)) >= 4;
+                    const bg = cellHeatColor(intensity, isHot);
+                    const textColor = intensity > 0.55 ? '#ffffff' : 'var(--ansell-dark)';
+                    t += `<td class="score-matrix-cell" style="background:${bg};color:${textColor}">${displayFn(cnt)}</td>`;
+                });
+                t += '</tr>';
+            });
+            t += '</tbody></table>';
+            return t;
+        }
+
+        const matEl    = document.getElementById('demandScoreMatrix');
+        const matPctEl = document.getElementById('demandScoreMatrixPct');
+        if (matEl)    matEl.innerHTML    = buildMatrixTable(cnt => cnt > 0 ? fmt(cnt) : '—');
+        if (matPctEl) matPctEl.innerHTML = buildMatrixTable(
+            cnt => matTotal > 0 && cnt > 0 ? (cnt / matTotal * 100).toFixed(1) + '%' : '—'
+        );
+    }
+
+    function cellHeatColor(intensity, isHot) {
+        if (intensity === 0) return '#f8f9fa';
+        if (isHot) {
+            // Orange → red scale for high-value quadrant
+            const r = 255;
+            const g = Math.round(160 - intensity * 130);
+            const b = Math.round(50  - intensity * 50);
+            return `rgb(${r},${Math.max(0,g)},${Math.max(0,b)})`;
+        } else {
+            // Light blue scale for lower-priority cells
+            const r = Math.round(210 - intensity * 110);
+            const g = Math.round(225 - intensity * 100);
+            const b = 255;
+            return `rgb(${Math.max(0,r)},${Math.max(0,g)},${b})`;
+        }
+    }
+
+    function renderQualityTab() {
+        const summaryEl = document.getElementById('dqSummary');
+        const cloudsEl  = document.getElementById('dqClouds');
+        if (!summaryEl || !cloudsEl || !allData.length) return;
+
+        const total = allData.length;
+
+        // ── Summary KPI cards (all DQ fields) ──
+        let summaryHtml = '';
+        DQ_FIELDS.forEach(f => {
+            const fData  = f.filterFn ? allData.filter(f.filterFn) : allData;
+            const fTotal = fData.length;
+            let value, sub, clean;
+            let blankCount = 0;
+            if (f.picklist) {
+                let dirtyCount = 0;
+                const dirtyValues = new Set();
+                for (const r of fData) {
+                    const v = r[f.field];
+                    if (!v) { blankCount++; if (!f.blankOk) dirtyCount++; }
+                    else if (!f.picklist.some(p => p.toLowerCase() === v.toLowerCase())) { dirtyCount++; dirtyValues.add(v); }
+                }
+                clean = dirtyCount === 0;
+                value = clean ? '&#10003; Clean' : fmt(dirtyCount);
+                sub   = clean ? 'All records match picklist'
+                              : pct(dirtyCount, fTotal) + ' of records · ' + dirtyValues.size + ' non-standard value' + (dirtyValues.size !== 1 ? 's' : '');
+            } else {
+                const raw = {};
+                for (const r of fData) {
+                    const v = (r[f.field] || '').trim();
+                    if (!v) { blankCount++; continue; }
+                    const key = v.toLowerCase();
+                    if (!raw[key]) raw[key] = {};
+                    raw[key][v] = (raw[key][v] || 0) + 1;
+                }
+                const normalizedCounts = Object.values(raw).map(variants =>
+                    Object.values(variants).reduce((s, c) => s + c, 0)
+                );
+                const rareEntries     = normalizedCounts.filter(c => c <= RARE_THRESHOLD);
+                const rareCount       = rareEntries.length;
+                const rareRecordCount = rareEntries.reduce((s, c) => s + c, 0);
+                clean = rareCount === 0;
+                value = clean ? '&#10003; Clean' : fmt(rareCount);
+                sub   = clean ? 'No rare values detected'
+                              : pct(rareRecordCount, fTotal) + ' of records · ' + rareCount + ' rare value' + (rareCount !== 1 ? 's' : '');
+            }
+            const blankPct  = fTotal > 0 ? Math.round(blankCount / fTotal * 100) : 0;
+            const blankText = blankCount === 0
+                ? (f.blankOk ? 'No blanks' : 'No blanks')
+                : (f.blankLabel
+                    ? blankPct + '% ' + f.blankLabel + ' (' + fmt(blankCount) + ')'
+                    : blankPct + '% blank (' + fmt(blankCount) + ')');
+            summaryHtml += `
+            <div class="dq-kpi${clean ? ' all-clean' : ''}">
+                <div class="dq-kpi-label">${f.label}${f.filterFn ? '<span style="font-size:8px;opacity:.55;margin-left:4px">leads only</span>' : ''}</div>
+                <div class="dq-kpi-value">${value}</div>
+                <div class="dq-kpi-sub">${sub}</div>
+                <div class="dq-kpi-blank${blankCount > 0 && !f.blankOk ? ' has-blanks' : ''}">${blankText}</div>
+            </div>`;
+        });
+        summaryEl.innerHTML = summaryHtml;
+
+        // ── Picklist reference ──
+        const picklistRefEl = document.getElementById('dqPicklistRef');
+        if (picklistRefEl) {
+            const refRows = DQ_FIELDS.filter(f => f.picklist).map(f =>
+                `<div class="dq-picklist-row">
+                    <span class="dq-picklist-field-name">${f.label}</span>
+                    ${f.picklist.map(v => `<span class="dq-picklist-chip">${v}</span>`).join('')}
+                </div>`
+            ).join('');
+            picklistRefEl.innerHTML = `
+            <div class="dq-picklist-ref">
+                <div class="dq-picklist-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+                    <span class="dq-picklist-toggle-arrow">&#9658;</span> Picklist reference
+                </div>
+                <div class="dq-picklist-body">${refRows}</div>
+            </div>`;
+        }
+
+        // ── Word cloud sections ──
+        const picklistFields  = DQ_FIELDS.filter(f => f.picklist);
+        const freeTextFields  = DQ_FIELDS.filter(f => !f.picklist);
+
+        const cleanHidden = cloudsEl.classList.contains('hide-clean');
+        let cloudsHtml = `<div style="margin-top:28px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+            <div class="section-label" style="margin:0">Picklist Fields — Spot Non-Standard Values</div>
+            <button class="dq-toggle-clean" id="btnToggleClean" onclick="toggleCleanTags()">${cleanHidden ? 'Show standard values' : 'Hide standard values'}</button>
+        </div>
+        <div class="dq-section-grid">`;
+        picklistFields.forEach(f => {
+            const d = f.filterFn ? allData.filter(f.filterFn) : allData;
+            cloudsHtml += buildWordCloudCard(f, d, d.length);
+        });
+        cloudsHtml += `</div>
+        <div class="section-label">Free-Text Fields — Value Frequency Map</div>
+        <div class="dq-section-grid">`;
+        freeTextFields.forEach(f => {
+            const d = f.filterFn ? allData.filter(f.filterFn) : allData;
+            cloudsHtml += buildWordCloudCard(f, d, d.length);
+        });
+        cloudsHtml += `</div>`;
+
+        cloudsEl.innerHTML = cloudsHtml;
+
+        // Attach expand/collapse table toggles
+        cloudsEl.querySelectorAll('.wc-table-toggle').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const tableId = this.dataset.table;
+                const table   = document.getElementById(tableId);
+                if (!table) return;
+                const isOpen = table.style.display === 'table';
+                table.style.display = isOpen ? 'none' : 'table';
+                this.classList.toggle('open', !isOpen);
+                this.querySelector('.toggle-label').textContent = isOpen ? 'Show values' : 'Hide values';
+            });
+        });
+
+        // Attach right-click DQ Fix handler (once — guarded by flag)
+        if (!cloudsEl._dqContextMenuSetup) {
+            cloudsEl._dqContextMenuSetup = true;
+            cloudsEl.addEventListener('contextmenu', (e) => {
+                const tag = e.target.closest('.wc-tag.dirty, .wc-tag.rare');
+                if (!tag) return;
+                e.preventDefault();
+                openDqFix(e, tag.dataset.field, tag.dataset.fieldLabel, tag.dataset.value, tag.dataset.mktoField, tag.dataset.templateId);
+            });
+        }
+    }
+
+    function buildWordCloudCard(fieldDef, data, total) {
+        const { field, label, mktoField, templateId, picklist, desc, blankLabel, blankDesc, blankOk } = fieldDef;
+        const mktoAttr = (mktoField ? ` data-mkto-field="${mktoField}"` : '')
+                       + (templateId ? ` data-template-id="${templateId}"` : '');
+        // Count all raw values (free-text fields: group case-insensitively, keep most common casing)
+        const counts = {};
+        let blankCount = 0;
+        if (picklist) {
+            for (const r of data) {
+                const v = r[field];
+                if (!v || v === '') { blankCount++; continue; }
+                counts[v] = (counts[v] || 0) + 1;
+            }
+        } else {
+            const raw = {};
+            for (const r of data) {
+                const v = (r[field] || '').trim();
+                if (!v) { blankCount++; continue; }
+                const key = v.toLowerCase();
+                if (!raw[key]) raw[key] = {};
+                raw[key][v] = (raw[key][v] || 0) + 1;
+            }
+            for (const variants of Object.values(raw)) {
+                const varTotal = Object.values(variants).reduce((s, c) => s + c, 0);
+                const best     = Object.entries(variants).sort((a, b) => b[1] - a[1])[0][0];
+                counts[best] = varTotal;
+            }
+        }
+
+        const entries  = Object.entries(counts);
+        const maxCount = entries.reduce((m, [, c]) => Math.max(m, c), 1);
+        const minCount = entries.reduce((m, [, c]) => Math.min(m, c), maxCount);
+
+        // Sort by count descending
+        const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+
+        let tagsHtml     = '';
+        let dirtyEntries = [];
+        let dirtyCount   = 0;
+        let cleanCount   = 0;
+
+        if (picklist) {
+            const picklistLower = new Set(picklist.map(p => p.toLowerCase()));
+            const cleanVals = sorted.filter(([k]) =>  picklistLower.has(k.toLowerCase()));
+            const dirtyVals = sorted.filter(([k]) => !picklistLower.has(k.toLowerCase()));
+            cleanCount   = cleanVals.reduce((s, [, c]) => s + c, 0);
+            dirtyEntries = dirtyVals;
+            dirtyCount   = dirtyVals.reduce((s, [, c]) => s + c, 0);
+
+            cleanVals.forEach(([v, c]) => {
+                const fs = wcFontSize(c, minCount, maxCount);
+                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
+                tagsHtml += `<span class="wc-tag clean" style="font-size:${fs}px" title="${v}: ${fmt(c)} records"><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
+            });
+            dirtyVals.forEach(([v, c]) => {
+                const fs = wcFontSize(c, minCount, maxCount);
+                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
+                const esc = v.replace(/"/g, '&quot;');
+                tagsHtml += `<span class="wc-tag dirty" style="font-size:${fs}px" title="${v}: ${fmt(c)} records — not in picklist" data-field="${field}" data-field-label="${label}" data-value="${esc}"${mktoAttr}><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
+            });
+        } else {
+            sorted.forEach(([v, c]) => {
+                const isRare = c <= RARE_THRESHOLD;
+                if (isRare) { dirtyCount += c; dirtyEntries.push([v, c]); }
+                else cleanCount += c;
+                const cls = isRare ? 'rare' : 'clean';
+                const fs  = wcFontSize(c, minCount, maxCount);
+                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
+                const esc = v.replace(/"/g, '&quot;');
+                const dataAttrs = isRare ? ` data-field="${field}" data-field-label="${label}" data-value="${esc}"${mktoAttr}` : '';
+                tagsHtml += `<span class="wc-tag ${cls}" style="font-size:${fs}px" title="${v}: ${fmt(c)} records${isRare ? ' — rare value, possible typo' : ''}"${dataAttrs}><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
+            });
+        }
+
+        // Blank tag — if blankLabel is set, treat as a named/expected category (clean style)
+        if (blankCount > 0) {
+            const fs      = wcFontSize(blankCount, minCount, maxCount);
+            const tagCls  = blankLabel ? 'clean' : 'blank';
+            const tagText = blankLabel || '(blank)';
+            const tipText = blankLabel
+                ? `${blankLabel}: ${fmt(blankCount)} records — ${blankDesc || 'no value in this field'}`
+                : `(blank): ${fmt(blankCount)} records with no value`;
+            tagsHtml += `<span class="wc-tag ${tagCls}" style="font-size:${fs}px" title="${tipText}"><span class="wc-word">${tagText}</span><span class="wc-count">${fmt(blankCount)}</span></span>`;
+        }
+
+        // Badges
+        let badgesHtml = '';
+        if (picklist) {
+            badgesHtml += dirtyCount > 0
+                ? `<span class="wc-badge dirty">${dirtyEntries.length} non-standard value${dirtyEntries.length !== 1 ? 's' : ''}</span>
+                   <span class="wc-badge dirty">${pct(dirtyCount, total)} affected</span>`
+                : `<span class="wc-badge ok">All clean</span>`;
+        } else {
+            if (dirtyEntries.length > 0)
+                badgesHtml += `<span class="wc-badge dirty">${dirtyEntries.length} rare value${dirtyEntries.length !== 1 ? 's' : ''}</span>`;
+            badgesHtml += `<span class="wc-badge info">${entries.length} unique values</span>`;
+        }
+        if (blankCount > 0)
+            badgesHtml += blankLabel
+                ? `<span class="wc-badge info">${pct(blankCount, total)} ${blankLabel}</span>`
+                : `<span class="wc-badge dirty">${pct(blankCount, total)} blank</span>`;
+
+        // Legend
+        const swatchDirty = picklist
+            ? `<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#fff3e0;border:1px solid #ffcc80"></div> Not in picklist</div>`
+            : `<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#fce4ec;border:1px solid #ef9a9a"></div> Rare (&le;${RARE_THRESHOLD} records)</div>`;
+
+        let legendHtml = `<div class="wc-legend">
+            ${swatchDirty}
+            ${blankCount > 0 && !blankLabel ? '<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#f5f6f7;border:1px dashed #BBBCBC"></div> Blank / empty</div>' : ''}
+            <div class="wc-legend-item" style="margin-left:auto;font-style:italic;opacity:.6">Font size = frequency</div>
+        </div>`;
+
+        // Expandable dirty-values table
+        let tableHtml = '';
+        const allDirty = [...dirtyEntries];
+        if (blankCount > 0 && !blankLabel) allDirty.push(['(blank)', blankCount]);
+        allDirty.sort((a, b) => b[1] - a[1]);
+
+        if (allDirty.length > 0) {
+            const tableId = `wct-${field}`;
+            const rows = allDirty.map(([v, c]) => {
+                const isBlank = v === '(blank)';
+                const cls     = isBlank ? 'val-blank' : (picklist ? 'val-dirty' : 'val-rare');
+                const barW    = Math.max(2, Math.min(80, Math.round((c / total) * 3000)));
+                return `<tr>
+                    <td><span class="${cls}">${isBlank ? '(blank — no value)' : v}</span></td>
+                    <td>${fmt(c)}</td>
+                    <td>${pct(c, total)}<span class="mini-bar" style="width:${barW}px"></span></td>
+                </tr>`;
+            }).join('');
+
+            tableHtml = `<div class="wc-table-wrap">
+                <button class="wc-table-toggle" data-table="${tableId}">
+                    <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1l4 4-4 4"/></svg>
+                    <span class="toggle-label">Show values</span>&nbsp;(${allDirty.length})
+                </button>
+                <table class="wc-table" id="${tableId}">
+                    <thead><tr><th>Value in data</th><th>Count</th><th>% of total</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+        }
+
+        return `<div class="wc-card">
+            <div class="wc-header">
+                <div class="wc-title">${label}</div>
+                <div class="wc-badges">${badgesHtml}</div>
+            </div>
+            <div class="wc-desc">${desc}</div>
+            <div class="wc-cloud">${tagsHtml || '<span style="font-size:12px;color:var(--ansell-light-gray)">No data</span>'}</div>
+            ${legendHtml}
+            ${tableHtml}
+        </div>`;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    //  MARKETO API — settings, DQ Fix
+    // ═══════════════════════════════════════════════════════════
+
+    const MKTO_SS_KEY = 'mktoApiConfig';
+
+    function getMktoConfig() {
+        try { return JSON.parse(sessionStorage.getItem(MKTO_SS_KEY) || 'null') || {}; }
+        catch { return {}; }
+    }
+
+    function saveMktoConfig() {
+        const cfg = {
+            munchkin:    document.getElementById('mktoMunchkin').value.trim(),
+            clientId:    document.getElementById('mktoClientId').value.trim(),
+            clientSecret:document.getElementById('mktoClientSecret').value.trim(),
+            adobeOrg:    document.getElementById('mktoAdobeOrg').value.trim()
+        };
+        sessionStorage.setItem(MKTO_SS_KEY, JSON.stringify(cfg));
+        updateApiBtn();
+    }
+
+    const MKTO_DEFAULTS = {
+        munchkin:   '615-TNW-071',
+        clientId:   '3ccf3b31-aa0c-4755-94b7-32890b8e324a',
+        adobeOrg:   'ansell'
+    };
+
+    function loadMktoConfig() {
+        const cfg = getMktoConfig();
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+        set('mktoMunchkin',     cfg.munchkin    || MKTO_DEFAULTS.munchkin);
+        set('mktoClientId',     cfg.clientId    || MKTO_DEFAULTS.clientId);
+        set('mktoClientSecret', cfg.clientSecret || ''); // never pre-populated
+        set('mktoAdobeOrg',     cfg.adobeOrg    || MKTO_DEFAULTS.adobeOrg);
+        updateApiBtn();
+    }
+
+    function updateApiBtn() {
+        const cfg = getMktoConfig();
+        const btn = document.getElementById('apiBtn');
+        if (!btn) return;
+        const configured = !!(cfg.munchkin && cfg.clientId && cfg.clientSecret);
+        btn.classList.toggle('configured', configured);
+        btn.title = configured ? 'Marketo API configured (session only)' : 'Marketo API — enter credentials';
+    }
+
+    function toggleApiPanel() {
+        const bar = document.getElementById('mktoSettingsBar');
+        if (!bar) return;
+        const opening = !bar.classList.contains('open');
+        bar.classList.toggle('open', opening);
+        if (opening) loadMktoConfig();
+        // Clear status when closing
+        if (!opening) {
+            const st = document.getElementById('mktoStatus');
+            if (st) { st.className = 'mkto-status'; st.textContent = ''; }
+        }
+    }
+
+    function setMktoStatus(msg, ok) {
+        const el = document.getElementById('mktoStatus');
+        if (!el) return;
+        el.className = 'mkto-status ' + (ok ? 'ok' : 'err');
+        el.textContent = msg;
+    }
+
+    const MKTO_PROXY = 'http://localhost:3791';
+
+    function mktoProxyFetch(targetUrl, options = {}) {
+        const headers = Object.assign({}, options.headers || {}, { 'X-Target-Url': targetUrl });
+        return fetch(MKTO_PROXY, Object.assign({}, options, { headers }))
+            .catch(err => {
+                if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+                    throw new Error('Proxy not running — open a terminal and run: powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1');
+                }
+                throw err;
+            });
+    }
+
+    async function mktoGetToken(cfg) {
+        const targetUrl = `https://${cfg.munchkin}.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_id=${encodeURIComponent(cfg.clientId)}&client_secret=${encodeURIComponent(cfg.clientSecret)}`;
+        const res = await mktoProxyFetch(targetUrl);
+        if (!res.ok) throw new Error(`Identity endpoint returned HTTP ${res.status}`);
+        const json = await res.json();
+        if (json.error) throw new Error(json.error_description || json.error);
+        return json.access_token;
+    }
+
+    async function testMktoConnection() {
+        const btn = document.querySelector('.mkto-test-btn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Testing…'; }
+        setMktoStatus('', false);
+        try {
+            const cfg = getMktoConfig();
+            if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret)
+                throw new Error('Save your credentials first.');
+            const token = await mktoGetToken(cfg);
+            setMktoStatus('Connected ✓ (token obtained)', true);
+        } catch (err) {
+            setMktoStatus('Error: ' + err.message, false);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
+        }
+    }
+
+    async function mktoCloneCampaign(token, munchkin, templateId, name, description) {
+        const targetUrl = `https://${munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${templateId}/clone.json`;
+        const body = new URLSearchParams({
+            name,
+            description,
+            folder: JSON.stringify({ id: 13288, type: 'Program' })
+        });
+        const res = await mktoProxyFetch(targetUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: body.toString()
+        });
+        if (!res.ok) throw new Error(`Clone API returned HTTP ${res.status}`);
+        const json = await res.json();
+        if (!json.success) {
+            const errMsg = json.errors && json.errors[0] ? json.errors[0].message : 'Unknown API error';
+            throw new Error(errMsg);
+        }
+        return json.result && json.result[0]; // { id, name, smartListId, ... }
+    }
+
+    // ── DQ Fix panel ──
+
+    let _dqFixField = '', _dqFixFieldLabel = '', _dqFixValue = '', _dqFixMktoField = '', _dqFixTemplateId = null;
+
+    function openDqFix(e, field, fieldLabel, value, mktoField, templateId) {
+        const cfg = getMktoConfig();
+        if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
+            alert('Please configure your Marketo API credentials first (click "Marketo API" in the header).');
+            return;
+        }
+
+        _dqFixField      = field;
+        _dqFixFieldLabel = fieldLabel || field;
+        _dqFixValue      = value;
+        _dqFixMktoField  = mktoField || fieldLabel || field;
+        _dqFixTemplateId = templateId ? parseInt(templateId, 10) : null;
+
+        // Pre-fill form
+        document.getElementById('dqFixName').value     = `DQ Fix - ${_dqFixFieldLabel}: ${value}`;
+        document.getElementById('dqFixFieldLabel').textContent = _dqFixFieldLabel;
+        document.getElementById('dqFixValueChip').textContent  = value;
+        document.getElementById('dqFixNewValueLabel').textContent = `New value for ${_dqFixFieldLabel}`;
+        document.getElementById('dqFixNewValue').value  = '';
+        document.getElementById('dqFixStatus').className = 'dq-fix-status';
+        document.getElementById('dqFixStatus').innerHTML = '';
+        document.getElementById('dqFixSubmit').disabled = false;
+
+        // Position near cursor (keep panel within viewport)
+        const panel = document.getElementById('dqFixPanel');
+        panel.style.display = 'block'; // measure size
+        const W = panel.offsetWidth  || 340;
+        const H = panel.offsetHeight || 380;
+        let x = e.clientX + 8;
+        let y = e.clientY + 8;
+        if (x + W > window.innerWidth  - 12) x = e.clientX - W - 8;
+        if (y + H > window.innerHeight - 12) y = e.clientY - H - 8;
+        panel.style.left = Math.max(8, x) + 'px';
+        panel.style.top  = Math.max(8, y) + 'px';
+        panel.classList.add('open');
+
+        // Close on Escape
+        document.addEventListener('keydown', _dqFixEscHandler);
+    }
+
+    function _dqFixEscHandler(e) {
+        if (e.key === 'Escape') closeDqFix();
+    }
+
+    function closeDqFix() {
+        const panel = document.getElementById('dqFixPanel');
+        if (panel) { panel.classList.remove('open'); panel.style.display = 'none'; }
+        document.removeEventListener('keydown', _dqFixEscHandler);
+    }
+
+    // Note: Marketo REST API does not expose write access to captive smart list filters
+    // or campaign flow steps on this instance. smartListId is read from the creation response.
+
+    async function submitDqFix() {
+        const name     = document.getElementById('dqFixName').value.trim();
+        const newValue = document.getElementById('dqFixNewValue').value.trim();
+        const submitBtn = document.getElementById('dqFixSubmit');
+
+        if (!name) { setDqFixStatus('Please enter a campaign name.', false); return; }
+        if (!_dqFixTemplateId) { setDqFixStatus('No clone template configured for this field.', false); return; }
+
+        const cfg = getMktoConfig();
+        if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
+            setDqFixStatus('Marketo API not configured. Click "Marketo API" in the header.', false);
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating…';
+        setDqFixStatus('', false);
+
+        try {
+            const token = await mktoGetToken(cfg);
+
+            const description = newValue
+                ? `Smart List: ${_dqFixFieldLabel} is "${_dqFixValue}" | Flow: Change Data Value ${_dqFixFieldLabel} to "${newValue}"`
+                : `Smart List: ${_dqFixFieldLabel} is "${_dqFixValue}"`;
+
+            const result     = await mktoCloneCampaign(token, cfg.munchkin, _dqFixTemplateId, name, description);
+            const campaignId = result && result.id;
+
+            const adobeOrg = cfg.adobeOrg || MKTO_DEFAULTS.adobeOrg;
+            const mktoUrl  = campaignId
+                ? `https://experience.adobe.com/#/@${adobeOrg}/so:${cfg.munchkin}/marketo-engage/classic/SC${campaignId}ZN16`
+                : null;
+
+            const slLine   = `Smart List: update "${_dqFixValue}" filter value`;
+            const flowLine = newValue ? `Flow: update "Change Data Value" to "${newValue}"` : '';
+
+            setDqFixStatus(
+                `Campaign cloned from ${_dqFixFieldLabel} template (ID ${_dqFixTemplateId}) ✓`
+                + `<br><span style="font-size:10px;line-height:1.6;display:block;margin-top:4px">`
+                + `Update in Marketo:<br>${slLine}${flowLine ? '<br>' + flowLine : ''}</span>`
+                + (mktoUrl ? `<a href="${mktoUrl}" target="_blank" rel="noopener" class="dq-fix-open-btn">Open Campaign in Marketo</a>` : ''),
+                true
+            );
+            submitBtn.textContent = 'Done';
+        } catch (err) {
+            setDqFixStatus('Error: ' + err.message, false);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Smart Campaign';
+        }
+    }
+
+    function setDqFixStatus(msg, ok) {
+        const el = document.getElementById('dqFixStatus');
+        if (!el) return;
+        el.className = 'dq-fix-status' + (msg ? (' ' + (ok ? 'ok' : 'err')) : '');
+        el.innerHTML = msg;
+    }
+
+    //  INIT
+    // ═══════════════════════════════════════════════════════════
+    // Close all dropdowns when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    });
+
+    window.addEventListener('load', async () => {
+        updateApiBtn(); // restore API button state from sessionStorage
+        const found = await detectLatestExport();
+        if (found) {
+            loadCSV(found.path, found.dateStr);
+        }
+        // else: stay on empty state, user can load manually
+    });
+    </script>
+
+    <!-- DQ Fix Floating Panel -->
+    <div class="dq-fix-panel" id="dqFixPanel">
+        <div class="dq-fix-header">
+            <span class="dq-fix-title">Create Fix Campaign</span>
+            <button class="dq-fix-close" onclick="closeDqFix()" title="Close">&#10005;</button>
+        </div>
+        <div class="dq-fix-body">
+            <div class="dq-fix-row">
+                <span class="dq-fix-label">Campaign Name</span>
+                <input type="text" class="dq-fix-input" id="dqFixName" placeholder="e.g. DQ Fix - Vertical LSCI">
+            </div>
+            <div class="dq-fix-row">
+                <span class="dq-fix-label">Smart List (target)</span>
+                <div class="dq-fix-rule">
+                    <span id="dqFixFieldLabel" class="dq-fix-chip"></span>
+                    <span style="font-size:11px;color:var(--ansell-gray)">is</span>
+                    <span id="dqFixValueChip" class="dq-fix-chip"></span>
+                </div>
+            </div>
+            <div class="dq-fix-row">
+                <span class="dq-fix-label" id="dqFixNewValueLabel">New value</span>
+                <input type="text" class="dq-fix-input" id="dqFixNewValue">
+            </div>
+        </div>
+        <div class="dq-fix-footer">
+            <button class="dq-fix-submit" id="dqFixSubmit" onclick="submitDqFix()">Create Smart Campaign</button>
+            <div class="dq-fix-status" id="dqFixStatus"></div>
+        </div>
+    </div>
+
+</body>
+</html>

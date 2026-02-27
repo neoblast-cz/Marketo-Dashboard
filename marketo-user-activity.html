@@ -1,0 +1,922 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo User Activity | Ansell</title>
+    <link rel="stylesheet" href="ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        /* ── User Activity page-specific styles ── */
+
+        /* Sticky filter bar sits below the sticky header (~71 px tall) */
+        .filter-bar { position: sticky; top: 71px; z-index: 99; }
+
+        /* ── ACTIVITY TABLE ── */
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1px solid #f0f0f0;
+        }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .activity-table th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            text-align: left;
+            padding: 9px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--ansell-gray);
+            border-bottom: 2px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        .activity-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #f5f5f5;
+            white-space: nowrap;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .activity-table tr:last-child td { border-bottom: none; }
+        .activity-table tr:hover td { background: #fafafa; }
+
+        .action-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .ws-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>User Activity</span></h1>
+                <div class="header-sub">
+                    Ansell Marketo Audit Trail
+                    <span class="export-badge" id="exportBadge" style="display:none">
+                        <span class="export-badge-dot"></span>
+                        <span id="exportDateLabel"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <button class="load-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+            <a href="marketo-index.html" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+        <span class="filter-label">Filter:</span>
+
+        <!-- User -->
+        <div class="ms-wrap" id="ms-f-user">
+            <button class="ms-btn" onclick="toggleMs('f-user',event)">
+                <span id="ms-f-user-label">User</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-user-panel" onclick="event.stopPropagation()">
+                <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterMsItems('f-user',this.value)"></div>
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-user')">Select All</button>
+                    <button onclick="clearMs('f-user')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-user-list"></div>
+            </div>
+        </div>
+
+        <!-- Workspace -->
+        <div class="ms-wrap" id="ms-f-workspace">
+            <button class="ms-btn" onclick="toggleMs('f-workspace',event)">
+                <span id="ms-f-workspace-label">Workspace</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-workspace-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-workspace')">Select All</button>
+                    <button onclick="clearMs('f-workspace')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-workspace-list"></div>
+            </div>
+        </div>
+
+        <!-- Action -->
+        <div class="ms-wrap" id="ms-f-action">
+            <button class="ms-btn" onclick="toggleMs('f-action',event)">
+                <span id="ms-f-action-label">Action</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-action-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-action')">Select All</button>
+                    <button onclick="clearMs('f-action')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-action-list"></div>
+            </div>
+        </div>
+
+        <!-- Asset Type -->
+        <div class="ms-wrap" id="ms-f-assettype">
+            <button class="ms-btn" onclick="toggleMs('f-assettype',event)">
+                <span id="ms-f-assettype-label">Asset Type</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-assettype-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-assettype')">Select All</button>
+                    <button onclick="clearMs('f-assettype')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-assettype-list"></div>
+            </div>
+        </div>
+
+        <button class="filter-reset" onclick="resetFilters()">Reset All</button>
+        <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <input type="file" id="fileInput" accept=".csv,.txt" onchange="handleFileInput(event)">
+
+    <!-- Loading State -->
+    <div id="loadingState" style="display:none; padding: 80px 30px; text-align:center">
+        <div class="loading-spinner"></div>
+        <p style="color:var(--ansell-gray); font-size:13px" id="loadingMsg">Loading data...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState">
+        <div class="state-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <h2>No data loaded</h2>
+            <p>Place your <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">YYYY-MM-DD Audit_Trail_Asset.csv</code> in the <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">Reports/</code> folder for auto-load, or select a file manually.</p>
+            <button class="state-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashContent" style="display:none">
+        <div class="main">
+
+            <!-- KPIs -->
+            <div class="section-label">Overview</div>
+            <div class="kpi-grid">
+                <div class="kpi-card blue">
+                    <div class="kpi-label">Total Actions</div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-sub" id="kpiTotalSub">audit trail entries</div>
+                </div>
+                <div class="kpi-card teal">
+                    <div class="kpi-label">Active Users</div>
+                    <div class="kpi-value" id="kpiUsers">—</div>
+                    <div class="kpi-sub">unique contributors</div>
+                </div>
+                <div class="kpi-card purple">
+                    <div class="kpi-label">Assets Touched</div>
+                    <div class="kpi-value" id="kpiAssets">—</div>
+                    <div class="kpi-sub">unique asset names</div>
+                </div>
+                <div class="kpi-card amber">
+                    <div class="kpi-label">Top Contributor</div>
+                    <div class="kpi-value" id="kpiTopUser" style="font-size:20px;margin-top:4px">—</div>
+                    <div class="kpi-sub" id="kpiTopUserSub"></div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="section-label">Activity Timeline</div>
+            <div class="chart-card">
+                <div class="chart-title">Actions per Day</div>
+                <div class="chart-wrap" style="height:220px">
+                    <canvas id="chartTimeline"></canvas>
+                </div>
+            </div>
+
+            <!-- Who / What -->
+            <div class="section-label">Who & What</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Top Users by Actions</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartUsers"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Action Types</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartActions"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset focus -->
+            <div class="section-label">Asset Focus</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Asset Types Modified</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartAssetTypes"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Workspace Breakdown</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartWorkspace"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time patterns -->
+            <div class="section-label">Time Patterns</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Activity by Day of Week</div>
+                    <div class="chart-wrap" style="height:220px">
+                        <canvas id="chartDow"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Activity by Hour of Day (CET)</div>
+                    <div class="chart-wrap" style="height:220px">
+                        <canvas id="chartHour"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Programs -->
+            <div class="section-label">Top Programs Modified</div>
+            <div class="chart-card">
+                <div class="chart-title">Parent Program — Top 15 (excludes blank)</div>
+                <div class="chart-wrap" style="position:relative">
+                    <canvas id="chartParents"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="section-label">Recent Activity</div>
+            <div class="chart-card" style="padding: 0">
+                <div style="padding:16px 24px 12px; border-bottom:1px solid #f0f0f0">
+                    <span class="chart-title" style="margin:0">Last 100 Actions (most recent first)</span>
+                </div>
+                <div class="table-wrap">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Date / Time (CET)</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Asset Type</th>
+                                <th>Asset Name</th>
+                                <th>Workspace</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo User Activity</div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    //  CONSTANTS
+    // ═══════════════════════════════════════════════════════════
+    const WORKSPACE_COLORS = {
+        'NA':                'var(--ansell-blue)',
+        'EMEA':              '#00A28F',
+        'APAC':              '#7030A0',
+        'LAC':               '#ef6c00',
+        'Default':           '#75787B',
+        'Program Templates': '#f59e0b'
+    };
+
+    const WORKSPACE_HEX = {
+        'NA': '#0063AC', 'EMEA': '#00A28F', 'APAC': '#7030A0',
+        'LAC': '#ef6c00', 'Default': '#75787B', 'Program Templates': '#f59e0b'
+    };
+
+    const CHART_PALETTE = [
+        '#0063AC','#00A28F','#7030A0','#1976d2','#26a69a',
+        '#9c27b0','#0288d1','#00897b','#8e24aa','#1565c0',
+        '#00695c','#6a1b9a','#01579b','#004d40','#4a148c',
+        '#0d47a1','#006064','#311b92','#37474f','#546e7a'
+    ];
+
+    const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // ═══════════════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════════════
+    let allData = [];
+    let charts = {};
+    let exportDateStr = '';
+
+    // ═══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function fmt(n) {
+        if (n == null) return '—';
+        return n.toLocaleString('en-US');
+    }
+
+    function ordinal(d) {
+        if (d > 3 && d < 21) return d + 'th';
+        switch (d % 10) {
+            case 1: return d + 'st'; case 2: return d + 'nd';
+            case 3: return d + 'rd'; default: return d + 'th';
+        }
+    }
+
+    function formatExportDate(dateStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${ordinal(d)} of ${months[m - 1]} '${String(y).slice(-2)}`;
+    }
+
+    function truncate(str, len) {
+        return str && str.length > len ? str.slice(0, len) + '…' : (str || '');
+    }
+
+    function parseCETDate(str) {
+        if (!str || !str.trim()) return null;
+        const s = str.trim();
+        // DD-MM-YY HH:MM
+        let m = s.match(/^(\d{2})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})/);
+        if (m) {
+            const [, dd, mo, yy, hh] = m;
+            const year = 2000 + parseInt(yy);
+            return {
+                date: `${year}-${mo}-${dd}`,
+                hour: parseInt(hh),
+                dayOfWeek: new Date(year, parseInt(mo) - 1, parseInt(dd)).getDay()
+            };
+        }
+        // YYYY-MM-DD HH:MM
+        m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})/);
+        if (m) {
+            const [, yyyy, mo, dd, hh] = m;
+            return {
+                date: `${yyyy}-${mo}-${dd}`,
+                hour: parseInt(hh),
+                dayOfWeek: new Date(parseInt(yyyy), parseInt(mo) - 1, parseInt(dd)).getDay()
+            };
+        }
+        return null;
+    }
+
+    function getActionCategory(action) {
+        if (!action) return 'other';
+        const a = action.toLowerCase();
+        if (['delete', 'deactivate', 'unapprove'].includes(a)) return 'destructive';
+        if (['create', 'clone', 'import', 'draft create'].includes(a)) return 'create';
+        if (['approve', 'activate', 'approve with no-draft'].includes(a)) return 'approve';
+        if (['edit', 'draft', 'draft discard', 'child update'].includes(a)) return 'edit';
+        if (a.startsWith('modify')) return 'modify';
+        if (a === 'export') return 'export';
+        if (['move', 'rename'].includes(a)) return 'move';
+        return 'other';
+    }
+
+    function getActionColor(action) {
+        const colors = {
+            'create':      '#43a047',
+            'approve':     '#00A28F',
+            'edit':        '#0063AC',
+            'modify':      '#7030A0',
+            'destructive': '#e53935',
+            'export':      '#ef6c00',
+            'move':        '#78909c',
+            'other':       '#90a4ae'
+        };
+        return colors[getActionCategory(action)] || colors['other'];
+    }
+
+    function actionBadgeHtml(action) {
+        if (!action) return '—';
+        const cat = getActionCategory(action);
+        const styles = {
+            'create':      ['#e8f5e9', '#2e7d32'],
+            'approve':     ['#e0f5f2', '#007a6a'],
+            'edit':        ['#e8f1f8', '#0063AC'],
+            'modify':      ['#f0e8f7', '#7030A0'],
+            'destructive': ['#ffebee', '#c62828'],
+            'export':      ['#fff3e0', '#e65100'],
+            'move':        ['#f5f6f7', '#546e7a'],
+            'other':       ['#f5f6f7', '#75787B']
+        };
+        const [bg, color] = styles[cat] || styles['other'];
+        return `<span class="action-badge" style="background:${bg};color:${color}">${action}</span>`;
+    }
+
+    function workspaceCell(ws) {
+        if (!ws) return '—';
+        const color = WORKSPACE_HEX[ws] || '#90a4ae';
+        return `<span class="ws-dot" style="background:${color}"></span>${ws}`;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILE DETECTION & LOADING
+    // ═══════════════════════════════════════════════════════════
+    async function detectLatestExport() {
+        const today = new Date();
+        for (let i = 0; i < 90; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const y = d.getFullYear();
+            const mo = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${mo}-${dd}`;
+            const path = `Reports/${dateStr} Audit_Trail_Asset.csv`;
+            try {
+                const r = await fetch(path, { method: 'HEAD' });
+                if (r.ok) return { path, dateStr };
+            } catch {}
+        }
+        return null;
+    }
+
+    function handleFileInput(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const match = file.name.match(/^(\d{4}-\d{2}-\d{2})/);
+        exportDateStr = match ? match[1] : '';
+        showLoading(`Parsing ${file.name}…`);
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            transformHeader: h => h.trim(),
+            complete: res => processData(res.data),
+            error: () => showEmpty()
+        });
+        e.target.value = '';
+    }
+
+    function loadCSV(path, dateStr) {
+        exportDateStr = dateStr;
+        showLoading('Auto-loading latest export…');
+        Papa.parse(path, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            transformHeader: h => h.trim(),
+            complete: res => processData(res.data),
+            error: () => showEmpty()
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DATA PROCESSING
+    // ═══════════════════════════════════════════════════════════
+    function processData(raw) {
+        allData = raw.map(r => {
+            const dt = parseCETDate(r['Date/Time (CET)']);
+            return {
+                id:         parseInt(r['Id']) || 0,
+                dateTime:   (r['Date/Time (CET)'] || '').trim(),
+                date:       dt ? dt.date : '',
+                hour:       dt ? dt.hour : null,
+                dayOfWeek:  dt ? dt.dayOfWeek : null,
+                name:       (r['Name'] || '').trim(),
+                email:      (r['Email'] || '').trim(),
+                action:     (r['Action'] || '').trim(),
+                assetType:  (r['Asset Type'] || '').trim(),
+                assetName:  (r['Asset Name'] || '').trim(),
+                changeDetails: (r['Change Details'] || '').trim(),
+                parent:     (r['Parent'] || '').trim(),
+                workspace:  (r['Workspace'] || '').trim()
+            };
+        }).filter(r => r.name || r.id);
+
+        initMultiSelects();
+        renderAll(allData);
+        showDash();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  MULTI-SELECT FILTERS
+    // ═══════════════════════════════════════════════════════════
+    const MS_LABELS = {
+        'f-user':      'User',
+        'f-workspace': 'Workspace',
+        'f-action':    'Action',
+        'f-assettype': 'Asset Type'
+    };
+
+    const msState = {
+        'f-user': new Set(), 'f-workspace': new Set(),
+        'f-action': new Set(), 'f-assettype': new Set()
+    };
+
+    function initMultiSelects() {
+        // All dynamic from data
+        const users  = [...new Set(allData.map(r => r.name))].filter(v => v).sort();
+        const wss    = [...new Set(allData.map(r => r.workspace))].filter(v => v).sort();
+        const acts   = [...new Set(allData.map(r => r.action))].filter(v => v).sort();
+        const assets = [...new Set(allData.map(r => r.assetType))].filter(v => v).sort();
+
+        buildMsList('f-user', users);
+        buildMsList('f-workspace', wss);
+        buildMsList('f-action', acts);
+        buildMsList('f-assettype', assets);
+    }
+
+    function buildMsList(id, options) {
+        const list = document.getElementById(`ms-${id}-list`);
+        if (!list) return;
+        list.innerHTML = options.map(opt =>
+            `<label class="ms-item">
+                <input type="checkbox" value="${opt.replace(/"/g, '&quot;')}"
+                    onchange="toggleMsOption('${id}', this.value, this.checked)">
+                <span>${opt}</span>
+            </label>`
+        ).join('');
+    }
+
+    function toggleMs(id, e) {
+        e.stopPropagation();
+        const panel = document.getElementById(`ms-${id}-panel`);
+        const btn   = document.querySelector(`#ms-${id} .ms-btn`);
+        const isOpen = panel.style.display === 'block';
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+        if (!isOpen) { panel.style.display = 'block'; btn.classList.add('open'); }
+    }
+
+    function filterMsItems(id, query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll(`#ms-${id}-list .ms-item`).forEach(item => {
+            item.style.display = item.querySelector('span').textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+
+    function toggleMsOption(id, value, checked) {
+        if (checked) msState[id].add(value);
+        else         msState[id].delete(value);
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function selectAllMs(id) {
+        document.querySelectorAll(`#ms-${id}-list .ms-item`).forEach(item => {
+            if (item.style.display !== 'none') {
+                const cb = item.querySelector('input');
+                cb.checked = true;
+                msState[id].add(cb.value);
+            }
+        });
+        updateMsBtn(id); onMsChange();
+    }
+
+    function clearMs(id) {
+        msState[id].clear();
+        document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = false);
+        updateMsBtn(id); onMsChange();
+    }
+
+    function updateMsBtn(id) {
+        const sel   = msState[id].size;
+        const label = document.getElementById(`ms-${id}-label`);
+        const btn   = document.querySelector(`#ms-${id} .ms-btn`);
+        if (sel === 0) { label.textContent = MS_LABELS[id]; btn.classList.remove('active'); }
+        else if (sel === 1) { label.textContent = [...msState[id]][0]; btn.classList.add('active'); }
+        else { label.textContent = `${sel} selected`; btn.classList.add('active'); }
+    }
+
+    function onMsChange() {
+        const filtered = applyFilters();
+        updateFilterCount(filtered.length);
+        renderAll(filtered);
+    }
+
+    function applyFilters() {
+        return allData.filter(r => {
+            const u = msState['f-user'];
+            if (u.size && !u.has(r.name || '(blank)')) return false;
+            const w = msState['f-workspace'];
+            if (w.size && !w.has(r.workspace || '(blank)')) return false;
+            const a = msState['f-action'];
+            if (a.size && !a.has(r.action || '(blank)')) return false;
+            const at = msState['f-assettype'];
+            if (at.size && !at.has(r.assetType || '(blank)')) return false;
+            return true;
+        });
+    }
+
+    function updateFilterCount(n) {
+        const el = document.getElementById('filterCount');
+        el.innerHTML = n === allData.length
+            ? `<strong>${fmt(n)}</strong> actions`
+            : `Showing <strong>${fmt(n)}</strong> of ${fmt(allData.length)} actions`;
+    }
+
+    function resetFilters() {
+        for (const id of Object.keys(msState)) {
+            msState[id].clear();
+            document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = false);
+            const s = document.querySelector(`#ms-${id}-panel .ms-search`);
+            if (s) { s.value = ''; filterMsItems(id, ''); }
+            updateMsBtn(id);
+        }
+        updateFilterCount(allData.length);
+        renderAll(allData);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  RENDER ALL
+    // ═══════════════════════════════════════════════════════════
+    function renderAll(data) {
+        renderKPIs(data);
+        renderTimeline(data);
+        renderUsers(data);
+        renderActions(data);
+        renderAssetTypes(data);
+        renderWorkspace(data);
+        renderDow(data);
+        renderHour(data);
+        renderParents(data);
+        renderRecentActivity(data);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  KPIs
+    // ═══════════════════════════════════════════════════════════
+    function renderKPIs(data) {
+        const total = data.length;
+        const userCounts = {};
+        for (const r of data) if (r.name) userCounts[r.name] = (userCounts[r.name] || 0) + 1;
+        const uniqueUsers  = Object.keys(userCounts).length;
+        const uniqueAssets = new Set(data.filter(r => r.assetName).map(r => r.assetName)).size;
+        const topEntry     = Object.entries(userCounts).sort((a, b) => b[1] - a[1])[0];
+
+        document.getElementById('kpiTotal').textContent = fmt(total);
+        document.getElementById('kpiTotalSub').textContent = exportDateStr
+            ? `as of ${formatExportDate(exportDateStr)}`
+            : 'audit trail entries';
+        document.getElementById('kpiUsers').textContent = fmt(uniqueUsers);
+        document.getElementById('kpiAssets').textContent = fmt(uniqueAssets);
+
+        if (topEntry) {
+            document.getElementById('kpiTopUser').textContent = topEntry[0].split(' ')[0];
+            document.getElementById('kpiTopUserSub').textContent = `${fmt(topEntry[1])} actions — ${topEntry[0]}`;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHART HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function makeVBar(id, labels, values, color, opts = {}) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        const total = values.reduce((s, v) => s + v, 0);
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data: values, backgroundColor: color, borderWidth: 0, borderRadius: 3 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => ` ${fmt(c.parsed.y)}` } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { font: { size: 11 }, callback: v => fmt(v) }
+                    }
+                },
+                ...opts
+            }
+        });
+    }
+
+    function makeHBar(id, labels, values, colors) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        const total = values.reduce((s, v) => s + v, 0);
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, borderRadius: 2 }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => ` ${fmt(c.parsed.x)}  (${(c.parsed.x/total*100).toFixed(1)}%)` } }
+                },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+        const h = Math.max(160, labels.length * 30 + 50);
+        document.getElementById(id).parentElement.style.height = h + 'px';
+    }
+
+    function sortedTopN(counts, n) {
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, n);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  INDIVIDUAL CHARTS
+    // ═══════════════════════════════════════════════════════════
+    function renderTimeline(data) {
+        const counts = {};
+        for (const r of data) if (r.date) counts[r.date] = (counts[r.date] || 0) + 1;
+        const dates  = Object.keys(counts).sort();
+        const MON    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const labels = dates.map(d => { const [, mo, dd] = d.split('-'); return `${parseInt(dd)} ${MON[parseInt(mo)-1]}`; });
+        makeVBar('chartTimeline', labels, dates.map(d => counts[d]), '#0063AC');
+    }
+
+    function renderUsers(data) {
+        const counts = {};
+        for (const r of data) if (r.name) counts[r.name] = (counts[r.name] || 0) + 1;
+        const entries = sortedTopN(counts, 20);
+        const labels  = entries.map(e => truncate(e[0], 28));
+        const values  = entries.map(e => e[1]);
+        makeHBar('chartUsers', labels, values, labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]));
+    }
+
+    function renderActions(data) {
+        const counts = {};
+        for (const r of data) if (r.action) counts[r.action] = (counts[r.action] || 0) + 1;
+        const entries = sortedTopN(counts, 25);
+        const labels  = entries.map(e => e[0]);
+        const values  = entries.map(e => e[1]);
+        const colors  = labels.map(l => getActionColor(l));
+        makeHBar('chartActions', labels, values, colors);
+    }
+
+    function renderAssetTypes(data) {
+        const counts = {};
+        for (const r of data) if (r.assetType) counts[r.assetType] = (counts[r.assetType] || 0) + 1;
+        const entries = sortedTopN(counts, 20);
+        const labels  = entries.map(e => e[0]);
+        const values  = entries.map(e => e[1]);
+        makeHBar('chartAssetTypes', labels, values, labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]));
+    }
+
+    function renderWorkspace(data) {
+        const counts = {};
+        for (const r of data) if (r.workspace) counts[r.workspace] = (counts[r.workspace] || 0) + 1;
+        const entries = sortedTopN(counts, 15);
+        const labels  = entries.map(e => e[0]);
+        const values  = entries.map(e => e[1]);
+        const colors  = labels.map(l => WORKSPACE_HEX[l] || '#90a4ae');
+        makeHBar('chartWorkspace', labels, values, colors);
+    }
+
+    function renderDow(data) {
+        const counts = Array(7).fill(0);
+        for (const r of data) if (r.dayOfWeek != null) counts[r.dayOfWeek]++;
+        // Reorder Mon-Sun
+        const orderedCounts = [counts[1], counts[2], counts[3], counts[4], counts[5], counts[6], counts[0]];
+        makeVBar('chartDow', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], orderedCounts, '#00A28F');
+    }
+
+    function renderHour(data) {
+        const counts = Array(24).fill(0);
+        for (const r of data) if (r.hour != null) counts[r.hour]++;
+        const labels = Array.from({length: 24}, (_, i) => `${String(i).padStart(2,'0')}h`);
+        makeVBar('chartHour', labels, counts, '#7030A0');
+    }
+
+    function renderParents(data) {
+        const counts = {};
+        for (const r of data) if (r.parent) counts[r.parent] = (counts[r.parent] || 0) + 1;
+        const entries = sortedTopN(counts, 15);
+        const labels  = entries.map(e => truncate(e[0], 45));
+        const values  = entries.map(e => e[1]);
+        makeHBar('chartParents', labels, values, labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]));
+    }
+
+    function renderRecentActivity(data) {
+        const sorted = [...data].sort((a, b) => b.id - a.id).slice(0, 100);
+        document.getElementById('activityTbody').innerHTML = sorted.map(r => `
+            <tr>
+                <td style="color:var(--ansell-gray);font-size:11px">${r.dateTime || '—'}</td>
+                <td style="font-weight:600">${r.name || '—'}</td>
+                <td>${actionBadgeHtml(r.action)}</td>
+                <td style="color:var(--ansell-gray)">${r.assetType || '—'}</td>
+                <td title="${r.assetName}">${truncate(r.assetName, 40) || '—'}</td>
+                <td>${workspaceCell(r.workspace)}</td>
+            </tr>`
+        ).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  UI STATE TRANSITIONS
+    // ═══════════════════════════════════════════════════════════
+    function showLoading(msg) {
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('loadingMsg').textContent     = msg || 'Loading…';
+    }
+
+    function showEmpty() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('emptyState').style.display   = 'block';
+    }
+
+    function showDash() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('filterBar').style.display    = 'flex';
+        document.getElementById('footerEl').style.display     = 'block';
+        document.getElementById('dashContent').style.display  = 'block';
+        if (exportDateStr) {
+            document.getElementById('exportDateLabel').textContent = 'Last Export: ' + formatExportDate(exportDateStr);
+            document.getElementById('exportBadge').style.display = 'inline-flex';
+        }
+        updateFilterCount(allData.length);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CLICK OUTSIDE — CLOSE DROPDOWNS
+    // ═══════════════════════════════════════════════════════════
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    //  INIT
+    // ═══════════════════════════════════════════════════════════
+    window.addEventListener('load', async () => {
+        const found = await detectLatestExport();
+        if (found) loadCSV(found.path, found.dateStr);
+    });
+    </script>
+</body>
+</html>

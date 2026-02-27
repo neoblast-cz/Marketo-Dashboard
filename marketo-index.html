@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo Analytics Hub | Ansell</title>
+    <link rel="stylesheet" href="ansell.digital.css">
+    <style>
+        /* -- Hub page-specific styles -- */
+
+        /* Hub header is not sticky and uses slightly more padding */
+        .header { position: static; padding: 20px 30px; }
+        .header h1 { font-size: 30px; font-weight: bolder; }
+        .header p { font-size: 12px; color: var(--ansell-gray); }
+
+        .main { max-width: 1100px; padding: 40px 30px; }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ansell-gray);
+            margin-bottom: 16px;
+        }
+
+        /* -- DASHBOARD GRID -- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .dash-card {
+            background: white;
+            padding: 28px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--ansell-gray);
+            text-decoration: none;
+            color: var(--ansell-dark);
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dash-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.13); transform: translateY(-2px); }
+
+        .dash-card.blue   { border-top-color: var(--ansell-blue); }
+        .dash-card.teal   { border-top-color: var(--ansell-teal); }
+        .dash-card.purple { border-top-color: var(--accent-purple); }
+        .dash-card.disabled { opacity: 0.55; pointer-events: none; cursor: default; }
+
+        .dash-card-icon {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .dash-card.blue .dash-card-icon   { background: #e8f1f8; color: var(--ansell-blue); }
+        .dash-card.teal .dash-card-icon   { background: #e0f5f2; color: var(--ansell-teal); }
+        .dash-card.purple .dash-card-icon { background: #f0e8f7; color: var(--accent-purple); }
+        .dash-card-icon svg { width: 22px; height: 22px; }
+
+        .dash-card h2 { font-size: 18px; font-weight: 700; }
+        .dash-card p  { font-size: 13px; color: var(--ansell-gray); line-height: 1.5; }
+
+        .dash-card .data-file {
+            font-size: 11px; color: var(--ansell-light-gray);
+            margin-top: auto; padding-top: 8px; border-top: 1px solid #f0f0f0;
+        }
+
+        .dash-card .data-file code { background: #f5f6f7; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+
+        .dash-card .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+        .status-dot.ok      { background: var(--ansell-teal); }
+        .status-dot.missing { background: #c62828; }
+
+        .coming-soon-badge {
+            display: inline-block;
+            font-size: 9px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 2px 7px; border-radius: 3px;
+            background: #f5f6f7; color: var(--ansell-light-gray);
+            margin-top: 4px; align-self: flex-start;
+        }
+
+        .footer { padding: 30px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo <span>Analytics Hub</span></h1>
+                <p>Ansell Global Database Intelligence Suite</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="section-title">Dashboards</div>
+        <div class="dashboard-grid">
+            <a href="marketo-user-activity.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <h2>User Activity</h2>
+                <p>Audit trail analysis: who is working in Marketo, what they're editing, which programs are most active, and when the team is working.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotActivity"></span>
+                    <code id="auditFileLabel">Audit_Trail_Asset.csv</code>
+                </div>
+            </a>
+
+            <a href="marketo-db-analysis.html" class="dash-card teal">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                </div>
+                <h2>Database Analysis</h2>
+                <p>Full database health snapshot: deliverability segments, geographic spread, GBU composition, growth trends, verticals, and acquisition channels.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotDB"></span>
+                    <code id="exportFileLabel">Dashboard_Export.csv</code>
+                </div>
+            </a>
+
+            <div class="dash-card purple disabled">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                </div>
+                <h2>Campaign Performance</h2>
+                <p>Analyse send volume, open rates, click-through rates, and unsubscribe trends by campaign, program type, and audience segment.</p>
+                <span class="coming-soon-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <div class="faq-header">
+            <div class="section-title" style="margin-bottom:0">Knowledge Base</div>
+            <div class="faq-tag-filters">
+                <button class="faq-tag-btn data active" onclick="toggleTagFilter('data')">Data</button>
+                <button class="faq-tag-btn method active" onclick="toggleTagFilter('method')">Methodology</button>
+                <button class="faq-tag-btn howto active" onclick="toggleTagFilter('howto')">How-To</button>
+            </div>
+            <div class="faq-search-wrap">
+                <span class="faq-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                <input class="faq-search" type="text" id="faqSearch" placeholder="Search knowledge base..." oninput="filterFAQ()">
+            </div>
+        </div>
+        <div class="faq-grid" id="faqGrid"></div>
+        <div class="faq-show-all" id="faqShowAll">
+            <button onclick="showAllFAQ()">Show all articles</button>
+        </div>
+    </main>
+
+    <div class="footer">Ansell Healthcare &middot; Marketo Analytics Hub</div>
+
+    <script>
+        // ---- Check CSV availability ----
+        async function findLatest(suffix, dotId, labelId) {
+            const today = new Date();
+            for (let i = 0; i < 90; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const dateStr = `${y}-${m}-${dd}`;
+                const path = `Reports/${dateStr} ${suffix}`;
+                try {
+                    const r = await fetch(path, { method: 'HEAD' });
+                    if (r.ok) {
+                        document.getElementById(dotId).classList.add('ok');
+                        document.getElementById(labelId).textContent = `${dateStr} ${suffix}`;
+                        return;
+                    }
+                } catch {}
+            }
+            document.getElementById(dotId).classList.add('missing');
+        }
+
+        findLatest('Audit_Trail_Asset.csv', 'dotActivity', 'auditFileLabel');
+        findLatest('Dashboard_Export.csv',  'dotDB',       'exportFileLabel');
+
+        // ---- FAQ Data ----
+        const FAQ = [
+            {
+                q: 'What does the User Activity dashboard show?',
+                a: 'The User Activity dashboard analyses the <b>Marketo Audit Trail</b> — a log of every action performed by every user in the Marketo instance.<br><br>' +
+                   'It shows: who is working in Marketo, what actions they take (create, edit, approve, delete…), which asset types and programs are most touched, ' +
+                   'activity patterns by day of week and hour, and a searchable recent activity log.<br><br>' +
+                   'This helps managers understand workload distribution, identify the most active contributors, and spot unusual activity.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Audit Trail and how do I export it?',
+                a: 'The Marketo Audit Trail records every change made to assets in the instance — creates, edits, approvals, deletions, etc. — with a timestamp and the user who made it.<br><br>' +
+                   'To export: go to <b>Admin → Audit Trail</b> in Marketo. Filter by date range if needed, then click <b>Export</b> to download as CSV.<br><br>' +
+                   'Name the file <code>YYYY-MM-DD Audit_Trail_Asset.csv</code> and place it in the <code>Reports/</code> folder for auto-load.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            {
+                q: 'What do the Action colour codes mean in User Activity?',
+                a: 'Actions in the Recent Activity table are colour-coded by category:<br><br>' +
+                   '<span style="background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Create / Clone / Import</span> — green: new assets added<br>' +
+                   '<span style="background:#e0f5f2;color:#007a6a;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Approve / Activate</span> — teal: assets made live<br>' +
+                   '<span style="background:#e8f1f8;color:#0063AC;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Edit / Draft</span> — blue: content changes<br>' +
+                   '<span style="background:#f0e8f7;color:#7030A0;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Modify *</span> — purple: campaign/flow/smart list changes<br>' +
+                   '<span style="background:#ffebee;color:#c62828;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Delete / Deactivate / Unapprove</span> — red: destructive actions',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What are Workspaces in the User Activity dashboard?',
+                a: 'Workspaces are logical partitions within the Marketo instance, typically aligned to regional marketing teams:<br><br>' +
+                   '<b>NA</b> — North America<br><b>EMEA</b> — Europe, Middle East & Africa<br><b>APAC</b> — Asia Pacific<br>' +
+                   '<b>LAC</b> — Latin America & Caribbean<br><b>Default</b> — shared / unassigned workspace<br>' +
+                   '<b>Program Templates</b> — template library<br>' +
+                   '<b>Z | ...</b> — deprecated or training workspaces (no longer in active use)',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What data does this dashboard analyse?',
+                a: 'The dashboard analyses a full export from the Marketo database — an anonymised snapshot of all records including Leads and Contacts. ' +
+                   'The export contains key segmentation fields: country, organisation, GBU, deliverability status, vertical, language preference, and record type. ' +
+                   'With ~877k records, it gives a comprehensive view of the entire addressable database.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Deliverability Segment?',
+                a: 'The Deliverability Segment classifies each record\'s email eligibility:<br><br>' +
+                   '<b>Opted-In Explicit</b> — actively consented to marketing emails<br>' +
+                   '<b>Opted-In Implicit (No Response)</b> — received emails, no opt-out<br>' +
+                   '<b>Unsubscribed</b> — opted out<br>' +
+                   '<b>Email Invalid</b> — address bounced or is malformed<br>' +
+                   '<b>Suspended Email / Marketing</b> — temporarily paused<br>' +
+                   '<b>Blocklisted, Blacklisted, Competitors</b> — suppressed permanently<br>' +
+                   '<b>Noemail@ansell.com</b> — placeholder / no valid email',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What does "contactable" mean?',
+                a: 'A record is considered <b>contactable</b> (able to receive marketing emails) when its Deliverability Segment is either <b>Opted-In Explicit</b> or <b>Opted-In Implicit (No Response)</b>.<br><br>' +
+                   'All other segments — unsubscribed, invalid, suspended, blocklisted — are considered non-contactable and should not receive campaign emails.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What is the difference between Opted-In Explicit and Implicit?',
+                a: '<b>Opted-In Explicit</b>: The person actively confirmed their consent — e.g. by ticking a checkbox on a form, or confirming via a double opt-in email. The <i>Current Opt-In Timestamp</i> records when this happened.<br><br>' +
+                   '<b>Opted-In Implicit (No Response)</b>: The record is in a sending-eligible state but has not actively confirmed consent. They receive emails unless they opt out.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What is GBU?',
+                a: '<b>GBU (Global Business Unit)</b> classifies whether a record belongs to the <b>Healthcare</b> or <b>Industrial</b> business unit.<br><br>' +
+                   'This is the top-level split for audience segmentation and campaign targeting at Ansell.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is Organisation?',
+                a: 'Organisation is a combination of <b>region</b> and <b>GBU</b>, giving a more granular geographic view:<br><br>' +
+                   'Americas Healthcare, Americas Industrial, EMEA Healthcare, EMEA Industrial, APAC Healthcare, APAC Industrial, ANZ Healthcare.<br><br>' +
+                   'It is used to route campaigns to the correct regional marketing team.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What does SFDC Type mean?',
+                a: '<b>SFDC Type</b> indicates whether the record exists in Salesforce as a <b>Lead</b>, a <b>Contact</b>, or is not yet synchronised (blank).<br><br>' +
+                   '<b>Contact</b>: linked to a Salesforce Account (a known company)<br>' +
+                   '<b>Lead</b>: not yet linked to an Account in Salesforce<br>' +
+                   '<b>Blank</b>: exists only in Marketo, not pushed to Salesforce',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Record Type (A)?',
+                a: '<b>Record Type (A)</b> is the <b>Account record type</b> in Salesforce — it classifies the customer profile of the Account the Contact is linked to. It applies <b>only to Contacts</b>; Leads and Marketo-only People have no Account and will appear blank.<br><br>' +
+                   '<b>End-Users</b> — direct purchasers / end consumers (ID: 01290000000AEOjAAO)<br>' +
+                   '<b>Distributors</b> — channel partners (ID: 01290000000AEOiAAO)<br>' +
+                   '<b>Webstore</b> — registered via the online store (ID: 0120o0000017h2RAAQ)<br>' +
+                   '<b>Blank</b> — Leads, Marketo-only People, or Contacts not yet linked to a classified Account',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Acquisition Program Name?',
+                a: 'The name of the Marketo program that created the record. It encodes a naming convention used to track the source:<br><br>' +
+                   '<code>REGION_GBU_Channel_FYxx_...</code><br><br>' +
+                   'Common prefixes: <b>NA</b> (North America), <b>EMEA</b>, <b>LAC</b> (Latin America), <b>APAC</b>, <b>ASIA</b>, <b>ANZ</b>.<br>' +
+                   'Common channels: Web-form, Events, Paid-social, Webinar, Email.<br>' +
+                   '"Record Created in Salesforce" means the contact originated in SFDC and was pushed to Marketo.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Language 2025 Segment?',
+                a: 'The language preference assigned to the record for personalised communication. It determines which language variant of emails/content the contact receives.<br><br>' +
+                   '<b>Default</b> means English has been assigned (no language preference set).<br><br>' +
+                   'This segment was introduced in the 2025 Language Project and covers 24 languages.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How is database growth calculated?',
+                a: 'Growth is measured by the <b>Created At</b> date — when the Marketo record was first created. Records are grouped by year (and optionally by month) to show intake volume over time.<br><br>' +
+                   'Opt-In growth is separately tracked using the <b>Current Opt-In Timestamp</b>, showing when records moved to an explicitly consented state.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How is the Acquisition Channel derived?',
+                a: 'The channel is inferred from keywords in the <b>Acquisition Program Name</b>:<br><br>' +
+                   'Web Form / Download, Paid Social, Events, Webinar, Email, Direct Mail, Content / Gated, Operational, SFDC Direct.<br><br>' +
+                   'Programs containing "Record Created in Salesforce" are classified as SFDC Direct. Programs with unknown patterns fall into "Other".',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How do I export the database from Marketo?',
+                a: 'In Marketo, go to <b>Analytics</b> (or <b>Database</b>) and create a Smart List with all records. Use the <b>Export</b> function to download as CSV.<br><br>' +
+                   'Include these columns: Created At, Country, SFDC Type, Acquisition Program Name, Deliverability Segment, Language 2025 Segment, Organisation, 1. Current Opt-In Timestamp, Vertical, Sub Vertical, 1. GBU, Record Type ID (A).<br><br>' +
+                   'Name the file <code>YYYY-MM-DD Dashboard_Export.csv</code> and place it in the <code>Reports/</code> folder.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            {
+                q: 'How do I refresh the dashboard with new data?',
+                a: 'Export a fresh CSV from Marketo following the naming convention <code>YYYY-MM-DD Dashboard_Export.csv</code> (e.g. <code>2026-03-01 Dashboard_Export.csv</code>) and place it in the <code>Reports/</code> folder.<br><br>' +
+                   'The dashboard will automatically detect the newest file on next load (it checks dates going back up to 90 days).<br><br>' +
+                   'Alternatively, use the <b>Load Data</b> button on the analysis dashboard to manually select any CSV from your computer.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            {
+                q: 'Can I filter the data?',
+                a: 'Yes. The Database Analysis dashboard has filters for <b>Organisation</b>, <b>GBU</b>, <b>SFDC Type</b>, <b>Deliverability Segment</b>, and <b>Vertical</b>.<br><br>' +
+                   'Select a value from any dropdown and all KPIs and charts update instantly. Use <b>Reset All</b> to clear all filters.<br><br>' +
+                   'A record counter below the header shows how many records match the current filter selection.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            {
+                q: 'What does a blank field mean in the data?',
+                a: 'Blank values indicate that the field was not populated at the time of the Marketo record creation or has not been updated since.<br><br>' +
+                   'Common examples:<br>' +
+                   '— No <b>Country</b>: often older records or SFDC-originated contacts where country wasn\'t mapped<br>' +
+                   '— No <b>Vertical</b>: records not yet segmented by industry<br>' +
+                   '— No <b>Opt-In Timestamp</b>: the record has not received an explicit opt-in<br>' +
+                   'Blanks are shown as "(blank)" in the charts.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What does the Demand Generation tab show?',
+                a: 'The Demand Generation tab focuses exclusively on <b>SFDC Leads</b> (including records with a blank SFDC Type, which exist only in Marketo). Contacts are excluded because they are already associated with a Salesforce Account and are managed through a different sales motion.<br><br>' +
+                   'The tab contains two sections:<br>' +
+                   '— <b>Lead Management Process</b>: a visual flow of how leads move through Person Status stages, with proportional box sizing based on record counts<br>' +
+                   '— <b>Lead Scoring Matrix</b>: a heatmap showing how leads are distributed across Relative Urgency (0–3) and Relative Score (0–3) combinations',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the Lead Management Process flow?',
+                a: 'The Lead Management Process (LMP) flow visualises how leads are classified by the <b>Person Status</b> field in Marketo (Salesforce field: <code>Person_Status__c</code>).<br><br>' +
+                   'The seven stages are:<br>' +
+                   '<b>Demand Capture</b> — blank Person Status; leads not yet assigned to a sales stage (the Demand Generation pool)<br>' +
+                   '<b>Assigned</b> — lead has been assigned to a sales rep but not yet worked<br>' +
+                   '<b>Working</b> — sales rep is actively working the lead<br>' +
+                   '<b>Converted</b> — lead has been converted to a Contact / Opportunity in Salesforce<br>' +
+                   '<b>Nurture</b> — lead is not ready; returned to a nurture marketing track<br>' +
+                   '<b>Referral</b> — lead passed to a partner or distributor<br>' +
+                   '<b>Unqualified</b> — lead does not meet qualification criteria<br><br>' +
+                   'The Demand Capture box (blank status) is treated as a <b>valid clean state</b> in the Data Quality tab — it is not counted as a dirty record.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How are the Demand Generation tab filters applied?',
+                a: 'The Demand tab has five filters: <b>Organisation</b>, <b>GBU</b>, <b>Deliverability</b>, <b>Vertical</b>, and <b>Country</b>.<br><br>' +
+                   'These filters are completely independent from the filters on the Database Analysis tab — changing one does not affect the other.<br><br>' +
+                   'The base population is always limited to <b>SFDC Leads + blank SFDC Type</b> before any filters are applied. The filter logic is:<br>' +
+                   '<code>sfdcType === "Lead" || sfdcType === ""</code>, then each active filter further narrows the set by the selected field values.<br><br>' +
+                   'The record counter in the filter bar shows how many leads match the current selection versus the total lead pool.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What is the Lead Scoring Matrix?',
+                a: 'The Lead Scoring Matrix is a 4×4 heatmap that cross-tabulates <b>Relative Urgency</b> (rows, 3 = highest) against <b>Relative Score</b> (columns, 3 = highest). Both fields come directly from Marketo: <code>Relative Urgency</code> and <code>Relative Score</code>.<br><br>' +
+                   'Two tables are shown side by side:<br>' +
+                   '— <b>Count</b>: absolute number of leads in each cell<br>' +
+                   '— <b>Share</b>: each cell as a percentage of all scored leads (leads where both Urgency and Score are set)<br><br>' +
+                   '<b>Heat colouring formula:</b><br>' +
+                   'Cell intensity = <code>count / maxCellCount</code> (relative to the busiest cell).<br>' +
+                   'Cells where Urgency + Score ≥ 4 (top-right quadrant, high value) use an <b>orange → red</b> scale.<br>' +
+                   'All other cells use a <b>light blue → dark blue</b> scale.<br>' +
+                   'Leads with blank Urgency or blank Score are excluded from the matrix entirely.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How are the Lead Management Process boxes sized?',
+                a: 'Each stage box is sized proportionally to its lead count using a <b>square-root scale</b>. This gives a meaningful visual difference between large and small stages without making small stages unreadably tiny.<br><br>' +
+                   '<b>Formula:</b><br>' +
+                   '<code>t = √(count / maxCount)</code> — where maxCount is the largest stage in the current filter view<br>' +
+                   '<code>minHeight = 48 + t × 120</code> px (range: 48–168 px)<br>' +
+                   '<code>fontSize = 14 + t × 32</code> px (range: 14–46 px)<br>' +
+                   '<code>borderWidth = 1.5 + t × 2</code> px (range: 1.5–3.5 px)<br><br>' +
+                   'Square root was chosen over log scale because it produces a more noticeable size difference (e.g. a stage with 23× more leads appears ~4.8× taller, versus ~1.3× with log scale).',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'Why is Person Status shown on the Data Quality tab?',
+                a: 'Person Status (<code>Person_Status__c</code> in Salesforce, template ID 71508 in Marketo) is a critical lead routing field. Non-standard values — anything outside the seven valid stages — indicate data quality issues that need correcting in Marketo.<br><br>' +
+                   'The DQ check is scoped to <b>SFDC Leads and blank SFDC Type only</b>. Contacts are excluded because Person Status is a leads-only concept.<br><br>' +
+                   'A <b>blank Person Status is treated as clean</b> — it represents the Demand Generation pool (leads not yet assigned to a sales stage), which is a valid state. Only non-standard values count as dirty.',
+                tag: 'method', tagLabel: 'Methodology'
+            }
+        ];
+
+        let showAll = false;
+        let expandedIdx = null;
+        let activeTag = null;
+        let initialCards = null;
+
+        function getFilteredFAQ() {
+            const query = document.getElementById('faqSearch').value.toLowerCase().trim();
+            let items = FAQ;
+            if (activeTag) items = items.filter(i => i.tag === activeTag);
+            if (query) items = items.filter(i =>
+                i.q.toLowerCase().includes(query) || i.a.toLowerCase().includes(query) || i.tagLabel.toLowerCase().includes(query)
+            );
+            return items;
+        }
+
+        function renderFAQ() {
+            const grid = document.getElementById('faqGrid');
+            const showAllBtn = document.getElementById('faqShowAll');
+            const query = document.getElementById('faqSearch').value.trim();
+            const isFiltering = query.length > 0 || activeTag !== null;
+            let display = getFilteredFAQ();
+
+            if (!isFiltering && !showAll) {
+                if (!initialCards) initialCards = getRandomCards(display, 3);
+                display = initialCards;
+            }
+
+            if (display.length === 0) {
+                grid.innerHTML = '<div class="faq-no-results">No matching articles found.</div>';
+                showAllBtn.style.display = 'none';
+                return;
+            }
+
+            grid.innerHTML = display.map(item => {
+                const realIdx = FAQ.indexOf(item);
+                const isExpanded = expandedIdx === realIdx;
+                return `<div class="faq-card${isExpanded ? ' expanded' : ''}" data-idx="${realIdx}" onclick="toggleFAQ(${realIdx})">
+                    <div class="faq-q"><span class="faq-icon">?</span><span>${item.q}</span></div>
+                    <div class="faq-a">${item.a}</div>
+                    <span class="faq-tag ${item.tag}" onclick="event.stopPropagation(); filterByTag('${item.tag}')">${item.tagLabel}</span>
+                </div>`;
+            }).join('');
+
+            const totalMatching = getFilteredFAQ().length;
+            showAllBtn.style.display = (!isFiltering && !showAll && totalMatching > 3) ? 'block' : 'none';
+        }
+
+        function getRandomCards(items, count) {
+            if (items.length <= count) return [...items];
+            const shuffled = [...items];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled.slice(0, count);
+        }
+
+        function filterFAQ() { expandedIdx = null; renderFAQ(); }
+
+        function toggleFAQ(idx) {
+            const isExp = expandedIdx === idx;
+            document.querySelectorAll('.faq-card.expanded').forEach(c => c.classList.remove('expanded'));
+            expandedIdx = isExp ? null : idx;
+            if (expandedIdx !== null) {
+                const t = document.querySelector(`.faq-card[data-idx="${expandedIdx}"]`);
+                if (t) t.classList.add('expanded');
+            }
+        }
+
+        function showAllFAQ() { showAll = true; expandedIdx = null; renderFAQ(); }
+
+        function filterByTag(tag) {
+            activeTag = activeTag === tag ? null : tag;
+            showAll = false; expandedIdx = null;
+            updateTagButtons(); renderFAQ();
+        }
+
+        function toggleTagFilter(tag) { filterByTag(tag); }
+
+        function updateTagButtons() {
+            document.querySelectorAll('.faq-tag-btn').forEach(btn => {
+                const btnTag = [...btn.classList].find(c => ['data', 'method', 'howto'].includes(c));
+                btn.classList.toggle('active', activeTag === null || btnTag === activeTag);
+            });
+        }
+
+        renderFAQ();
+    </script>
+</body>
+</html>
