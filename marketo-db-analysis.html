@@ -203,6 +203,10 @@
             <option value="recordType">Record Type (A)</option>
             <option value="vertical">Vertical</option>
             <option value="channel">Acquisition Channel</option>
+            <option value="personStatus">Person Status</option>
+            <option value="region">Region</option>
+            <option value="leadRecordType">Lead Record Type</option>
+            <option value="roleDescription">Role Description</option>
         </select>
     </div>
 
@@ -262,6 +266,7 @@
             <!-- Deliverability -->
             <div class="section-label">Deliverability Health</div>
             <div class="chart-card">
+                <span class="blank-badge" id="blankBadge_deliverability"></span>
                 <div class="chart-title">Deliverability Segment Breakdown</div>
                 <div class="chart-wrap" style="position:relative">
                     <canvas id="chartDeliverability"></canvas>
@@ -272,12 +277,14 @@
             <div class="section-label">Database Composition</div>
             <div class="chart-grid-2">
                 <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_gbu"></span>
                     <div class="chart-title">Global Business Unit (GBU)</div>
                     <div class="chart-wrap" style="height:220px">
                         <canvas id="chartGBU"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_org"></span>
                     <div class="chart-title">Organisation</div>
                     <div class="chart-wrap" style="position:relative">
                         <canvas id="chartOrg"></canvas>
@@ -288,17 +295,28 @@
             <!-- Record Classification -->
             <div class="chart-grid-3">
                 <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_sfdc"></span>
                     <div class="chart-title">SFDC Type</div>
                     <div class="chart-wrap" style="height:200px">
                         <canvas id="chartSFDC"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
-                    <div class="chart-title">Record Type (A) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Account record type — Contacts only</span></div>
+                    <span class="blank-badge" id="blankBadge_leadRecordType"></span>
+                    <div class="chart-title">Record Type ID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Healthcare / Industrial · Other = DQ issue</span></div>
+                    <div class="chart-wrap" style="height:220px">
+                        <canvas id="chartLeadRecordType"></canvas>
+                    </div>
+                    <div style="margin-top:10px;font-size:10px;color:var(--ansell-light-gray)">Leads only — Contacts excluded</div>
+                </div>
+                <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_recordType"></span>
+                    <div class="chart-title">Record Type (A) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Account record type</span></div>
                     <div class="chart-wrap" style="position:relative">
                         <canvas id="chartRecordType"></canvas>
                     </div>
-                    <div class="chart-title" style="margin-top:20px;">Account Reach</div>
+                    <div style="margin-top:10px;font-size:10px;color:var(--ansell-light-gray)">Contacts only — Leads excluded</div>
+                    <div class="chart-title" style="margin-top:16px;">Account Reach</div>
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;padding-top:12px;border-top:1px solid #f0f0f0">
                         <div style="padding-right:12px">
                             <div class="kpi-label" style="margin-bottom:3px">End-User</div>
@@ -315,13 +333,16 @@
                             <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiWebstore">—</div>
                             <div class="kpi-sub" id="kpiWebstoreSub" style="margin-top:2px">unique accounts</div>
                         </div>
-                    </div>                    
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Acquisition Channel</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartChannel"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <!-- Acquisition Channel (full width) -->
+            <div class="chart-card">
+                <span class="blank-badge" id="blankBadge_channel"></span>
+                <div class="chart-title">Acquisition Channel</div>
+                <div class="chart-wrap" style="position:relative">
+                    <canvas id="chartChannel"></canvas>
                 </div>
             </div>
 
@@ -356,10 +377,20 @@
 
             <!-- Geography -->
             <div class="section-label">Geographic Distribution</div>
-            <div class="chart-card">
-                <div class="chart-title">Top 20 Countries</div>
-                <div class="chart-wrap" style="position:relative">
-                    <canvas id="chartCountries"></canvas>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_countries"></span>
+                    <div class="chart-title">Top 20 Countries</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartCountries"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_region"></span>
+                    <div class="chart-title">Region</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartRegion"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -367,6 +398,7 @@
             <div class="section-label">Market Segmentation</div>
             <div class="chart-grid-equal">
                 <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_vertical"></span>
                     <div class="chart-title">Vertical <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">click bar to expand sub verticals</span></div>
                     <div class="chart-wrap" style="position:relative">
                         <canvas id="chartVertical"></canvas>
@@ -379,10 +411,19 @@
                     </div>
                 </div>
                 <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_roleDescription"></span>
+                    <div class="chart-title">Role Description</div>
+                    <div class="chart-wrap" style="position:relative">
+                        <canvas id="chartRoleDescription"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <span class="blank-badge" id="blankBadge_language"></span>
                     <div class="chart-title">Language Segment</div>
                     <div class="chart-wrap" style="position:relative">
                         <canvas id="chartLanguage"></canvas>
                     </div>
+                    <div style="margin-top:8px;font-size:10px;color:var(--ansell-light-gray)">Default = English</div>
                 </div>
             </div>
 
@@ -480,6 +521,12 @@
         <div class="main">
             <div class="section-label">Lead Management Process
                 <span class="section-label-note" id="demandLeadCount"></span>
+                <span class="lmp-period-bar">
+                    <span class="lmp-period-label">Transitions in last</span>
+                    <button class="lmp-period-btn active" id="tPeriod30" onclick="setTransitionPeriod(30)">30 days</button>
+                    <button class="lmp-period-btn" id="tPeriod60" onclick="setTransitionPeriod(60)">60 days</button>
+                    <button class="lmp-period-btn" id="tPeriod90" onclick="setTransitionPeriod(90)">90 days</button>
+                </span>
             </div>
             <div class="chart-card">
                 <div class="lmp-flow">
@@ -488,21 +535,24 @@
                         <div class="lmp-banner-mkt">Marketing <span class="lmp-banner-tag">Marketo</span></div>
                         <div class="lmp-banner-sales">Sales <span class="lmp-banner-tag">Salesforce</span></div>
                     </div>
-                    <!-- Grid: 7 cols × 3 rows -->
+                    <!-- Grid: 8 cols × 3 rows (col 1 = inbound arrow) -->
                     <div class="lmp-grid">
-                        <!-- Row 1: Main stages (auto-placed) -->
-                        <div class="lmp-stage lmp-demand" id="lmpBoxDemand">
+                        <!-- Row 1: Inbound arrow + main stages (auto-placed) -->
+                        <div class="lmp-h-arr" id="lmpArrCreated"><span class="lmp-t-badge" id="tBadgeCreated">—</span></div>
+                        <div class="lmp-stage lmp-demand clickable" id="lmpBoxDemand" onclick="toggleStageDetail('demand')" title="Click to explore Demand Capture details">
                             <div class="lmp-stage-name">Demand Capture</div>
                             <div class="lmp-stage-val" id="ffDemand">—</div>
                             <div class="lmp-stage-pct" id="ffDemandPct"></div>
                             <div class="lmp-stage-sub">No Person Status</div>
+                            <div class="lmp-stage-explore" id="lmpExploreDemand"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
-                        <div class="lmp-h-arr"></div>
+                        <div class="lmp-h-arr" id="lmpArrAssigned"><span class="lmp-t-badge" id="tBadgeAssigned">—</span></div>
                         <div class="lmp-stage-group">
-                            <div class="lmp-stage lmp-assigned" id="lmpBoxAssigned">
+                            <div class="lmp-stage lmp-assigned clickable" id="lmpBoxAssigned" onclick="toggleStageDetail('assigned')" title="Click to explore Assigned details">
                                 <div class="lmp-stage-name">Assigned</div>
                                 <div class="lmp-stage-val" id="ffAssigned">—</div>
                                 <div class="lmp-stage-pct" id="ffAssignedPct"></div>
+                                <div class="lmp-stage-explore" id="lmpExploreAssigned"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                             </div>
                             <div class="lmp-stage lmp-prospect" id="lmpBoxProspect">
                                 <div class="lmp-stage-name">Prospect</div>
@@ -510,13 +560,14 @@
                                 <div class="lmp-stage-pct" id="ffProspectPct"></div>
                             </div>
                         </div>
-                        <div class="lmp-h-arr"></div>
-                        <div class="lmp-stage lmp-working" id="lmpBoxWorking">
+                        <div class="lmp-h-arr" id="lmpArrWorking"><span class="lmp-t-badge" id="tBadgeWorking">—</span></div>
+                        <div class="lmp-stage lmp-working clickable" id="lmpBoxWorking" onclick="toggleStageDetail('working')" title="Click to explore Working details">
                             <div class="lmp-stage-name">Working</div>
                             <div class="lmp-stage-val" id="ffWorking">—</div>
                             <div class="lmp-stage-pct" id="ffWorkingPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreWorking"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
-                        <div class="lmp-h-arr"></div>
+                        <div class="lmp-h-arr" id="lmpArrConverted"><span class="lmp-t-badge lmp-t-badge-dash" id="tBadgeConverted">—</span></div>
                         <div class="lmp-stage lmp-converted" id="lmpBoxConverted">
                             <div class="lmp-stage-name">Converted</div>
                             <div class="lmp-stage-val" id="ffConverted">—</div>
@@ -524,26 +575,55 @@
                         </div>
 
                         <!-- Row 2: Branch connector — originates from Working, fans to all three outcomes -->
-                        <div class="lmp-branch" style="grid-column:3/8;grid-row:2"><span class="lmp-branch-u"></span></div>
+                        <div class="lmp-branch" style="grid-column:4/9;grid-row:2"><span class="lmp-branch-u"></span><span class="lmp-branch-mid-arr"></span></div>
 
                         <!-- Row 3: Outcome stages (explicit placement) -->
-                        <div class="lmp-stage lmp-nurture" id="lmpBoxNurture" style="grid-column:1/4;grid-row:3;align-self:start">
+                        <div class="lmp-stage lmp-nurture clickable" id="lmpBoxNurture" style="grid-column:2/5;grid-row:3;align-self:start" onclick="toggleStageDetail('nurture')" title="Click to explore Nurture details">
+                            <span class="lmp-t-badge lmp-t-badge-dash lmp-t-badge-branch" id="tBadgeNurture">—</span>
                             <div class="lmp-stage-name">Nurture</div>
                             <div class="lmp-stage-val" id="ffNurture">—</div>
                             <div class="lmp-stage-pct" id="ffNurturePct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreNurture"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
-                        <div class="lmp-stage lmp-referral" id="lmpBoxReferral" style="grid-column:5;grid-row:3;align-self:start">
+                        <div class="lmp-stage lmp-referral clickable" id="lmpBoxReferral" style="grid-column:6;grid-row:3;align-self:start" onclick="toggleStageDetail('referral')" title="Click to explore Referral details">
+                            <span class="lmp-t-badge lmp-t-badge-branch" id="tBadgeReferral">—</span>
                             <div class="lmp-stage-name">Referral</div>
                             <div class="lmp-stage-val" id="ffReferral">—</div>
                             <div class="lmp-stage-pct" id="ffReferralPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreReferral"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
-                        <div class="lmp-stage lmp-unqualified" id="lmpBoxUnqualified" style="grid-column:7;grid-row:3;align-self:start">
+                        <div class="lmp-stage lmp-unqualified clickable" id="lmpBoxUnqualified" style="grid-column:8;grid-row:3;align-self:start" onclick="toggleStageDetail('unqualified')" title="Click to explore Unqualified details">
+                            <span class="lmp-t-badge lmp-t-badge-dash lmp-t-badge-branch" id="tBadgeUnqualified">—</span>
                             <div class="lmp-stage-name">Unqualified</div>
                             <div class="lmp-stage-val" id="ffUnqualified">—</div>
                             <div class="lmp-stage-pct" id="ffUnqualifiedPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreUnqualified"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Stage Detail Panel — shown when a stage box is clicked -->
+            <div id="stageDetailPanel" class="stage-detail-panel" style="display:none" data-stage="">
+                <div class="stage-detail-header">
+                    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap">
+                        <span class="stage-detail-header-title" id="stageDetailTitle"></span>
+                        <span style="font-size:10px;color:var(--ansell-gray);white-space:nowrap">Stack by</span>
+                        <div class="stack-pills" id="demandStackPills">
+                            <button class="stack-toggle-btn active" id="stackPill_"            onclick="setDemandStack('')">None</button>
+                            <button class="stack-toggle-btn"        id="stackPill_deliverability" onclick="setDemandStack('deliverability')">Deliverability</button>
+                            <button class="stack-toggle-btn"        id="stackPill_gbu"         onclick="setDemandStack('gbu')">GBU</button>
+                            <button class="stack-toggle-btn"        id="stackPill_vertical"    onclick="setDemandStack('vertical')">Vertical</button>
+                            <button class="stack-toggle-btn"        id="stackPill_channel"         onclick="setDemandStack('channel')">Acq. Channel</button>
+                            <button class="stack-toggle-btn"        id="stackPill_org"             onclick="setDemandStack('org')">Organisation</button>
+                            <button class="stack-toggle-btn"        id="stackPill_region"          onclick="setDemandStack('region')">Region</button>
+                            <button class="stack-toggle-btn"        id="stackPill_leadRecordType"  onclick="setDemandStack('leadRecordType')">Lead Rec. Type</button>
+                            <button class="stack-toggle-btn"        id="stackPill_roleDescription" onclick="setDemandStack('roleDescription')">Role Description</button>
+                        </div>
+                    </div>
+                    <button class="stage-detail-close" onclick="closeStageDetail()" title="Close">×</button>
+                </div>
+                <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
             <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
@@ -571,7 +651,6 @@
         <div class="main">
             <div class="section-label">Data Quality Overview</div>
             <div class="dq-summary-grid" id="dqSummary"></div>
-            <div id="dqPicklistRef"></div>
             <div id="dqClouds" class="hide-clean"></div>
         </div>
     </div>
@@ -587,6 +666,17 @@
         '01290000000AEOiAAO': 'Distributors',
         '01290000000AEOjAAO': 'End-Users'
     };
+
+    // Lead Record Type IDs (15-char and 18-char variants)
+    const LEAD_RT_MAP = {
+        '0120o000000w1X3':    'Healthcare',
+        '0120o000000w1X3AAI': 'Healthcare',
+        '0120o000000w1X4':    'Industrial',
+        '0120o000000w1X4AAI': 'Industrial',
+        '012GB0000018QzF':    'Prospect',
+        '012GB0000018QzFYAU': 'Prospect',
+    };
+    const LEAD_RT_COLORS = { Healthcare: '#0063AC', Industrial: '#00A28F', Prospect: '#f59e0b', Other: '#e74c3c', '(blank)': '#cfd8dc' };
 
     const DELIV_COLORS = {
         'Opted-In Explicit':                '#00A28F',
@@ -615,6 +705,18 @@
         '#9c27b0','#0288d1','#00897b','#8e24aa','#1565c0',
         '#00695c','#6a1b9a','#01579b','#004d40','#4a148c',
         '#0d47a1','#006064','#311b92','#37474f','#546e7a'
+    ];
+
+    // Stack-by options for the Demand Generation stage detail panels
+    const DEMAND_STACK_OPTIONS = [
+        { field: 'deliverability',  label: 'Deliverability',   fn: r => r.deliverability || '(blank)',  colorFn: (k)    => DELIV_COLORS[k] || '#90a4ae' },
+        { field: 'gbu',             label: 'GBU',              fn: r => r.gbu || '(blank)',             colorFn: (k)    => ({ Healthcare: '#0063AC', Industrial: '#00A28F', '(blank)': '#cfd8dc' }[k] || '#90a4ae') },
+        { field: 'vertical',        label: 'Vertical',         fn: r => r.vertical || '(blank)',        colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'channel',         label: 'Acq. Channel',     fn: r => r.channel || '(blank)',         colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'org',             label: 'Organisation',     fn: r => r.org || '(blank)',             colorFn: (k, i) => ORG_COLORS[k] || CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'region',          label: 'Region',           fn: r => r.region || '(blank)',          colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'leadRecordType',  label: 'Lead Record Type', fn: r => r.leadRecordType || '(blank)',  colorFn: (k)    => LEAD_RT_COLORS[k] || '#90a4ae' },
+        { field: 'roleDescription', label: 'Role Description', fn: r => r.roleDescription || '(blank)', colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
     ];
 
     // ═══════════════════════════════════════════════════════════
@@ -773,9 +875,17 @@
             } catch (_2) {}
         }
 
+        // ── Freeze live canvases to PNG before cloning ──
+        // (canvas pixel data is only accessible on the live DOM)
+        const canvasSnapshots = {};
+        document.querySelectorAll('canvas[id]').forEach(c => {
+            try { canvasSnapshots[c.id] = c.toDataURL('image/png'); } catch (_) {}
+        });
+
         // ── Clone the full DOM ──
         const clone = document.documentElement.cloneNode(true);
-        const rm = sel => { const el = clone.querySelector(sel); if (el) el.remove(); };
+        const rm    = sel => { const el = clone.querySelector(sel); if (el) el.remove(); };
+        const rmAll = sel => clone.querySelectorAll(sel).forEach(el => el.remove());
 
         rm('#exportBtn');        // don't include the export button itself
         rm('#apiBtn');           // Marketo API button
@@ -784,45 +894,33 @@
         rm('.load-btn');         // Load Data button
         rm('#fileInput');        // file input
         rm('.home-btn');         // Hub link (relative path breaks when shared)
+        rm('#filterBar');        // filter bar needs JS to function
+        rm('#tabNav');           // tab nav needs JS to function
 
-        // Remove PapaParse (not needed in export)
-        clone.querySelectorAll('script[src]').forEach(s => {
-            if (s.getAttribute('src').includes('papaparse')) s.remove();
+        // ── Replace canvases with frozen PNG images ──
+        clone.querySelectorAll('canvas[id]').forEach(cloneCanvas => {
+            const src = canvasSnapshots[cloneCanvas.id];
+            if (src) {
+                const img = document.createElement('img');
+                img.src = src;
+                img.style.cssText = 'width:100%;height:100%;display:block;';
+                cloneCanvas.replaceWith(img);
+            }
         });
 
-        // Replace <link rel="stylesheet"> with inline <style>
+        // ── Remove all scripts and CDN links (static snapshot needs none) ──
+        rmAll('script');
+
+        // ── Clear multi-select panel contents (populated from data, not needed) ──
+        clone.querySelectorAll('.ms-list').forEach(el => { el.innerHTML = ''; });
+
+        // ── Replace <link rel="stylesheet"> with inline <style> ──
         const linkEl = clone.querySelector('link[rel="stylesheet"]');
         if (linkEl && cssText) {
             const styleEl = document.createElement('style');
             styleEl.textContent = cssText;
             linkEl.replaceWith(styleEl);
         }
-
-        // ── Encode allData in compact columnar format ──
-        const cols = ['org','gbu','country','sfdcType','acqProgram','deliverability',
-                      'language','optInYear','optInMonth','createdYear','createdMonth',
-                      'vertical','subVertical','recordType','channel','accountId18',
-                      'personStatus','relUrgency','relScore'];
-        const rows = allData.map(r => cols.map(c => r[c] || null));
-
-        // ── Inject init script at end of <body> ──
-        const initScript = document.createElement('script');
-        initScript.textContent = `
-(function() {
-    var cols = ${JSON.stringify(cols)};
-    var rows = ${JSON.stringify(rows)};
-    allData = rows.map(function(r) {
-        var o = {};
-        cols.forEach(function(c, i) { o[c] = r[i] == null ? '' : r[i]; });
-        return o;
-    });
-    exportDateStr = ${JSON.stringify(exportDateStr || '')};
-    window.openDqFix = function() {};
-    initMultiSelects();
-    renderAll(allData);
-    showDash();
-})();`;
-        clone.getElementsByTagName('body')[0].appendChild(initScript);
 
         // ── Serialize and download ──
         const html = '<!DOCTYPE html>\n' + clone.outerHTML;
@@ -873,15 +971,31 @@
             recordType:   RECORD_TYPE_MAP[r['Record Type ID (A)']] || (r['Record Type ID (A)'] ? 'Other' : ''),
             channel:      deriveChannel(r['Acquisition Program Name']),
             accountId18:  (r['Account ID 18'] || '').trim(),
-            personStatus: (r['Person Status'] || '').trim(),
-            relUrgency:   (r['Relative Urgency'] || '').trim(),
-            relScore:     (r['Relative Score'] || '').trim()
+            personStatus:      (r['Person Status'] || '').trim(),
+            relUrgency:        (r['Relative Urgency'] || '').trim(),
+            relScore:          (r['Relative Score'] || '').trim(),
+            recycledReason:    (r['Recycled Reason'] || '').trim(),
+            inNurture:         (r['In Nurture'] || '').toString().trim(),
+            unqualifiedReason: (r['Unqualified Reason'] || '').trim(),
+            assignedQueue:     (r['Queue Name'] || '').trim(),
+            mqlDate:           (r['MQL Date'] || '').trim(),
+            workingDate:       (r['Working Date'] || '').trim(),
+            referralStatus:    (r['Referral'] || '').trim(),
+            referralDate:      (r['Referral Date'] || '').trim(),
+            salesOwner:        (r['Sales Owner Email Address'] || '').trim(),
+            createdDate:       (r['Created At'] || '').trim(),
+            region:            (r['Region'] || '').trim(),
+            leadRecordType:    (function() { const v = (r['Record Type ID'] || '').trim(); if (!v) return ''; return LEAD_RT_MAP[v] || v; })(),
+            phone:             (r['Phone Number'] || '').trim(),
+            roleDescription:   (r['Role Description'] || '').trim(),
+            jobTitle:          (r['Job Title'] || '').trim()
         }));
 
         // Normalize casing on all free-text fields: group by lowercase, keep most-common casing
         // so "INDUSTRIAL" and "Industrial" are treated as the same value everywhere
         const NORMALIZE_FIELDS = ['org','gbu','country','sfdcType','deliverability',
-                                   'language','vertical','subVertical','acqProgram','channel','personStatus'];
+                                   'language','vertical','subVertical','acqProgram','channel','personStatus',
+                                   'region','roleDescription'];
         NORMALIZE_FIELDS.forEach(field => {
             const casings = {};
             allData.forEach(r => {
@@ -1090,8 +1204,11 @@
         renderGrowth(data);
         renderOptInGrowth(data);
         renderCountries(data);
+        renderRegion(data);
         renderVertical(data);
+        renderRoleDescription(data);
         renderLanguage(data);
+        renderLeadRecordType(data);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1287,8 +1404,12 @@
         { value: 'gbu',            label: 'GBU',                 fn: r => r.gbu || '(blank)',          colorFn: (k, i) => ({ Healthcare: '#0063AC', Industrial: '#00A28F', '(blank)': '#cfd8dc' }[k] || '#90a4ae') },
         { value: 'deliverability', label: 'Deliverability',      fn: r => r.deliverability || '(blank)', colorFn: (k, i) => DELIV_COLORS[k] || '#90a4ae' },
         { value: 'recordType',     label: 'Record Type (A)',     fn: r => r.recordType || '(blank)',   colorFn: (k, i) => (['#0063AC','#00A28F','#7030A0','#f59e0b','#cfd8dc'][i]) || CHART_PALETTE[i % CHART_PALETTE.length] },
-        { value: 'vertical',       label: 'Vertical',            fn: r => r.vertical || '(blank)',     colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
-        { value: 'channel',        label: 'Acquisition Channel', fn: r => r.channel || '(blank)',      colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
+        { value: 'vertical',       label: 'Vertical',            fn: r => r.vertical || '(blank)',                colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'channel',        label: 'Acquisition Channel', fn: r => r.channel || '(blank)',                 colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'personStatus',   label: 'Person Status',       fn: r => r.sfdcType === 'Contact' ? 'Contact' : (r.personStatus || 'Demand Gen'),  colorFn: (k) => ({ 'Contact':'#BBBCBC','Demand Gen':'#9b59b6','Assigned':'#3498db','Working':'#1a6eb5','Nurture':'#f39c12','Referral':'#e67e22','Unqualified':'#e74c3c','Converted':'#27ae60','(blank)':'#cfd8dc' }[k] || '#90a4ae') },
+        { value: 'region',         label: 'Region',              fn: r => r.region || '(blank)',                                                       colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'leadRecordType', label: 'Lead Record Type',    fn: r => r.leadRecordType || '(blank)',                                               colorFn: (k) => LEAD_RT_COLORS[k] || '#90a4ae' },
+        { value: 'roleDescription',label: 'Role Description',    fn: r => r.roleDescription || '(blank)',                                              colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
     ];
 
     let drillMetric = '';
@@ -1358,6 +1479,15 @@
     // ═══════════════════════════════════════════════════════════
     //  INDIVIDUAL CHARTS
     // ═══════════════════════════════════════════════════════════
+    function updateBlankBadge(id, blanks, total) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!blanks) { el.style.display = 'none'; return; }
+        const pct = total ? ((blanks / total) * 100).toFixed(1) : '0.0';
+        el.textContent = `${blanks.toLocaleString()} blank (${pct}%)`;
+        el.style.display = '';
+    }
+
     function renderDeliverability(data) {
         const counts = countBy(data, 'deliverability');
         const ordered = [
@@ -1379,6 +1509,7 @@
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('deliverability', lbl, 'Deliverability'); }
         });
+        updateBlankBadge('blankBadge_deliverability', counts['(blank)'] || 0, data.length);
     }
 
     function renderGBU(data) {
@@ -1393,6 +1524,7 @@
         makeDonut('chartGBU', fLabels, fValues, fColors, {
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = fLabels[els[0].index]; setDrillFilter('gbu', lbl, 'GBU'); }
         });
+        updateBlankBadge('blankBadge_gbu', counts['(blank)'] || 0, data.length);
     }
 
     function renderOrg(data) {
@@ -1406,6 +1538,7 @@
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('org', lbl, 'Organisation'); }
         });
+        updateBlankBadge('blankBadge_org', counts['(blank)'] || 0, data.length);
     }
 
     function renderSFDC(data) {
@@ -1416,19 +1549,22 @@
         makeDonut('chartSFDC', keys, values, colors.slice(0, keys.length), {
             onRightClick: (evt, els) => { if (!els.length) return; const key = keys[els[0].index]; setDrillFilter('sfdcType', key, 'SFDC Type', key === '(blank)' ? 'People (Marketo only)' : key); }
         });
+        updateBlankBadge('blankBadge_sfdc', counts['(blank)'] || 0, data.length);
     }
 
     function renderRecordType(data) {
+        const contacts = data.filter(r => r.sfdcType === 'Contact');
         const counts = {};
-        for (const r of data) { const k = r.recordType || '(blank)'; counts[k] = (counts[k] || 0) + 1; }
+        for (const r of contacts) { const k = r.recordType || '(blank)'; counts[k] = (counts[k] || 0) + 1; }
         const order = ['End-Users','Distributors','Webstore','Other','(blank)'].filter(k => counts[k]);
         const values = order.map(k => counts[k] || 0);
         const colors = ['#0063AC','#00A28F','#7030A0','#f59e0b','#cfd8dc'];
-        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.recordType || '(blank)');
+        const { matrix, drillKeys } = buildDrillMatrix(contacts, r => r.recordType || '(blank)');
         makeHBar('chartRecordType', order, values, colors.slice(0, order.length), {
             datasets: drillKeys.length ? makeDrillDatasets(order, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = order[els[0].index]; setDrillFilter('recordType', lbl, 'Record Type (A)'); }
         });
+        updateBlankBadge('blankBadge_recordType', counts['(blank)'] || 0, contacts.length);
     }
 
     function renderChannel(data) {
@@ -1442,6 +1578,7 @@
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('channel', lbl, 'Acquisition Channel'); }
         });
+        updateBlankBadge('blankBadge_channel', counts['(blank)'] || 0, data.length);
     }
 
     let currentGrowthData = [];
@@ -1552,6 +1689,7 @@
 
     function renderCountries(data) {
         const counts = countBy(data, 'country');
+        const blankCountries = counts['(blank)'] || 0;
         delete counts['(blank)'];
         const entries = sortedTopN(counts, 20);
         const labels = entries.map(e => e[0]);
@@ -1562,6 +1700,7 @@
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('country', lbl, 'Country'); }
         });
+        updateBlankBadge('blankBadge_countries', blankCountries, data.length);
     }
 
     function renderVertical(data) {
@@ -1571,12 +1710,14 @@
         if (wrap) wrap.classList.remove('open');
 
         const counts = countBy(data, 'vertical');
+        const blankVertical = counts['(blank)'] || 0;
         delete counts['(blank)'];
         const entries = sortedTopN(counts, 16);
         const labels = entries.map(e => e[0]);
         const values = entries.map(e => e[1]);
         const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
         const { matrix, drillKeys } = buildDrillMatrix(data, r => r.vertical || null);
+        updateBlankBadge('blankBadge_vertical', blankVertical, data.length);
         makeHBar('chartVertical', labels, values, colors, {
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onClick:  (evt, els) => { if (!els.length) return; toggleSubVertical(labels[els[0].index]); },
@@ -1609,6 +1750,7 @@
 
     function renderLanguage(data) {
         const counts = countBy(data, 'language');
+        const blankLanguage = counts['(blank)'] || 0;
         delete counts['(blank)'];
         const entries = sortedTopN(counts, 20);
         const labels = entries.map(e => e[0]);
@@ -1619,6 +1761,63 @@
             datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
             onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('language', lbl, 'Language'); }
         });
+        updateBlankBadge('blankBadge_language', blankLanguage, data.length);
+    }
+
+    function renderRegion(data) {
+        const counts = countBy(data, 'region');
+        const blankRegion = counts['(blank)'] || 0;
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 20);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.region || '(blank)');
+        makeHBar('chartRegion', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('region', lbl, 'Region'); }
+        });
+        updateBlankBadge('blankBadge_region', blankRegion, data.length);
+    }
+
+    function renderRoleDescription(data) {
+        const counts = countBy(data, 'roleDescription');
+        const blankRoleDesc = counts['(blank)'] || 0;
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 20);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.roleDescription || '(blank)');
+        makeHBar('chartRoleDescription', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('roleDescription', lbl, 'Role Description'); }
+        });
+        updateBlankBadge('blankBadge_roleDescription', blankRoleDesc, data.length);
+    }
+
+    function renderLeadRecordType(data) {
+        const leads  = data.filter(r => r.sfdcType !== 'Contact');
+        const KNOWN = new Set(['Healthcare', 'Industrial', 'Prospect']);
+        const order  = ['Healthcare', 'Industrial', 'Prospect', 'Other', '(blank)'];
+        const counts = {};
+        for (const r of leads) {
+            const raw = r.leadRecordType || '(blank)';
+            const k = (raw !== '(blank)' && !KNOWN.has(raw)) ? 'Other' : raw;
+            counts[k] = (counts[k] || 0) + 1;
+        }
+        const labels = order.filter(k => counts[k]);
+        const values = labels.map(k => counts[k]);
+        const colors = labels.map(k => LEAD_RT_COLORS[k] || '#90a4ae');
+        const { matrix, drillKeys } = buildDrillMatrix(leads, r => {
+            const raw = r.leadRecordType || '(blank)';
+            return (raw !== '(blank)' && !KNOWN.has(raw)) ? 'Other' : raw;
+        });
+        makeDonut('chartLeadRecordType', labels, values, colors, {
+            datasets: drillKeys.length ? makeDrillDatasets(labels, matrix, drillKeys) : undefined,
+            onRightClick: (evt, els) => { if (!els.length) return; const lbl = labels[els[0].index]; setDrillFilter('leadRecordType', lbl, 'Record Type ID'); }
+        });
+        updateBlankBadge('blankBadge_leadRecordType', counts['(blank)'] || 0, leads.length);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1747,6 +1946,42 @@
             templateId: 71485,
             picklist: null,
             desc: 'Free-text field — variant spellings or abbreviations can fragment country-level reporting'
+        },
+        {
+            field: 'leadRecordType',
+            label: 'Lead Record Type',
+            mktoField: '',
+            templateId: null,
+            picklist: ['Healthcare', 'Industrial', 'Prospect'],
+            blankOk: true,
+            blankLabel: 'not set',
+            desc: 'Should be Healthcare, Industrial, or Prospect. Any other value indicates a record type DQ issue.'
+        },
+        {
+            field: 'roleDescription',
+            label: 'Role Description',
+            mktoField: '',
+            templateId: null,
+            picklist: null,
+            desc: 'Picklist field — rare or non-standard values may indicate inconsistent data entry'
+        },
+        {
+            field: 'phone',
+            label: 'Phone',
+            mktoField: 'Phone',
+            templateId: null,
+            picklist: null,
+            blanksOnly: true,
+            desc: 'Free-text — completeness only; non-standard formats expected, values not analysed'
+        },
+        {
+            field: 'jobTitle',
+            label: 'Job Title',
+            mktoField: 'Title',
+            templateId: null,
+            picklist: null,
+            blanksOnly: true,
+            desc: 'Free-text — completeness only; non-standard titles expected, values not analysed'
         }
     ];
     const RARE_THRESHOLD = 3;
@@ -1768,6 +2003,8 @@
     const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set() };
     const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country' };
     let demandFiltersInitialized = false;
+    let transitionDays = 30;
+    let demandStackField = '';   // '' | 'deliverability' | 'gbu' | 'vertical' | 'channel' | 'org'
 
     function toggleDms(id, e) {
         e.stopPropagation();
@@ -1880,6 +2117,65 @@
         }
     }
 
+    // ── Transition period controls ────────────────────────────
+    function setTransitionPeriod(days) {
+        transitionDays = days;
+        [30, 60, 90].forEach(d => {
+            const btn = document.getElementById('tPeriod' + d);
+            if (btn) btn.classList.toggle('active', d === days);
+        });
+        renderTransitionCounts();
+    }
+
+    function renderTransitionCounts() {
+        const leads = applyDemandFilters();
+        const now   = new Date();
+
+        const currFrom = new Date(now); currFrom.setDate(currFrom.getDate() - transitionDays);
+        const prevFrom = new Date(now); prevFrom.setDate(prevFrom.getDate() - transitionDays * 2);
+
+        function countPeriod(dateField, from, to) {
+            return leads.filter(r => {
+                const d = r[dateField]; if (!d) return false;
+                const dt = new Date(d);
+                return !isNaN(dt.getTime()) && dt >= from && dt < to;
+            }).length;
+        }
+
+        function badgeHtml(curr, prev) {
+            const countStr = fmt(curr);
+            if (prev === 0 && curr === 0) return countStr;
+            let compHtml;
+            if (prev === 0) {
+                compHtml = `<span style="color:#27ae60;font-size:8px">new</span>`;
+            } else {
+                const pct   = Math.round((curr - prev) / prev * 100);
+                const color = pct > 0 ? '#27ae60' : pct < 0 ? '#e74c3c' : '#999';
+                const sign  = pct > 0 ? '+' : '';
+                compHtml = `<span style="color:${color};font-size:8px">${sign}${pct}%</span>`;
+            }
+            return `${countStr}<br>${compHtml}`;
+        }
+
+        function setBadge(id, curr, prev) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (curr === undefined) { el.textContent = '—'; return; }
+            el.innerHTML = badgeHtml(curr, prev);
+        }
+
+        // Arrows with date data — compare current vs previous period
+        setBadge('tBadgeCreated',  countPeriod('createdDate',  currFrom, now), countPeriod('createdDate',  prevFrom, currFrom));
+        setBadge('tBadgeAssigned', countPeriod('mqlDate',      currFrom, now), countPeriod('mqlDate',      prevFrom, currFrom));
+        setBadge('tBadgeWorking',  countPeriod('workingDate',  currFrom, now), countPeriod('workingDate',  prevFrom, currFrom));
+        setBadge('tBadgeReferral', countPeriod('referralDate', currFrom, now), countPeriod('referralDate', prevFrom, currFrom));
+
+        // No date fields — always dash
+        setBadge('tBadgeConverted');
+        setBadge('tBadgeNurture');
+        setBadge('tBadgeUnqualified');
+    }
+
     // Funnel stage definitions — blank personStatus = Demand Generation pool
 
     function renderDemandTab() {
@@ -1989,6 +2285,582 @@
         if (matPctEl) matPctEl.innerHTML = buildMatrixTable(
             cnt => matTotal > 0 && cnt > 0 ? (cnt / matTotal * 100).toFixed(1) + '%' : '—'
         );
+
+        // Refresh detail panel if currently open (so filters apply to it too)
+        const panel = document.getElementById('stageDetailPanel');
+        if (panel && panel.style.display !== 'none') {
+            const s = panel.dataset.stage;
+            if      (s === 'demand')      renderDemandDetail();
+            else if (s === 'nurture')     renderNurtureDetail();
+            else if (s === 'referral')    renderReferralDetail();
+            else if (s === 'unqualified') renderUnqualifiedDetail();
+            else if (s === 'assigned')    renderAssignedDetail();
+            else if (s === 'working')     renderWorkingDetail();
+        }
+
+        // Update transition count badges on LMP arrows
+        renderTransitionCounts();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  STAGE DETAIL PANEL
+    // ═══════════════════════════════════════════════════════════
+    function toggleStageDetail(stage) {
+        const panel = document.getElementById('stageDetailPanel');
+        const box   = document.getElementById('lmpBox' + stage.charAt(0).toUpperCase() + stage.slice(1));
+
+        // Toggle off if same stage already open
+        if (panel.dataset.stage === stage && panel.style.display !== 'none') {
+            closeStageDetail();
+            return;
+        }
+
+        // Switch stage
+        panel.dataset.stage = stage;
+
+        // Update box visual state (CSS handles icon rotation via .active)
+        document.querySelectorAll('.lmp-stage.clickable').forEach(b => b.classList.remove('active'));
+        if (box) box.classList.add('active');
+
+        // Render content
+        if      (stage === 'demand')        renderDemandDetail();
+        else if (stage === 'nurture')      renderNurtureDetail();
+        else if (stage === 'referral')     renderReferralDetail();
+        else if (stage === 'unqualified')  renderUnqualifiedDetail();
+        else if (stage === 'assigned')     renderAssignedDetail();
+        else if (stage === 'working')      renderWorkingDetail();
+
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeStageDetail() {
+        const panel = document.getElementById('stageDetailPanel');
+        panel.style.display = 'none';
+        panel.dataset.stage = '';
+        document.querySelectorAll('.lmp-stage.clickable').forEach(b => b.classList.remove('active'));
+    }
+
+    function setDemandStack(field) {
+        demandStackField = field;
+        document.querySelectorAll('#demandStackPills .stack-toggle-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.id === 'stackPill_' + field);
+        });
+        const panel = document.getElementById('stageDetailPanel');
+        if (!panel || panel.style.display === 'none') return;
+        const s = panel.dataset.stage;
+        if      (s === 'demand')      renderDemandDetail();
+        else if (s === 'nurture')     renderNurtureDetail();
+        else if (s === 'referral')    renderReferralDetail();
+        else if (s === 'unqualified') renderUnqualifiedDetail();
+        else if (s === 'assigned')    renderAssignedDetail();
+        else if (s === 'working')     renderWorkingDetail();
+    }
+
+    function renderDemandDetail() {
+        const leads = applyDemandFilters().filter(r => r.personStatus === '');
+        const n     = leads.length;
+        document.getElementById('stageDetailTitle').textContent = 'Demand Capture  ·  ' + fmt(n) + ' leads';
+
+        // Count by deliverability
+        const counts  = countBy(leads, 'deliverability');
+        const entries = sortedTopN(counts, 20);
+        const labels  = entries.map(e => e[0]);
+        const values  = entries.map(e => e[1]);
+        const colors  = labels.map(l => DELIV_COLORS[l] || '#b0bec5');
+
+        // In Nurture × Contactable — 4 segments
+        const isCtct = r => r.deliverability === 'Opted-In Explicit' || r.deliverability === 'Opted-In Implicit (No Response)';
+        const inN_ctct    = leads.filter(r => r.inNurture === '1' && isCtct(r)).length;
+        const inN_nctct   = leads.filter(r => r.inNurture === '1' && !isCtct(r)).length;
+        const notN_ctct   = leads.filter(r => r.inNurture !== '1' && isCtct(r)).length;
+        const notN_nctct  = leads.filter(r => r.inNurture !== '1' && !isCtct(r)).length;
+
+        const pieOpts = { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } };
+
+        document.getElementById('stageDetailContent').innerHTML =
+            `<div class="stage-detail-widget" style="flex:1;min-width:260px">
+                <div class="stage-detail-widget-title">Deliverability Breakdown</div>
+                <div style="position:relative;height:260px">
+                    <canvas id="chartDemandDeliv"></canvas>
+                </div>
+            </div>
+            <div class="stage-detail-widget" style="flex:1;min-width:260px">
+                <div class="stage-detail-widget-title">In Nurture Program · by Contactability</div>
+                <div style="position:relative;height:260px">
+                    <canvas id="chartDemandInNurture"></canvas>
+                </div>
+            </div>`;
+
+        if (charts['chartDemandDeliv']) charts['chartDemandDeliv'].destroy();
+        charts['chartDemandDeliv'] = new Chart(
+            document.getElementById('chartDemandDeliv').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: pieOpts,
+                    tooltip: { callbacks: { label: c => ` ${fmt(c.parsed)} (${pct(c.parsed, n)})` } }
+                }
+            }
+        });
+
+        if (charts['chartDemandInNurture']) charts['chartDemandInNurture'].destroy();
+        charts['chartDemandInNurture'] = new Chart(
+            document.getElementById('chartDemandInNurture').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['In Nurture · Contactable', 'In Nurture · Not Contactable', 'Not in Nurture · Contactable', 'Not in Nurture · Not Contactable'],
+                datasets: [{ data: [inN_ctct, inN_nctct, notN_ctct, notN_nctct],
+                    backgroundColor: ['#f39c12', '#f8c471', '#00A28F', '#e0e0e0'],
+                    borderWidth: 2, borderColor: '#fff' }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: pieOpts,
+                    tooltip: { callbacks: { label: c => ` ${fmt(c.parsed)} (${pct(c.parsed, n)})` } }
+                }
+            }
+        });
+    }
+
+    function renderNurtureDetail() {
+        const leads        = applyDemandFilters();
+        const nurtureLeads = leads.filter(r => r.personStatus === 'Nurture');
+        const n            = nurtureLeads.length;
+
+        document.getElementById('stageDetailTitle').textContent =
+            'Nurture  ·  ' + fmt(n) + ' leads';
+
+        // ── In Nurture × Contactable — 4 segments ────────────
+        const isCtct = r => r.deliverability === 'Opted-In Explicit' || r.deliverability === 'Opted-In Implicit (No Response)';
+        const inN_ctct   = nurtureLeads.filter(r => r.inNurture === '1' && isCtct(r)).length;
+        const inN_nctct  = nurtureLeads.filter(r => r.inNurture === '1' && !isCtct(r)).length;
+        const notN_ctct  = nurtureLeads.filter(r => r.inNurture !== '1' && isCtct(r)).length;
+        const notN_nctct = nurtureLeads.filter(r => r.inNurture !== '1' && !isCtct(r)).length;
+
+        const boolHtml = `<div class="stage-detail-widget">
+            <div class="stage-detail-widget-title">In Nurture Program · by Contactability</div>
+            <div class="nurture-pie-wrap">
+                <canvas id="chartNurtureInNurture" width="200" height="200"></canvas>
+            </div>
+        </div>`;
+
+        // ── Recycled Reason (string) ──────────────────────────
+        document.getElementById('stageDetailContent').innerHTML =
+            boolHtml + makeReasonBarsHtml(nurtureLeads, 'recycledReason', 'Recycled Reason', 'Recycled Reason');
+
+        // Draw pie after DOM update
+        if (charts['chartNurtureInNurture']) charts['chartNurtureInNurture'].destroy();
+        charts['chartNurtureInNurture'] = new Chart(
+            document.getElementById('chartNurtureInNurture').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['In Nurture · Contactable', 'In Nurture · Not Contactable', 'Not in Nurture · Contactable', 'Not in Nurture · Not Contactable'],
+                datasets: [{ data: [inN_ctct, inN_nctct, notN_ctct, notN_nctct],
+                    backgroundColor: ['#f39c12', '#f8c471', '#00A28F', '#e0e0e0'],
+                    borderWidth: 2, borderColor: '#fff' }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } },
+                    tooltip: { callbacks: { label: c => ` ${fmt(c.parsed)} (${pct(c.parsed, n)})` } }
+                }
+            }
+        });
+    }
+
+    function makeBoolBar(label, count, total, cls) {
+        const barW   = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
+        const pctVal = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
+        return `<div class="bool-bar-row">
+            <div class="bool-bar-label">${label}</div>
+            <div class="bool-bar-track"><div class="bool-bar-fill ${cls}" style="width:${barW}%"></div></div>
+            <div class="bool-bar-val">${fmt(count)} <span class="bool-bar-pct">${pctVal}%</span></div>
+        </div>`;
+    }
+
+    // ── Shared: reason bar list (string field distribution) ─────
+    function makeReasonBarsHtml(leads, field, widgetTitle, csvColumnHint) {
+        const n       = leads.length;
+        const counts  = countBy(leads, field);
+        delete counts['(blank)'];
+        const entries = sortedTopN(counts, 15);
+        const maxVal  = entries.length ? entries[0][1] : 1;
+        const emptyN  = leads.filter(r => !r[field]).length;
+        const emptyPct = n > 0 ? (emptyN / n * 100).toFixed(1) : '0.0';
+
+        if (!entries.length) {
+            return `<div class="stage-detail-widget" style="flex:1;min-width:300px">
+                <div class="stage-detail-widget-title">${widgetTitle}</div>
+                <div style="font-size:12px;color:var(--ansell-light-gray)">No data — check your CSV for a <em>${csvColumnHint}</em> column.</div>
+            </div>`;
+        }
+
+        const stackOpt = demandStackField ? DEMAND_STACK_OPTIONS.find(o => o.field === demandStackField) : null;
+        if (stackOpt) {
+            // Build per-row stack-field breakdown
+            const grouped = {};
+            leads.forEach(r => {
+                const key = r[field] || ''; if (!key) return;
+                const dk = stackOpt.fn(r);
+                if (!grouped[key]) grouped[key] = {};
+                grouped[key][dk] = (grouped[key][dk] || 0) + 1;
+            });
+            // Collect all stack keys, ordered by total count desc
+            const stackKeyCounts = {};
+            Object.values(grouped).forEach(dc =>
+                Object.entries(dc).forEach(([dk, c]) => { stackKeyCounts[dk] = (stackKeyCounts[dk] || 0) + c; })
+            );
+            const stackKeys = Object.entries(stackKeyCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+
+            const bars = entries.map(([label, total]) => {
+                const dc     = grouped[label] || {};
+                const barW   = (total / maxVal * 100).toFixed(1);
+                const pctVal = n > 0 ? (total / n * 100).toFixed(1) : '0.0';
+                const isM    = label.toLowerCase() === 'marketing@ansell.com' || label.toLowerCase() === 'svc-sfdc@ansell.com';
+                const segs   = stackKeys.map((dk, i) => {
+                    const c = dc[dk] || 0; if (!c) return '';
+                    return `<div class="reason-bar-seg" style="flex:${c};background:${stackOpt.colorFn(dk, i)}" title="${dk}: ${fmt(c)}"></div>`;
+                }).join('');
+                return `<div class="reason-bar-row">
+                    <div class="reason-bar-label${isM ? ' reason-bar-label-warn' : ''}" title="${label}">${label}</div>
+                    <div class="reason-bar-track"><div class="reason-bar-stack" style="width:${barW}%">${segs}</div></div>
+                    <div class="reason-bar-val">${fmt(total)} <span class="reason-bar-pct">${pctVal}%</span></div>
+                </div>`;
+            }).join('');
+
+            const legend = stackKeys.map((dk, i) =>
+                `<span class="stacked-legend-item"><span class="stacked-legend-dot" style="background:${stackOpt.colorFn(dk, i)}"></span>${dk}</span>`
+            ).join('');
+
+            return `<div class="stage-detail-widget" style="flex:1;min-width:300px">
+                <div class="stage-detail-widget-title">${widgetTitle} <span style="font-weight:400;color:var(--ansell-gray)">· by ${stackOpt.label}</span></div>
+                ${emptyN > 0 ? `<div style="font-size:11px;color:var(--ansell-gray);margin-bottom:10px">${emptyPct}% no value set (${fmt(emptyN)} records)</div>` : ''}
+                <div class="reason-bar-list">${bars}</div>
+                <div class="stacked-legend">${legend}</div>
+            </div>`;
+        }
+
+        // ── Default (flat) rendering ──────────────────────────
+        const bars = entries.map(([label, count]) => {
+            const barW      = (count / maxVal * 100).toFixed(1);
+            const pctVal    = n > 0 ? (count / n * 100).toFixed(1) : '0.0';
+            const _lbl      = label.toLowerCase();
+            const isMarketo = _lbl === 'marketing@ansell.com' || _lbl === 'svc-sfdc@ansell.com';
+            return `<div class="reason-bar-row">
+                <div class="reason-bar-label${isMarketo ? ' reason-bar-label-warn' : ''}" title="${label}">${label}</div>
+                <div class="reason-bar-track"><div class="reason-bar-fill${isMarketo ? ' reason-bar-fill-warn' : ''}" style="width:${barW}%"></div></div>
+                <div class="reason-bar-val">${fmt(count)} <span class="reason-bar-pct">${pctVal}%</span></div>
+            </div>`;
+        }).join('');
+
+        return `<div class="stage-detail-widget" style="flex:1;min-width:300px">
+            <div class="stage-detail-widget-title">${widgetTitle}</div>
+            ${emptyN > 0 ? `<div style="font-size:11px;color:var(--ansell-gray);margin-bottom:10px">${emptyPct}% no value set (${fmt(emptyN)} records)</div>` : ''}
+            <div class="reason-bar-list">${bars}</div>
+        </div>`;
+    }
+
+    // ── Shared: owner stacked age chart ─────────────────────────
+    function makeOwnerAgeStackHtml(leads, dateField, widgetTitle) {
+        const today = Date.now();
+        const BUCKETS = [
+            { label: '< 7d',    max: 7,        color: '#27ae60' },
+            { label: '7–30d',   max: 30,       color: '#3498db' },
+            { label: '31–90d',  max: 90,       color: '#f39c12' },
+            { label: '91–180d', max: 180,      color: '#e67e22' },
+            { label: '> 180d',  max: Infinity, color: '#e74c3c' },
+        ];
+        const WARN_OWNERS = new Set(['marketing@ansell.com', 'svc-sfdc@ansell.com', '(no owner)']);
+
+        // Group leads by salesOwner
+        const ownerMap = {};
+        leads.forEach(r => {
+            const key = r.salesOwner || '(no owner)';
+            (ownerMap[key] = ownerMap[key] || []).push(r);
+        });
+
+        if (!Object.keys(ownerMap).length) {
+            return `<div class="stage-detail-widget" style="flex:1;min-width:320px">
+                <div class="stage-detail-widget-title">${widgetTitle}</div>
+                <div style="font-size:12px;color:var(--ansell-light-gray)">No data</div>
+            </div>`;
+        }
+
+        function ageDays(r) {
+            const d = r[dateField]; if (!d) return null;
+            const t = new Date(d).getTime(); if (isNaN(t)) return null;
+            return Math.max(0, Math.floor((today - t) / 86400000));
+        }
+        function bucketIdx(age) {
+            if (age === null) return -1;
+            for (let i = 0; i < BUCKETS.length; i++) if (age < BUCKETS[i].max) return i;
+            return BUCKETS.length - 1;
+        }
+
+        const ownerData = Object.entries(ownerMap).map(([owner, recs]) => {
+            const bc = new Array(BUCKETS.length).fill(0);
+            let sumAge = 0, ageN = 0;
+            recs.forEach(r => {
+                const a = ageDays(r), bi = bucketIdx(a);
+                if (bi >= 0) bc[bi]++;
+                if (a !== null) { sumAge += a; ageN++; }
+            });
+            const avgAge = ageN > 0 ? Math.round(sumAge / ageN) : null;
+            return { owner, bc, avgAge, total: recs.length };
+        });
+
+        ownerData.sort((a, b) => b.total - a.total);
+
+        const maxTotal = ownerData[0]?.total || 1;
+
+        function renderRow({ owner, bc, avgAge, total }) {
+            const isWarn = WARN_OWNERS.has(owner.toLowerCase());
+            const nameStyle = isWarn ? 'style="color:#e74c3c;font-weight:700"' : '';
+            const segs = BUCKETS.map((b, i) =>
+                bc[i] > 0
+                    ? `<div class="owner-stack-seg" style="width:${(bc[i]/maxTotal*100).toFixed(1)}%;background:${b.color}" title="${b.label}: ${fmt(bc[i])}"></div>`
+                    : ''
+            ).join('');
+            const avgStr = avgAge !== null ? `<span class="owner-avg-age">${avgAge}d avg</span>` : '';
+            return `<div class="owner-stack-row">
+                <div class="owner-stack-name" ${nameStyle} title="${owner}">${owner}</div>
+                <div class="owner-stack-bar">${segs}</div>
+                <div class="owner-stack-meta">${fmt(total)}${avgStr}</div>
+            </div>`;
+        }
+
+        const topRows   = ownerData.slice(0, 30).map(renderRow).join('');
+        const restData  = ownerData.slice(30);
+        const restRows  = restData.map(renderRow).join('');
+        const toggleBtn = restData.length > 0
+            ? `<button class="owner-stack-toggle" onclick="var h=this.previousElementSibling;var hidden=h.style.display==='none';h.style.display=hidden?'':'none';this.textContent=hidden?'Show less ▴':'Show ${restData.length} more ▾'">Show ${restData.length} more ▾</button>`
+            : '';
+
+        const legend = BUCKETS.map(b =>
+            `<span class="owner-stack-leg-dot" style="background:${b.color}"></span><span class="owner-stack-leg-lbl">${b.label}</span>`
+        ).join('');
+
+        return `<div class="stage-detail-widget" style="flex:1;min-width:320px">
+            <div class="stage-detail-widget-title">${widgetTitle}</div>
+            <div class="owner-stack-legend">${legend}</div>
+            <div class="owner-stack-list">${topRows}</div>
+            <div class="owner-stack-list" style="display:none">${restRows}</div>
+            ${toggleBtn}
+        </div>`;
+    }
+
+    // ── Shared: age distribution (date field → buckets) ─────────
+    function makeAgeBarsHtml(leads, dateField) {
+        const today   = Date.now();
+        const buckets = [
+            { label: '< 7 days',    min: 0,   max: 7    },
+            { label: '7–30 days',   min: 7,   max: 30   },
+            { label: '31–90 days',  min: 30,  max: 90   },
+            { label: '91–180 days', min: 90,  max: 180  },
+            { label: '> 180 days',  min: 180, max: Infinity }
+        ];
+        const counts  = new Array(buckets.length).fill(0);
+        let   hasDate = 0, totalDays = 0;
+
+        leads.forEach(r => {
+            if (!r[dateField]) return;
+            const ms = new Date(r[dateField]).getTime();
+            if (isNaN(ms)) return;
+            hasDate++;
+            const days = Math.max(0, Math.floor((today - ms) / 86400000));
+            totalDays += days;
+            for (let i = 0; i < buckets.length; i++) {
+                if (days >= buckets[i].min && days < buckets[i].max) { counts[i]++; break; }
+            }
+        });
+
+        const n        = leads.length;
+        const emptyN   = n - hasDate;
+        const emptyPct = n > 0 ? (emptyN / n * 100).toFixed(1) : '0.0';
+        const avgDays  = hasDate > 0 ? Math.round(totalDays / hasDate) : null;
+        const maxCount = Math.max(...counts, 1);
+
+        if (hasDate === 0) {
+            return `<div style="font-size:12px;color:var(--ansell-light-gray)">No date data — ${emptyPct}% of records missing this field.</div>`;
+        }
+
+        let html = `<div style="font-size:11px;color:var(--ansell-gray);margin-bottom:10px">Avg: <strong>${avgDays} days</strong>`;
+        if (emptyN > 0) html += ` &nbsp;·&nbsp; ${emptyPct}% no date (${fmt(emptyN)} records)`;
+        html += `</div><div class="reason-bar-list">`;
+
+        buckets.forEach((b, i) => {
+            const cnt    = counts[i];
+            const barW   = (cnt / maxCount * 100).toFixed(1);
+            const pctVal = n > 0 ? (cnt / n * 100).toFixed(1) : '0.0';
+            html += `<div class="reason-bar-row">
+                <div class="reason-bar-label">${b.label}</div>
+                <div class="reason-bar-track"><div class="reason-bar-fill age-bar" style="width:${barW}%"></div></div>
+                <div class="reason-bar-val">${fmt(cnt)} <span class="reason-bar-pct">${pctVal}%</span></div>
+            </div>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    // ── Shared: monthly timeline chart ──────────────────────────
+    function makeTimelineWidgetHtml(canvasId, title) {
+        return `<div class="stage-detail-widget stage-timeline-widget">
+            <div class="stage-detail-widget-title">${title}</div>
+            <div style="position:relative;height:130px">
+                <canvas id="${canvasId}"></canvas>
+            </div>
+        </div>`;
+    }
+
+    function drawTimelineChart(canvasId, leads, dateField, barColor) {
+        const stackOpt = demandStackField ? DEMAND_STACK_OPTIONS.find(o => o.field === demandStackField) : null;
+
+        // Collect all month keys present in the data
+        const allMonths = new Set();
+        leads.forEach(r => {
+            if (!r[dateField]) return;
+            const ms = new Date(r[dateField]).getTime();
+            if (isNaN(ms)) return;
+            const d = new Date(ms);
+            allMonths.add(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+        });
+        const keys = [...allMonths].sort();
+        if (!keys.length) return;
+
+        const labels = keys.map(k => {
+            const [y, m] = k.split('-');
+            return new Date(+y, +m - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        });
+
+        let datasets;
+        if (stackOpt) {
+            // One dataset per stack segment
+            const stackMap = {}, stackTotals = {};
+            leads.forEach(r => {
+                if (!r[dateField]) return;
+                const ms = new Date(r[dateField]).getTime();
+                if (isNaN(ms)) return;
+                const d = new Date(ms);
+                const mk = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                const sk = stackOpt.fn(r);
+                if (!stackMap[sk]) stackMap[sk] = {};
+                stackMap[sk][mk] = (stackMap[sk][mk] || 0) + 1;
+                stackTotals[sk] = (stackTotals[sk] || 0) + 1;
+            });
+            const stackKeys = Object.entries(stackTotals).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+            datasets = stackKeys.map((sk, i) => ({
+                label: sk,
+                data: keys.map(mk => (stackMap[sk] && stackMap[sk][mk]) || 0),
+                backgroundColor: stackOpt.colorFn(sk, i) + 'cc',
+                borderColor:     stackOpt.colorFn(sk, i),
+                borderWidth: 1, borderRadius: 2, borderSkipped: false
+            }));
+        } else {
+            const counts = {};
+            leads.forEach(r => {
+                if (!r[dateField]) return;
+                const ms = new Date(r[dateField]).getTime();
+                if (isNaN(ms)) return;
+                const d = new Date(ms);
+                const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                counts[k] = (counts[k] || 0) + 1;
+            });
+            datasets = [{ data: keys.map(k => counts[k] || 0),
+                backgroundColor: barColor + 'bb', borderColor: barColor,
+                borderWidth: 1, borderRadius: 3, borderSkipped: false }];
+        }
+
+        if (charts[canvasId]) charts[canvasId].destroy();
+        charts[canvasId] = new Chart(
+            document.getElementById(canvasId).getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: !!stackOpt, position: 'bottom',
+                        labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } },
+                    tooltip: stackOpt
+                        ? { mode: 'index', callbacks: {
+                              label:  c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}`,
+                              footer: items => `  Total: ${fmt(items.reduce((s, i) => s + i.parsed.y, 0))}` }}
+                        : { callbacks: { label: c => ` ${fmt(c.parsed.y)}` } }
+                },
+                scales: {
+                    x: { stacked: !!stackOpt, grid: { display: false },
+                         ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 20 }},
+                    y: { stacked: !!stackOpt, beginAtZero: true, grid: { color: '#f0f0f0' },
+                         ticks: { font: { size: 10 }, precision: 0 }}
+                }
+            }
+        });
+    }
+
+    function renderReferralDetail() {
+        const leads = applyDemandFilters().filter(r => r.personStatus === 'Referral');
+        document.getElementById('stageDetailTitle').textContent = 'Referral  ·  ' + fmt(leads.length) + ' leads';
+        document.getElementById('stageDetailContent').innerHTML =
+            makeReasonBarsHtml(leads, 'referralStatus', 'Referral Status', 'Referral') +
+            makeTimelineWidgetHtml('chartReferralTimeline', 'Added to Referral over time');
+        drawTimelineChart('chartReferralTimeline', leads, 'referralDate', '#e67e22');
+    }
+
+    function renderUnqualifiedDetail() {
+        const leads  = applyDemandFilters().filter(r => r.personStatus === 'Unqualified');
+        document.getElementById('stageDetailTitle').textContent = 'Unqualified  ·  ' + fmt(leads.length) + ' leads';
+        document.getElementById('stageDetailContent').innerHTML =
+            makeReasonBarsHtml(leads, 'unqualifiedReason', 'Unqualified Reason', 'Unqualified Reason');
+    }
+
+    function renderAssignedDetail() {
+        const leads       = applyDemandFilters().filter(r => r.personStatus === 'Assigned');
+        const n           = leads.length;
+        const noQueueLeads = leads.filter(r => !r.assignedQueue);
+
+        document.getElementById('stageDetailTitle').textContent = 'Assigned  ·  ' + fmt(n) + ' leads';
+
+        // Leads without a queue should have a Sales Owner — show stacked age chart
+        const ownerWidget = noQueueLeads.length > 0
+            ? makeOwnerAgeStackHtml(
+                noQueueLeads, 'mqlDate',
+                `Sales Owner — no queue (${fmt(noQueueLeads.length)} leads)`)
+            : '';
+
+        const queueWidget = makeReasonBarsHtml(leads, 'assignedQueue', 'Assigned Queue', 'Queue Name')
+            .replace('style="flex:1;min-width:300px"', 'style="min-width:0"');
+        const mqlAgeWidget = `<div class="stage-detail-widget" style="margin-top:20px">
+                <div class="stage-detail-widget-title">MQL Age (days since MQL date)</div>
+                ${makeAgeBarsHtml(leads, 'mqlDate')}
+            </div>`;
+
+        document.getElementById('stageDetailContent').innerHTML =
+            `<div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;flex-basis:100%;align-items:start">
+                <div>${queueWidget}${mqlAgeWidget}</div>
+                ${ownerWidget}
+            </div>` +
+            makeTimelineWidgetHtml('chartAssignedTimeline', 'MQL date over time');
+        drawTimelineChart('chartAssignedTimeline', leads, 'mqlDate', '#3498db');
+    }
+
+    function renderWorkingDetail() {
+        const leads = applyDemandFilters().filter(r => r.personStatus === 'Working');
+        document.getElementById('stageDetailTitle').textContent = 'Working  ·  ' + fmt(leads.length) + ' leads';
+        document.getElementById('stageDetailContent').innerHTML =
+            makeOwnerAgeStackHtml(leads, 'workingDate', 'Sales Owner') +
+            `<div class="stage-detail-widget" style="min-width:280px">
+                <div class="stage-detail-widget-title">Age (days since Working Date)</div>
+                ${makeAgeBarsHtml(leads, 'workingDate')}
+            </div>` +
+            makeTimelineWidgetHtml('chartWorkingTimeline', 'Working date over time');
+        drawTimelineChart('chartWorkingTimeline', leads, 'workingDate', '#1a6eb5');
     }
 
     function cellHeatColor(intensity, isHot) {
@@ -2034,6 +2906,14 @@
                 value = clean ? '&#10003; Clean' : fmt(dirtyCount);
                 sub   = clean ? 'All records match picklist'
                               : pct(dirtyCount, fTotal) + ' of records · ' + dirtyValues.size + ' non-standard value' + (dirtyValues.size !== 1 ? 's' : '');
+            } else if (f.blanksOnly) {
+                for (const r of fData) {
+                    if (!(r[f.field] || '').trim()) blankCount++;
+                }
+                const filled = fTotal - blankCount;
+                clean = true;
+                value = pct(filled, fTotal) + ' filled';
+                sub   = 'Values not analysed — completeness only';
             } else {
                 const raw = {};
                 for (const r of fData) {
@@ -2070,27 +2950,10 @@
         });
         summaryEl.innerHTML = summaryHtml;
 
-        // ── Picklist reference ──
-        const picklistRefEl = document.getElementById('dqPicklistRef');
-        if (picklistRefEl) {
-            const refRows = DQ_FIELDS.filter(f => f.picklist).map(f =>
-                `<div class="dq-picklist-row">
-                    <span class="dq-picklist-field-name">${f.label}</span>
-                    ${f.picklist.map(v => `<span class="dq-picklist-chip">${v}</span>`).join('')}
-                </div>`
-            ).join('');
-            picklistRefEl.innerHTML = `
-            <div class="dq-picklist-ref">
-                <div class="dq-picklist-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
-                    <span class="dq-picklist-toggle-arrow">&#9658;</span> Picklist reference
-                </div>
-                <div class="dq-picklist-body">${refRows}</div>
-            </div>`;
-        }
 
         // ── Word cloud sections ──
         const picklistFields  = DQ_FIELDS.filter(f => f.picklist);
-        const freeTextFields  = DQ_FIELDS.filter(f => !f.picklist);
+        const freeTextFields  = DQ_FIELDS.filter(f => !f.picklist && !f.blanksOnly);
 
         const cleanHidden = cloudsEl.classList.contains('hide-clean');
         let cloudsHtml = `<div style="margin-top:28px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">

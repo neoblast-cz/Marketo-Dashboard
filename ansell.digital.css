@@ -345,6 +345,7 @@ body {
 
 /* ── CHART CARDS ── */
 .chart-card {
+    position: relative;
     background: white;
     padding: 22px 24px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
@@ -357,6 +358,22 @@ body {
     letter-spacing: 0.8px;
     color: var(--ansell-gray);
     margin-bottom: 18px;
+}
+
+.blank-badge {
+    display: none;
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #7a5c00;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: 2px 8px;
+    white-space: nowrap;
+    line-height: 1.5;
 }
 
 .chart-grid-2 {
@@ -1100,7 +1117,7 @@ body {
 
 .lmp-grid {
     display: grid;
-    grid-template-columns: 1.6fr 40px 1fr 40px 1fr 40px 1fr;
+    grid-template-columns: 40px 1.6fr 40px 1fr 40px 1fr 40px 1fr;
     grid-template-rows: auto 30px auto;
     gap: 8px 0;
     align-items: center;
@@ -1110,6 +1127,7 @@ body {
 .lmp-h-arr {
     display: flex;
     align-items: center;
+    position: relative;
 }
 .lmp-h-arr::before {
     content: '';
@@ -1128,6 +1146,7 @@ body {
    Math: span cols 3-7 = 3fr+80px; col5-centre = 1.5fr+40px = exactly 50% of span. */
 .lmp-branch {
     position: relative;
+    align-self: stretch;   /* must fill the 30px row so % heights resolve */
 }
 /* Vertical stem from Working down to the horizontal bar */
 .lmp-branch::before {
@@ -1135,44 +1154,135 @@ body {
     position: absolute;
     left: 50%;
     top: 0;
-    height: 55%;
+    height: 50%;
     width: 2px;
     transform: translateX(-50%);
-    background: rgba(80, 80, 80, 0.28);
+    background: rgba(80, 80, 80, 0.3);
 }
 /* U-bracket: horizontal bar + left drop (→ Nurture) + right drop (→ Unqualified) */
 .lmp-branch-u {
     position: absolute;
     left: 2%;
     right: 2%;
-    top: 55%;
+    top: 50%;
     bottom: 0;
-    border-top:   2px solid rgba(80, 80, 80, 0.28);
-    border-left:  2px solid rgba(80, 80, 80, 0.28);
-    border-right: 2px solid rgba(80, 80, 80, 0.28);
+    border-top:   2px solid rgba(80, 80, 80, 0.3);
+    border-left:  2px solid rgba(80, 80, 80, 0.3);
+    border-right: 2px solid rgba(80, 80, 80, 0.3);
 }
 /* Center drop through the bar to Referral (below Working) */
 .lmp-branch::after {
     content: '';
     position: absolute;
     left: 50%;
-    top: 55%;
+    top: 50%;
     bottom: 0;
     width: 2px;
     transform: translateX(-50%);
-    background: rgba(80, 80, 80, 0.28);
+    background: rgba(80, 80, 80, 0.3);
+}
+/* Arrowheads at the three drop points */
+.lmp-branch-u::before,
+.lmp-branch-u::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid rgba(80, 80, 80, 0.4);
+}
+.lmp-branch-u::before { left: -1px; }   /* → Nurture (left drop)      */
+.lmp-branch-u::after  { right: -1px; }  /* → Unqualified (right drop) */
+
+/* Center arrowhead → Referral */
+.lmp-branch-mid-arr {
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid rgba(80, 80, 80, 0.4);
+}
+
+/* ── Transition count badges ── */
+.lmp-t-badge {
+    position: absolute;
+    bottom: calc(100% + 4px);   /* anchors above container; grows upward */
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(74, 144, 217, 0.13);
+    color: var(--ansell-blue);
+    border: 1px solid rgba(74, 144, 217, 0.35);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 9px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    pointer-events: none;
+    line-height: 1.5;
+    text-align: center;
+}
+.lmp-t-badge-dash  { opacity: 0.4; }
+.lmp-t-badge-branch { bottom: auto; top: -16px; }
+
+/* ── Transition period filter ── */
+.lmp-period-bar {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.lmp-period-label {
+    color: var(--ansell-light-gray);
+    margin-right: 2px;
+}
+.lmp-period-btn {
+    background: transparent;
+    border: 1px solid rgba(74, 144, 217, 0.35);
+    border-radius: 10px;
+    color: var(--ansell-light-gray);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: none;
+    letter-spacing: 0.2px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.lmp-period-btn:hover {
+    background: rgba(74, 144, 217, 0.1);
+    color: var(--ansell-blue);
+    border-color: rgba(74, 144, 217, 0.6);
+}
+.lmp-period-btn.active {
+    background: rgba(74, 144, 217, 0.15);
+    color: var(--ansell-blue);
+    border-color: var(--ansell-blue);
 }
 
 .lmp-stage {
     border-radius: 8px;
     border: 2px solid;
-    padding: 14px 12px;
+    padding: 14px 12px 18px;
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 96px;
+    position: relative;
 }
 .lmp-stage-name {
     font-size: 9px;
@@ -1213,3 +1323,219 @@ body {
 
 /* Groups two sub-stage boxes into one grid cell */
 .lmp-stage-group { display: flex; flex-direction: column; gap: 8px; }
+
+/* ─── Clickable stage boxes ─────────────────────────────────── */
+.lmp-stage.clickable {
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.lmp-stage.clickable:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+.lmp-stage.clickable.active {
+    box-shadow: 0 0 0 3px currentColor;
+}
+.lmp-stage-explore {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    opacity: 0.35;
+    line-height: 1;
+    transition: opacity 0.15s ease;
+}
+.lmp-stage-explore svg {
+    display: block;
+    transition: transform 0.2s ease;
+}
+.lmp-stage.clickable:hover .lmp-stage-explore        { opacity: 0.65; }
+.lmp-stage.clickable.active .lmp-stage-explore       { opacity: 1; }
+.lmp-stage.clickable.active .lmp-stage-explore svg   { transform: rotate(180deg); }
+
+/* ─── Stage Detail Panel ─────────────────────────────────────── */
+.stage-detail-panel {
+    margin-top: 8px;
+    background: #fff;
+    border: 1.5px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px 20px;
+    animation: sdpFadeIn 0.18s ease;
+}
+@keyframes sdpFadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.stage-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.stage-detail-header-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ansell-dark);
+}
+.stage-detail-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ansell-light-gray);
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: 4px;
+}
+.stage-detail-close:hover { color: var(--ansell-dark); background: #f0f0f0; }
+
+.stage-detail-body {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.stage-detail-widget { min-width: 200px; }
+.stage-timeline-widget {
+    flex-basis: 100%;
+    min-width: 0;
+    padding-top: 14px;
+    margin-top: 6px;
+    border-top: 1px solid #f0f0f0;
+}
+.stage-detail-widget-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ansell-light-gray);
+    margin-bottom: 10px;
+}
+
+/* Pie chart wrapper — In Nurture */
+.nurture-pie-wrap { display: flex; justify-content: center; margin-top: 6px; }
+
+/* Bool bars — In Nurture */
+.bool-bar-list { display: flex; flex-direction: column; gap: 7px; }
+.bool-bar-row  { display: flex; align-items: center; gap: 8px; }
+.bool-bar-label {
+    width: 52px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ansell-dark);
+    text-align: right;
+    flex-shrink: 0;
+}
+.bool-bar-track {
+    flex: 1;
+    height: 14px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 80px;
+}
+.bool-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.35s ease;
+}
+.bool-bar-fill.yes  { background: #f39c12; }
+.bool-bar-fill.no   { background: #bdc3c7; }
+.bool-bar-fill.blank{ background: #e0e0e0; }
+.bool-bar-val {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ansell-dark);
+    min-width: 80px;
+    white-space: nowrap;
+}
+.bool-bar-pct { font-weight: 400; color: var(--ansell-light-gray); }
+
+/* Reason bars — Recycled Reason */
+.reason-bar-list { display: flex; flex-direction: column; gap: 5px; }
+.reason-bar-row  { display: flex; align-items: center; gap: 8px; }
+.reason-bar-label {
+    width: 170px;
+    font-size: 11px;
+    color: var(--ansell-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    title: attr(title);
+}
+.reason-bar-track {
+    flex: 1;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 60px;
+}
+.reason-bar-fill {
+    height: 100%;
+    background: #e8941a;
+    border-radius: 3px;
+    transition: width 0.35s ease;
+}
+.reason-bar-val {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ansell-dark);
+    min-width: 80px;
+    white-space: nowrap;
+}
+.reason-bar-pct { font-weight: 400; color: var(--ansell-light-gray); }
+
+/* Stacked deliverability bars */
+.reason-bar-stack   { height: 100%; display: flex; overflow: hidden; border-radius: 3px; }
+.reason-bar-seg     { height: 100%; }
+.stacked-legend      { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; }
+.stacked-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--ansell-gray); }
+.stacked-legend-dot  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+/* Stack-by pill buttons (stage detail panel) */
+.stack-pills { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.stack-toggle-btn { font-size: 10px; padding: 2px 10px; border: 1px solid var(--ansell-border, #ddd); border-radius: 10px; background: transparent; cursor: pointer; color: var(--ansell-gray); transition: all 0.15s; white-space: nowrap; }
+.stack-toggle-btn.active { background: var(--ansell-brand, #0063ac); color: #fff; border-color: var(--ansell-brand, #0063ac); }
+
+/* Age bar variant — blue tone to distinguish from amber reason bars */
+.reason-bar-fill.age-bar { background: #3a8cc7; }
+
+/* marketing@ansell.com warning highlight */
+.reason-bar-label-warn { color: #e74c3c; font-weight: 700; }
+.reason-bar-fill-warn  { background: #e74c3c; }
+
+/* Owner stacked age chart */
+.owner-stack-list  { display: flex; flex-direction: column; gap: 5px; }
+.owner-stack-row   { display: grid; grid-template-columns: 190px 1fr auto; gap: 8px; align-items: center; }
+.owner-stack-name  { font-size: 11px; font-weight: 500; color: var(--ansell-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owner-stack-bar   { display: flex; height: 11px; border-radius: 3px; overflow: hidden; background: #f0f0f0; }
+.owner-stack-seg   { height: 100%; transition: width 0.3s ease; }
+.owner-stack-meta  { font-size: 11px; font-weight: 600; color: var(--ansell-dark); white-space: nowrap; text-align: right; min-width: 72px; }
+.owner-avg-age     { font-size: 10px; font-weight: 400; color: var(--ansell-light-gray); margin-left: 4px; }
+.owner-stack-toggle {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ansell-light-gray);
+    padding: 3px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    display: block;
+}
+.owner-stack-toggle:hover { border-color: var(--ansell-blue); color: var(--ansell-blue); }
+.owner-stack-legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.owner-stack-leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; vertical-align: middle; }
+.owner-stack-leg-lbl { font-size: 9px; color: var(--ansell-light-gray); margin-right: 4px; }
+
+/* Per-stage accent border on the detail panel */
+.stage-detail-panel[data-stage="demand"]      { border-top: 3px solid #9b59b6; }
+.stage-detail-panel[data-stage="nurture"]     { border-top: 3px solid #f39c12; }
+.stage-detail-panel[data-stage="referral"]    { border-top: 3px solid #e67e22; }
+.stage-detail-panel[data-stage="unqualified"] { border-top: 3px solid #e74c3c; }
+.stage-detail-panel[data-stage="assigned"]    { border-top: 3px solid #3498db; }
+.stage-detail-panel[data-stage="working"]     { border-top: 3px solid #1a6eb5; }
