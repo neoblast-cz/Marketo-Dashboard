@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    ansell.digital.css — Ansell Digital  |  Shared Design System
    ═══════════════════════════════════════════════════════════ */
 
@@ -71,6 +71,24 @@ body {
     background: var(--ansell-teal);
     flex-shrink: 0;
 }
+#exportDateSelect {
+    background: transparent;
+    border: none;
+    color: var(--ansell-blue);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    -webkit-appearance: auto;
+    appearance: auto;
+}
+#exportDateSelect option {
+    background: #fff;
+    color: #333;
+    font-weight: 400;
+}
 
 .header-buttons { display: flex; gap: 8px; align-items: center; }
 
@@ -106,6 +124,8 @@ body {
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
+    position: sticky;
+    z-index: 98;
 }
 
 .filter-label {
@@ -115,6 +135,26 @@ body {
     letter-spacing: 0.5px;
     color: var(--ansell-gray);
     white-space: nowrap;
+}
+
+.quick-filter-btn {
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--ansell-blue);
+    background: transparent;
+    color: var(--ansell-blue);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    margin-left: auto;
+}
+.quick-filter-btn:hover,
+.quick-filter-btn.active {
+    background: var(--ansell-blue);
+    color: white;
 }
 
 /* ── MULTI-SELECT ── */
@@ -396,6 +436,9 @@ body {
     gap: 16px;
     margin-bottom: 16px;
 }
+.chart-card + .chart-grid-2,
+.chart-card + .chart-grid-3,
+.chart-card + .chart-grid-equal { margin-top: 16px; }
 
 @media (max-width: 900px) {
     .chart-grid-2, .chart-grid-equal, .chart-grid-3 { grid-template-columns: 1fr; }
@@ -415,6 +458,8 @@ body {
     border-bottom: 1px solid #e8e8e8;
     padding: 0 30px;
     display: flex;
+    position: sticky;
+    z-index: 99;
 }
 
 .tab-btn {
@@ -1048,6 +1093,15 @@ body {
     text-align: left;
     padding-left: 16px;
 }
+.score-matrix-axis-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ansell-gray);
+    letter-spacing: .3px;
+    padding: 4px 8px;
+    border-bottom: none;
+}
 .score-matrix-corner {
     background: #f5f6f8;
     font-weight: 600;
@@ -1085,6 +1139,72 @@ body {
     font-weight: 700;
 }
 
+/* ─── SFDC Type interactive child cards ─────────────────────── */
+.rt-child-card {
+    opacity: 0.45;
+    border-top: 3px solid #e8ecef;
+    transition: opacity 0.25s, border-top-color 0.25s;
+}
+#cardLeadRecordType.rt-active { border-top-color: #00A28F; opacity: 1; }
+#cardRecordType.rt-active     { border-top-color: #0063AC; opacity: 1; }
+#cardGbuHealthcare.rt-active  { border-top-color: #0063AC; opacity: 1; }
+#cardGbuIndustrial.rt-active  { border-top-color: #00A28F; opacity: 1; }
+#gbuGrid, #sfdcGrid {
+    display: flex;
+    align-items: flex-start;
+}
+#gbuGrid > .chart-card:first-child,
+#sfdcGrid > .chart-card:first-child {
+    flex: 0 0 240px;
+}
+#gbuGrid > .rt-child-card,
+#sfdcGrid > .rt-child-card {
+    flex: 1 1 0;
+    min-width: 60px;
+    overflow: hidden;
+    transition: flex-grow 0.35s ease;
+}
+#gbuGrid.gbu-ind-active > #cardGbuIndustrial { flex-grow: 4; }
+#gbuGrid.gbu-ind-active > #cardGbuHealthcare { flex-grow: 0.15; }
+#gbuGrid.gbu-hc-active  > #cardGbuHealthcare { flex-grow: 4; }
+#gbuGrid.gbu-hc-active  > #cardGbuIndustrial { flex-grow: 0.15; }
+#sfdcGrid.sfdc-contact-active > #cardRecordType     { flex-grow: 4; }
+#sfdcGrid.sfdc-contact-active > #cardLeadRecordType { flex-grow: 0.15; }
+#sfdcGrid.sfdc-lead-active    > #cardLeadRecordType { flex-grow: 4; }
+#sfdcGrid.sfdc-lead-active    > #cardRecordType     { flex-grow: 0.15; }
+
+.rt-child-hint {
+    font-size: 10px;
+    color: var(--ansell-light-gray);
+    text-align: center;
+    padding: 8px 0 2px;
+    font-style: italic;
+}
+.rt-child-card.rt-active .rt-child-hint { display: none; }
+
+.rt-child-connector { display: none; margin: 6px 0 10px; }
+.rt-child-card.rt-active .rt-child-connector { display: block; }
+
+.rt-conn-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 10px;
+    color: #fff;
+}
+.rt-conn-lead    { background: #00A28F; }
+.rt-conn-contact { background: #0063AC; }
+.rt-conn-gbu-hc  { background: #0063AC; }
+.rt-conn-gbu-ind { background: #00A28F; }
+
+.rt-child-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+.rt-child-card.rt-active .rt-child-body { max-height: 1000px; }
+
 /* ─── Lead Management Process Flow ──────────────────────────── */
 .lmp-flow { padding: 4px 0; }
 
@@ -1119,7 +1239,7 @@ body {
     display: grid;
     grid-template-columns: 40px 1.6fr 40px 1fr 40px 1fr 40px 1fr;
     grid-template-rows: auto 30px auto;
-    gap: 8px 0;
+    gap: 12px 6px;
     align-items: center;
 }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketo Database Analysis | Ansell</title>
+    <title>Marketo Lead Generation | Ansell</title>
     <link rel="stylesheet" href="ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -26,9 +26,9 @@
                 </svg>
             </div>
             <div>
-                <h1>Marketo | <span>Database Analysis</span></h1>
+                <h1>Marketo | <span>Lead Generation</span></h1>
                 <div class="header-sub">
-                    Ansell Global Database
+                    Ansell Lead Management Process
                     <span class="export-badge" id="exportBadge" style="display:none">
                         <span class="export-badge-dot"></span>
                         <span id="exportDateLabel" style="display:none"></span>
@@ -89,25 +89,6 @@
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="tab-nav" id="tabNav" style="display:none">
-        <button class="tab-btn active" id="tabBtnAnalysis" onclick="switchTab('analysis')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            Database Analysis
-        </button>
-
-        <button class="tab-btn" id="tabBtnQuality" onclick="switchTab('quality')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Data Quality
-        </button>
-
-        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 8px">
-            <span class="filter-label">Quick filters:</span>
-            <button class="quick-filter-btn" id="btnLeadsOnly" onclick="toggleLeadsOnly()" style="margin:0" title="Filter entire dashboard to SFDC Leads only">Leads only</button>
-            <button class="quick-filter-btn" id="btnContactsOnly" onclick="toggleContactsOnly()" style="margin:0" title="Filter entire dashboard to SFDC Contacts only">Contacts only</button>
-            <button class="quick-filter-btn" id="btnPeopleOnly" onclick="togglePeopleOnly()" style="margin:0" title="Filter entire dashboard to People (Marketo-only, no SFDC sync)">People only</button>
-        </div>
-    </div>
 
     <!-- Filter Bar -->
     <div class="filter-bar" id="filterBar" style="display:none">
@@ -239,244 +220,466 @@
         </div>
     </div>
 
-    <!-- Dashboard Content -->
-    <div id="dashContent" style="display:none">
+
+    <!-- Demand Generation Tab -->
+    <div id="demandContent" style="display:none">
+        <!-- Demand Filter Bar -->
+        <div class="filter-bar" id="demandFilterBar">
+            <span class="filter-label">Filter:</span>
+
+            <!-- Organisation -->
+            <div class="ms-wrap" id="dms-org">
+                <button class="ms-btn" onclick="toggleDms('org',event)">
+                    <span id="dms-org-label">Organisation</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-org-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('org',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('org')">Select All</button>
+                        <button onclick="clearDms('org')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-org-list"></div>
+                </div>
+            </div>
+
+            <!-- GBU -->
+            <div class="ms-wrap" id="dms-gbu">
+                <button class="ms-btn" onclick="toggleDms('gbu',event)">
+                    <span id="dms-gbu-label">GBU</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-gbu-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('gbu')">Select All</button>
+                        <button onclick="clearDms('gbu')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-gbu-list"></div>
+                </div>
+            </div>
+
+            <!-- Deliverability -->
+            <div class="ms-wrap" id="dms-deliv">
+                <button class="ms-btn" onclick="toggleDms('deliv',event)">
+                    <span id="dms-deliv-label">Deliverability</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-deliv-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('deliv')">Select All</button>
+                        <button onclick="clearDms('deliv')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-deliv-list"></div>
+                </div>
+            </div>
+
+            <!-- Vertical -->
+            <div class="ms-wrap" id="dms-vertical">
+                <button class="ms-btn" onclick="toggleDms('vertical',event)">
+                    <span id="dms-vertical-label">Vertical</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-vertical-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('vertical',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('vertical')">Select All</button>
+                        <button onclick="clearDms('vertical')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-vertical-list"></div>
+                </div>
+            </div>
+
+            <!-- Country -->
+            <div class="ms-wrap" id="dms-country">
+                <button class="ms-btn" onclick="toggleDms('country',event)">
+                    <span id="dms-country-label">Country</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="dms-country-panel" onclick="event.stopPropagation()">
+                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('country',this.value)"></div>
+                    <div class="ms-actions">
+                        <button onclick="selectAllDms('country')">Select All</button>
+                        <button onclick="clearDms('country')">Clear</button>
+                    </div>
+                    <div class="ms-list" id="dms-country-list"></div>
+                </div>
+            </div>
+
+            <button class="filter-reset" onclick="resetDemandFilters()">Reset All</button>
+            <span class="filter-count" id="demandFilterCount"></span>
+        </div>
+
         <div class="main">
-
-            <!-- KPIs -->
-            <div class="section-label">Overview</div>
-            <div class="kpi-grid">
-                <div class="kpi-card blue">
-                    <div class="kpi-label">Total Records</div>
-                    <div class="kpi-value" id="kpiTotal">—</div>
-                    <div class="kpi-sub" id="kpiTotalSub">as of export date</div>
-                </div>
-                <div class="kpi-card teal">
-                    <div class="kpi-label">Contactable</div>
-                    <div class="kpi-value" id="kpiContactable">—<span class="kpi-pct" id="kpiContactablePct"></span></div>
-                    <div class="kpi-sub">Opted-In Explicit + Implicit</div>
-                </div>
-                <div class="kpi-card green">
-                    <div class="kpi-label">Opted-In Explicit</div>
-                    <div class="kpi-value" id="kpiExplicit">—<span class="kpi-pct" id="kpiExplicitPct"></span></div>
-                    <div class="kpi-sub">Active consent confirmed</div>
-                </div>
-                <div class="kpi-card red">
-                    <div class="kpi-label">Suppressed</div>
-                    <div class="kpi-value" id="kpiSuppressed">—<span class="kpi-pct" id="kpiSuppressedPct"></span></div>
-                    <div class="kpi-sub">Cannot receive marketing</div>
-                </div>
+            <div class="section-label">Lead Management Process
+                <span class="section-label-note" id="demandLeadCount"></span>
+                <span class="lmp-period-bar">
+                    <span class="lmp-period-label">Transitions in last</span>
+                    <button class="lmp-period-btn active" id="tPeriod30" onclick="setTransitionPeriod(30)">30 days</button>
+                    <button class="lmp-period-btn" id="tPeriod60" onclick="setTransitionPeriod(60)">60 days</button>
+                    <button class="lmp-period-btn" id="tPeriod90" onclick="setTransitionPeriod(90)">90 days</button>
+                </span>
             </div>
-
-            <!-- Composition -->
-            <div class="section-label">Database Composition</div>
             <div class="chart-card">
-                <span class="blank-badge" id="blankBadge_org"></span>
-                <div class="chart-title">Organisation</div>
-                <div class="chart-wrap" style="position:relative">
-                    <canvas id="chartOrg"></canvas>
-                </div>
-            </div>
-            <div class="chart-grid-3" id="gbuGrid">
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_gbu"></span>
-                    <div class="chart-title">Global Business Unit (GBU)</div>
-                    <div class="chart-wrap" style="height:220px">
-                        <canvas id="chartGBU"></canvas>
+                <div class="lmp-flow">
+                    <!-- Banner -->
+                    <div class="lmp-banner">
+                        <div class="lmp-banner-mkt">Marketing <span class="lmp-banner-tag">Marketo</span></div>
+                        <div class="lmp-banner-sales">Sales <span class="lmp-banner-tag">Salesforce</span></div>
                     </div>
-                </div>
-                <div class="chart-card rt-child-card" id="cardGbuIndustrial">
-                    <span class="blank-badge" id="blankBadge_gbuIndVert"></span>
-                    <div class="chart-title">Vertical <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Industrial</span></div>
-                    <div class="rt-child-hint">Click <b>Industrial</b> in GBU to expand</div>
-                    <div class="rt-child-connector"><span class="rt-conn-badge rt-conn-gbu-ind">&#8592; Industrial</span></div>
-                    <div class="rt-child-body">
-                        <div class="chart-wrap" style="position:relative">
-                            <canvas id="chartGbuIndVert"></canvas>
+                    <!-- Grid: 8 cols × 3 rows (col 1 = inbound arrow) -->
+                    <div class="lmp-grid">
+                        <!-- Row 1: Inbound arrow + main stages (auto-placed) -->
+                        <div class="lmp-h-arr" id="lmpArrCreated"><span class="lmp-t-badge" id="tBadgeCreated">—</span></div>
+                        <div class="lmp-stage lmp-demand clickable" id="lmpBoxDemand" onclick="toggleStageDetail('demand')" title="Click to explore Demand Capture details">
+                            <div class="lmp-stage-name">Demand Capture</div>
+                            <div class="lmp-stage-val" id="ffDemand">—</div>
+                            <div class="lmp-stage-pct" id="ffDemandPct"></div>
+                            <div class="lmp-stage-sub">No Person Status</div>
+                            <div class="lmp-stage-explore" id="lmpExploreDemand"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
-                    </div>
-                </div>
-                <div class="chart-card rt-child-card" id="cardGbuHealthcare">
-                    <span class="blank-badge" id="blankBadge_gbuHcVert"></span>
-                    <div class="chart-title">Vertical <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Healthcare</span></div>
-                    <div class="rt-child-hint">Click <b>Healthcare</b> in GBU to expand</div>
-                    <div class="rt-child-connector"><span class="rt-conn-badge rt-conn-gbu-hc">&#8592; Healthcare</span></div>
-                    <div class="rt-child-body">
-                        <div class="chart-wrap" style="position:relative">
-                            <canvas id="chartGbuHcVert"></canvas>
+                        <div class="lmp-h-arr" id="lmpArrAssigned"><span class="lmp-t-badge" id="tBadgeAssigned">—</span></div>
+                        <div class="lmp-stage-group">
+                            <div class="lmp-stage lmp-assigned clickable" id="lmpBoxAssigned" onclick="toggleStageDetail('assigned')" title="Click to explore Assigned details">
+                                <div class="lmp-stage-name">Assigned</div>
+                                <div class="lmp-stage-val" id="ffAssigned">—</div>
+                                <div class="lmp-stage-pct" id="ffAssignedPct"></div>
+                                <div class="lmp-stage-explore" id="lmpExploreAssigned"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
+                            </div>
+                            <div class="lmp-stage lmp-prospect" id="lmpBoxProspect">
+                                <div class="lmp-stage-name">Prospect</div>
+                                <div class="lmp-stage-val" id="ffProspect">—</div>
+                                <div class="lmp-stage-pct" id="ffProspectPct"></div>
+                            </div>
+                        </div>
+                        <div class="lmp-h-arr" id="lmpArrWorking"><span class="lmp-t-badge" id="tBadgeWorking">—</span></div>
+                        <div class="lmp-stage lmp-working clickable" id="lmpBoxWorking" onclick="toggleStageDetail('working')" title="Click to explore Working details">
+                            <div class="lmp-stage-name">Working</div>
+                            <div class="lmp-stage-val" id="ffWorking">—</div>
+                            <div class="lmp-stage-pct" id="ffWorkingPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreWorking"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
+                        </div>
+                        <div class="lmp-h-arr" id="lmpArrConverted"><span class="lmp-t-badge lmp-t-badge-dash" id="tBadgeConverted">—</span></div>
+                        <div class="lmp-stage lmp-converted" id="lmpBoxConverted">
+                            <div class="lmp-stage-name">Converted</div>
+                            <div class="lmp-stage-val" id="ffConverted">—</div>
+                            <div class="lmp-stage-sub">&#8594; become Contacts</div>
+                        </div>
+
+                        <!-- Row 2: Branch connector — originates from Working, fans to all three outcomes -->
+                        <div class="lmp-branch" style="grid-column:4/9;grid-row:2"><span class="lmp-branch-u"></span><span class="lmp-branch-mid-arr"></span></div>
+
+                        <!-- Row 3: Outcome stages (explicit placement) -->
+                        <div class="lmp-stage lmp-nurture clickable" id="lmpBoxNurture" style="grid-column:2/5;grid-row:3;align-self:start;margin-top:8px" onclick="toggleStageDetail('nurture')" title="Click to explore Nurture details">
+                            <span class="lmp-t-badge lmp-t-badge-dash lmp-t-badge-branch" id="tBadgeNurture">—</span>
+                            <div class="lmp-stage-name">Nurture</div>
+                            <div class="lmp-stage-val" id="ffNurture">—</div>
+                            <div class="lmp-stage-pct" id="ffNurturePct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreNurture"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
+                        </div>
+                        <div class="lmp-stage lmp-referral clickable" id="lmpBoxReferral" style="grid-column:6;grid-row:3;align-self:start;margin-top:8px" onclick="toggleStageDetail('referral')" title="Click to explore Referral details">
+                            <span class="lmp-t-badge lmp-t-badge-branch" id="tBadgeReferral">—</span>
+                            <div class="lmp-stage-name">Referral</div>
+                            <div class="lmp-stage-val" id="ffReferral">—</div>
+                            <div class="lmp-stage-pct" id="ffReferralPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreReferral"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
+                        </div>
+                        <div class="lmp-stage lmp-unqualified clickable" id="lmpBoxUnqualified" style="grid-column:8;grid-row:3;align-self:start;margin-top:8px" onclick="toggleStageDetail('unqualified')" title="Click to explore Unqualified details">
+                            <span class="lmp-t-badge lmp-t-badge-dash lmp-t-badge-branch" id="tBadgeUnqualified">—</span>
+                            <div class="lmp-stage-name">Unqualified</div>
+                            <div class="lmp-stage-val" id="ffUnqualified">—</div>
+                            <div class="lmp-stage-pct" id="ffUnqualifiedPct"></div>
+                            <div class="lmp-stage-explore" id="lmpExploreUnqualified"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Record Classification -->
-            <div class="chart-grid-3" id="sfdcGrid">
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_sfdc"></span>
-                    <div class="chart-title">SFDC Type</div>
-                    <div class="chart-wrap" style="height:200px">
-                        <canvas id="chartSFDC"></canvas>
+            <!-- Stage Detail Panel — shown when a stage box is clicked -->
+            <div id="stageDetailPanel" class="stage-detail-panel" style="display:none" data-stage="">
+                <div class="stage-detail-header">
+                    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap">
+                        <span class="stage-detail-header-title" id="stageDetailTitle"></span>
+                        <span style="font-size:10px;color:var(--ansell-gray);white-space:nowrap">Stack by</span>
+                        <div class="stack-pills" id="demandStackPills">
+                            <button class="stack-toggle-btn active" id="stackPill_"            onclick="setDemandStack('')">None</button>
+                            <button class="stack-toggle-btn"        id="stackPill_deliverability" onclick="setDemandStack('deliverability')">Deliverability</button>
+                            <button class="stack-toggle-btn"        id="stackPill_gbu"         onclick="setDemandStack('gbu')">GBU</button>
+                            <button class="stack-toggle-btn"        id="stackPill_vertical"    onclick="setDemandStack('vertical')">Vertical</button>
+                            <button class="stack-toggle-btn"        id="stackPill_channel"         onclick="setDemandStack('channel')">Acq. Channel</button>
+                            <button class="stack-toggle-btn"        id="stackPill_org"             onclick="setDemandStack('org')">Organisation</button>
+                            <button class="stack-toggle-btn"        id="stackPill_region"          onclick="setDemandStack('region')">Region</button>
+                            <button class="stack-toggle-btn"        id="stackPill_leadRecordType"  onclick="setDemandStack('leadRecordType')">Lead Rec. Type</button>
+                            <button class="stack-toggle-btn"        id="stackPill_roleDescription" onclick="setDemandStack('roleDescription')">Role Description</button>
+                        </div>
                     </div>
+                    <button class="stage-detail-close" onclick="closeStageDetail()" title="Close">×</button>
                 </div>
-                <div class="chart-card rt-child-card" id="cardLeadRecordType">
-                    <span class="blank-badge" id="blankBadge_leadRecordType"></span>
-                    <div class="chart-title">Record Type ID <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Healthcare / Industrial · Other = DQ issue</span></div>
-                    <div class="rt-child-hint">Click <b>Lead</b> or <b>Person</b> in SFDC Type to expand</div>
-                    <div class="rt-child-connector"><span class="rt-conn-badge rt-conn-lead">← Lead / Person</span></div>
-                    <div class="rt-child-body">
-                        <div class="chart-wrap" style="height:220px">
-                            <canvas id="chartLeadRecordType"></canvas>
-                        </div>
-                        <div style="margin-top:10px;font-size:10px;color:var(--ansell-light-gray)">Leads and Prospects only — Contacts excluded</div>
-                    </div>
-                </div>
-                <div class="chart-card rt-child-card" id="cardRecordType">
-                    <span class="blank-badge" id="blankBadge_recordType"></span>
-                    <div class="chart-title">Record Type (A) <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;opacity:.6">Account record type</span></div>
-                    <div class="rt-child-hint">Click <b>Contact</b> in SFDC Type to expand</div>
-                    <div class="rt-child-connector"><span class="rt-conn-badge rt-conn-contact">← Contact</span></div>
-                    <div class="rt-child-body">
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartRecordType"></canvas>
-                    </div>
-                    <div style="margin-top:10px;font-size:10px;color:var(--ansell-light-gray)">Contacts only — Leads excluded</div>
-                    <div class="chart-title" style="margin-top:16px;">Account Reach</div>
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;padding-top:12px;border-top:1px solid #f0f0f0">
-                        <div style="padding-right:12px">
-                            <div class="kpi-label" style="margin-bottom:3px">End-User</div>
-                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiEndUsers">—</div>
-                            <div class="kpi-sub" id="kpiEndUsersSub" style="margin-top:2px">unique accounts</div>
-                        </div>
-                        <div style="padding:0 12px;border-left:1px solid #f0f0f0">
-                            <div class="kpi-label" style="margin-bottom:3px">Distributor</div>
-                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiDistributors">—</div>
-                            <div class="kpi-sub" id="kpiDistributorsSub" style="margin-top:2px">unique accounts</div>
-                        </div>
-                        <div style="padding-left:12px;border-left:1px solid #f0f0f0">
-                            <div class="kpi-label" style="margin-bottom:3px">Webstore</div>
-                            <div style="font-size:18px;font-weight:700;color:var(--ansell-dark);line-height:1" id="kpiWebstore">—</div>
-                            <div class="kpi-sub" id="kpiWebstoreSub" style="margin-top:2px">unique accounts</div>
-                        </div>
-                    </div>
-                    </div><!-- /rt-child-body -->
-                </div>
+                <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
-            <!-- Acquisition Channel (full width) -->
-            <div class="chart-card">
-                <span class="blank-badge" id="blankBadge_channel"></span>
-                <div class="chart-title" style="display:flex;align-items:center;gap:8px">
-                    Acquisition Channel
-                    <button onclick="document.getElementById('acqInfobox').style.display=document.getElementById('acqInfobox').style.display==='none'?'block':'none'" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid #ccc;border-radius:10px;cursor:pointer;background:#f5f5f5;color:#555">&#8505; exceptions</button>
-                </div>
-                <div id="acqInfobox" style="display:none;margin-bottom:8px;padding:8px 10px;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;font-size:11px;color:#555">
-                    <strong>Exception mappings (full program name &rarr; channel):</strong><br>
-                    Record Account Created in DandB EMEA &rarr; <em>DandB</em><br>
-                    Record Account Created in DandB NA &rarr; <em>DandB</em><br>
-                    Record Created in AnsellGuardian Chemical &rarr; <em>AnsellGuardian Chemical</em><br>
-                    Record Created in LinkedIn Sales Navigator &rarr; <em>LinkedIn Sales Navigator</em><br>
-                    Record Created in MyAnsell &rarr; <em>Other</em><br>
-                    Record Created in Salesforce &rarr; <em>Sales</em>
-                </div>
-                <div style="display:flex;gap:16px;align-items:flex-start">
-                    <div class="chart-wrap" style="flex:0 0 220px;height:220px;position:relative">
-                        <canvas id="chartChannel"></canvas>
-                    </div>
-                    <div id="acqLegend" style="flex:1;max-height:220px;overflow-y:auto;padding-right:4px"></div>
-                </div>
+            <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
+                <span class="section-label-note">Relative Urgency × Relative Score</span>
             </div>
-
-            <!-- Growth -->
-            <div class="section-label">Database Growth</div>
-            <div class="chart-grid-equal">
-                <div class="chart-card">
-                    <div class="chart-title">Records Created by Year</div>
-                    <div class="chart-wrap" style="height:250px">
-                        <canvas id="chartGrowth"></canvas>
+            <div class="chart-card" style="overflow-x:auto">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+                    <span style="font-size:11px;color:var(--ansell-gray);font-weight:500">Person Status</span>
+                    <div class="stack-pills" id="scoringStatusPills"></div>
+                </div>
+                <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+                    <div id="scoringMatrixSummary"></div>
+                    <div>
+                        <div class="chart-title" style="margin-bottom:6px">Count <span style="font-size:10px;font-weight:400;color:var(--ansell-light-gray)">records per cell</span></div>
+                        <div id="demandScoreMatrix"></div>
                     </div>
-                    <div id="growthMonthWrap" class="expand-month-wrap">
-                        <div class="expand-month-inner">
-                            <div class="expand-month-label" id="growthMonthLabel"></div>
-                            <div class="chart-wrap" style="height:200px"><canvas id="chartGrowthMonthly"></canvas></div>
+                    <div>
+                        <div class="chart-title" style="margin-bottom:6px">Share <span style="font-size:10px;font-weight:400;color:var(--ansell-light-gray)">% of scored leads</span></div>
+                        <div id="demandScoreMatrixPct"></div>
+                    </div>
+                </div>
+                <div style="font-size:9px;color:var(--ansell-light-gray);margin-top:10px">SFDC Leads with Urgency &amp; Score set · Darker = more leads · Top-left = high urgency + high score (hottest)</div>
+
+                <!-- Scoring methodology info panel -->
+                <div style="margin-top:14px;border-top:1px solid #f0f0f0;padding-top:10px">
+                    <button id="scoringInfoBtn" onclick="toggleScoringInfo()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--ansell-blue);padding:0">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1" fill="none"/><text x="8" y="12" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor">i</text></svg>
+                        How scores are calculated
+                        <svg id="scoringInfoChevron" viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .25s"><polyline points="1 1 5 5 9 1"/></svg>
+                    </button>
+                    <div id="scoringInfoPanel" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease">
+                        <div style="margin-top:14px;display:grid;grid-template-columns:1.4fr 1fr;gap:24px;font-size:11px;line-height:1.6;align-items:start">
+
+                            <!-- Urgency column -->
+                            <div>
+                                <div style="font-size:10px;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">▲ Relative Urgency <span style="font-weight:400;color:var(--ansell-light-gray)">(Behaviour Score)</span></div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Website signals</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+10</span>
+                                        <span>10 Visits in 7 Days</span>
+                                    </div>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−5</span>
+                                            <span>Visits 1 Low Intent Page</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">show pages ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">/about-us<br>/our-people<br>/investor-center<br>/media/our-valued-partners<br>/media/press-releases</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Visits 2 Medium Intent Pages</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">show pages ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">/blogs/safety-briefing<br>/blogs/intouch<br>/blogs/critical-insight<br>/blogs/<br>/regulatory<br>/faq<br>/resources<br>/certificates/life-sciences<br>/ansellcares<br>/sustainability<br>/accessories<br>/face-masks<br>/goggles<br>/protective-clothing<br>/hazards/abrasion<br>/hazards/chemical-resistance<br>/hazards/cut-resistance<br>/hazards/electrical-resistance<br>/hazards/impact-resistance<br>/sectors/<br>/brands/</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+10</span>
+                                            <span>Visits 3 High Intent Pages</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">show pages ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">/glove-finder<br>/products<br>/guardian<br>/contact-us<br>/form-pages/request-sample<br>/form-pages/contact-us</div>
+                                    </details>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Form fills</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+35</span>
+                                            <span>AnsellGUARDIAN Assessment</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">form patterns ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">-Guardian-Request-</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+25</span>
+                                            <span>Sample Request</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">form patterns ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">-Request-Samples-</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+10</span>
+                                            <span>Contact Us</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">form patterns ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">-Contact-Us-<br>-Multi-Step-Contact-Us-</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Download or Subscribe</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">form patterns ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">-Download-<br>-Subscribe-</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+3</span>
+                                            <span>Other</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">form patterns ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">-Other-</div>
+                                    </details>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Email activity</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Clicks Link in Email</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">excluded links ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">form%20pages/preference<br>form-pages/preference<br>legal/privacy-policy<br>unsubscribe<br>facebook.com/Ansell-Healthcare-945001938876419/<br>linkedin.com/company/ansell-healthcare<br>twitter.com/ansellprotects<br>youtube.com/user/AnsellLimited<br>instagram.com/ansellprotects/</div>
+                                    </details>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+1</span>
+                                        <span>Opened Email</span>
+                                    </div>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Website downloads</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Downloads Any PDF in Email</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">match ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">clicks link in email containing "pdf"</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Downloads Any PDF on Web</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">match ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">clicks link on web page containing "pdf"</div>
+                                    </details>
+                                    <details>
+                                        <summary style="display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer">
+                                            <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                            <span>Downloads Any PDS on Web</span>
+                                            <span style="font-size:9px;color:var(--ansell-light-gray);white-space:nowrap">match ▾</span>
+                                        </summary>
+                                        <div style="margin:2px 0 2px 32px;font-family:monospace;font-size:9px;color:var(--ansell-gray);line-height:1.7">clicks link on web page containing "pds"</div>
+                                    </details>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Events</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+15</span>
+                                        <span>Attended</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+35</span>
+                                        <span>Qualified</span>
+                                    </div>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Webinars</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                        <span>Registered</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+15</span>
+                                        <span>Attended</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+15</span>
+                                        <span>Attended on-demand</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+35</span>
+                                        <span>Qualified</span>
+                                    </div>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Negative signals</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−20</span>
+                                        <span>Freemail Email Address</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
+                                        <span>Invalid Email Address</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−40</span>
+                                        <span>Lead Status changed to Nurture</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
+                                        <span>Lead Status changed to Unqualified</span>
+                                    </div>
+                                </div>
+
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Inactivity decay</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−5</span>
+                                        <span>No activity for 1 month</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−20</span>
+                                        <span>No activity for 3 months</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Score column -->
+                            <div>
+                                <div style="font-size:10px;font-weight:700;color:#5b9bd5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">◆ Relative Score <span style="font-weight:400;color:var(--ansell-light-gray)">(Demographic Score)</span></div>
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Positive signals</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+3</span>
+                                        <span>Has DUNS Number</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                        <span>Has Job Title</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+10</span>
+                                        <span>Has Phone Number</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                        <span>Has Standardized Role Description</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
+                                        <span>Has Standardized Vertical</span>
+                                    </div>
+                                </div>
+                                <div style="background:#f8f9fa;border-radius:6px;padding:10px;font-size:10px;color:var(--ansell-gray);line-height:1.5">
+                                    <b>How it works</b><br>
+                                    Both scores are <em>relative</em> — each lead is ranked against all others and bucketed 0–3. The matrix combines urgency (behaviour) with score (fit) to surface the best leads to action.<br><br>
+                                    <a href="https://experienceleague.adobe.com/en/docs/marketo/using/product-docs/marketo-sales-insight/msi-for-salesforce/features/stars-and-flames/priority-urgency-relative-score-and-best-bets" target="_blank" style="color:var(--ansell-blue);text-decoration:none;font-weight:600">Marketo documentation ↗</a>
+                                </div>
+                            </div>
+
                         </div>
+                        <div style="margin-top:10px;font-size:9px;color:var(--ansell-light-gray);font-style:italic">Partially confirmed — remaining weights and thresholds to be added</div>
                     </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Opt-In Acquisitions by Year</div>
-                    <div class="chart-wrap" style="height:250px">
-                        <canvas id="chartOptInGrowth"></canvas>
-                    </div>
-                    <div id="optInMonthWrap" class="expand-month-wrap">
-                        <div class="expand-month-inner">
-                            <div class="expand-month-label" id="optInMonthLabel"></div>
-                            <div class="chart-wrap" style="height:200px"><canvas id="chartOptInMonthly"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Geography -->
-            <div class="section-label">Geographic Distribution</div>
-            <div class="chart-grid-equal">
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_countries"></span>
-                    <div class="chart-title">Top 20 Countries</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartCountries"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_region"></span>
-                    <div class="chart-title">Region</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartRegion"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Segmentation -->
-            <div class="section-label">Market Segmentation</div>
-            <div class="chart-grid-equal">
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_roleDescription"></span>
-                    <div class="chart-title">Role Description</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartRoleDescription"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_deliverability"></span>
-                    <div class="chart-title">Deliverability Segment Breakdown</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartDeliverability"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <span class="blank-badge" id="blankBadge_language"></span>
-                    <div class="chart-title">Language Segment</div>
-                    <div class="chart-wrap" style="position:relative">
-                        <canvas id="chartLanguage"></canvas>
-                    </div>
-                    <div style="margin-top:8px;font-size:10px;color:var(--ansell-light-gray)">Default = English</div>
                 </div>
             </div>
 
         </div>
     </div>
 
-
-    <!-- Data Quality Tab -->
-    <div id="qualityContent" style="display:none">
-        <div class="main">
-            <div class="section-label">Data Quality Overview</div>
-            <div class="dq-summary-grid" id="dqSummary"></div>
-            <div id="dqClouds" class="hide-clean"></div>
-            <div id="dqMismatch"></div>
-            <div id="dqOrgMismatch"></div>
-        </div>
-    </div>
-
-    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Database Analysis</div>
+    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Lead Generation</div>
 
     <script>
     // ═══════════════════════════════════════════════════════════
@@ -603,12 +806,12 @@
     const DEMAND_STACK_OPTIONS = [
         { field: 'deliverability',  label: 'Deliverability',   fn: r => r.deliverability || '(blank)',  colorFn: (k)    => DELIV_COLORS[k] || '#90a4ae' },
         { field: 'gbu',             label: 'GBU',              fn: r => r.gbu || '(blank)',             colorFn: (k)    => ({ Healthcare: '#0063AC', Industrial: '#00A28F', '(blank)': '#cfd8dc' }[k] || '#90a4ae') },
-        { field: 'vertical',        label: 'Vertical',         fn: r => r.vertical || '(blank)',        colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
-        { field: 'channel',         label: 'Acq. Channel',     fn: r => r.channel || '(blank)',         colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
-        { field: 'org',             label: 'Organisation',     fn: r => r.org || '(blank)',             colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : ORG_COLORS[k] || CHART_PALETTE[i % CHART_PALETTE.length] },
-        { field: 'region',          label: 'Region',           fn: r => r.region || '(blank)',          colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'vertical',        label: 'Vertical',         fn: r => r.vertical || '(blank)',        colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'channel',         label: 'Acq. Channel',     fn: r => r.channel || '(blank)',         colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'org',             label: 'Organisation',     fn: r => r.org || '(blank)',             colorFn: (k, i) => ORG_COLORS[k] || CHART_PALETTE[i % CHART_PALETTE.length] },
+        { field: 'region',          label: 'Region',           fn: r => r.region || '(blank)',          colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
         { field: 'leadRecordType',  label: 'Lead Record Type', fn: r => r.leadRecordType || '(blank)',  colorFn: (k)    => LEAD_RT_COLORS[k] || '#90a4ae' },
-        { field: 'roleDescription', label: 'Role Description', fn: r => r.roleDescription || '(blank)', colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] }
+        { field: 'roleDescription', label: 'Role Description', fn: r => r.roleDescription || '(blank)', colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
     ];
 
     // ═══════════════════════════════════════════════════════════
@@ -951,9 +1154,9 @@
             allData.forEach(r => { if (r[field]) r[field] = canonical[r[field].toLowerCase()]; });
         });
 
-        initMultiSelects();
-        renderAll(allData);
+        demandFiltersInitialized = false;
         showDash();
+        renderDemandTab();
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1078,9 +1281,7 @@
     }
 
     function onMsChange() {
-        const filtered = applyFilters();
-        updateFilterCount(filtered.length);
-        renderAll(filtered);
+        renderDemandTab();
     }
 
     function applyFilters() {
@@ -1134,8 +1335,7 @@
         globalPeopleOnly = false;
         const btn3 = document.getElementById('btnPeopleOnly');
         if (btn3) btn3.classList.remove('active');
-        updateFilterCount(allData.length);
-        renderAll(allData);
+        renderDemandTab();
     }
 
     function getActiveData() {
@@ -1148,11 +1348,7 @@
         if (keep !== 'people')   { globalPeopleOnly   = false; const b = document.getElementById('btnPeopleOnly');   if (b) b.classList.remove('active'); }
     }
     function _applyAndRender() {
-        const filtered = applyFilters();
-        updateFilterCount(filtered.length);
-        renderAll(filtered);
-        if (activeTab === 'quality') renderQualityTab();
-        if (activeTab === 'demand') renderDemandTab();
+        renderDemandTab();
     }
     function toggleLeadsOnly() {
         globalLeadsOnly = !globalLeadsOnly;
@@ -1178,12 +1374,10 @@
 
     function updateStickyOffsets() {
         const header    = document.querySelector('.header');
-        const tabNavEl  = document.getElementById('tabNav');
-        const filterBar = document.getElementById('filterBar');
-        if (!header || !tabNavEl) return;
+        const filterBar = document.getElementById('demandFilterBar');
+        if (!header) return;
         const headerH = header.offsetHeight;
-        tabNavEl.style.top = headerH + 'px';
-        if (filterBar) filterBar.style.top = (headerH + tabNavEl.offsetHeight) + 'px';
+        if (filterBar) filterBar.style.top = headerH + 'px';
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1406,12 +1600,12 @@
         { value: 'gbu',            label: 'GBU',                 fn: r => r.gbu || '(blank)',          colorFn: (k, i) => ({ Healthcare: '#0063AC', Industrial: '#00A28F', '(blank)': '#cfd8dc' }[k] || '#90a4ae') },
         { value: 'deliverability', label: 'Deliverability',      fn: r => r.deliverability || '(blank)', colorFn: (k, i) => DELIV_COLORS[k] || '#90a4ae' },
         { value: 'recordType',     label: 'Record Type (A)',     fn: r => r.recordType || '(blank)',   colorFn: (k, i) => (['#0063AC','#00A28F','#7030A0','#f59e0b','#cfd8dc'][i]) || CHART_PALETTE[i % CHART_PALETTE.length] },
-        { value: 'vertical',       label: 'Vertical',            fn: r => r.vertical || '(blank)',                colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
-        { value: 'channel',        label: 'Acquisition Channel', fn: r => r.channel || '(blank)',                 colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'vertical',       label: 'Vertical',            fn: r => r.vertical || '(blank)',                colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'channel',        label: 'Acquisition Channel', fn: r => r.channel || '(blank)',                 colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
         { value: 'personStatus',   label: 'Person Status',       fn: r => r.sfdcType === 'Contact' ? 'Contact' : (r.personStatus || 'Demand Gen'),  colorFn: (k) => ({ 'Contact':'#BBBCBC','Demand Gen':'#9b59b6','Assigned':'#3498db','Working':'#1a6eb5','Nurture':'#f39c12','Referral':'#e67e22','Unqualified':'#e74c3c','Converted':'#27ae60','(blank)':'#cfd8dc' }[k] || '#90a4ae') },
-        { value: 'region',         label: 'Region',              fn: r => r.region || '(blank)',                                                       colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] },
+        { value: 'region',         label: 'Region',              fn: r => r.region || '(blank)',                                                       colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] },
         { value: 'leadRecordType', label: 'Lead Record Type',    fn: r => r.leadRecordType || '(blank)',                                               colorFn: (k) => LEAD_RT_COLORS[k] || '#90a4ae' },
-        { value: 'roleDescription',label: 'Role Description',    fn: r => r.roleDescription || '(blank)',                                              colorFn: (k, i) => k === '(blank)' ? '#cfd8dc' : CHART_PALETTE[i % CHART_PALETTE.length] }
+        { value: 'roleDescription',label: 'Role Description',    fn: r => r.roleDescription || '(blank)',                                              colorFn: (k, i) => CHART_PALETTE[i % CHART_PALETTE.length] }
     ];
 
     let drillMetric = '';
@@ -1443,28 +1637,10 @@
         }));
     }
 
-    function setDrillMetric(value) {
-        drillMetric = value;
-        if (currentFilteredData.length) renderAll(currentFilteredData);
-    }
-
+    function setDrillMetric(value) { drillMetric = value; }
     let activeDrillFilter = null;
-
-    function setDrillFilter(field, value, chartLabel, displayValue) {
-        activeDrillFilter = { field, value, chartLabel, displayValue: displayValue || value };
-        updateDrillChip();
-        const filtered = applyFilters();
-        updateFilterCount(filtered.length);
-        renderAll(filtered);
-    }
-
-    function clearDrillFilter() {
-        activeDrillFilter = null;
-        updateDrillChip();
-        const filtered = applyFilters();
-        updateFilterCount(filtered.length);
-        renderAll(filtered);
-    }
+    function setDrillFilter(field, value, chartLabel, displayValue) {}
+    function clearDrillFilter() {}
 
     function updateDrillChip() {
         const chip = document.getElementById('drillFilterChip');
@@ -1560,31 +1736,22 @@
         const vertCounts = countBy(subset, 'vertical');
         const vertEntries = sortedTopN(vertCounts, 20);
         const labels = [], values = [], colors = [], isSub = [];
-        const subMap = {}, blankSubMap = {};
+        const subMap = {};
         vertEntries.forEach(([vert, cnt], vi) => {
             const base = CHART_PALETTE[vi % CHART_PALETTE.length];
             const h = base.replace('#', '');
             const rv = parseInt(h.slice(0,2),16), gv = parseInt(h.slice(2,4),16), bv = parseInt(h.slice(4,6),16);
             labels.push(vert); values.push(cnt); colors.push(base); isSub.push(false);
             const subCounts = countBy(subset.filter(r => r.vertical === vert), 'subVertical');
-            const blankSubCount = subCounts['(blank)'] || 0;
             delete subCounts['(blank)'];
             subMap[vert] = sortedTopN(subCounts, 8);
-            blankSubMap[vert] = blankSubCount;
-            if (expandedHcVerts.has(vert)) {
-                sortedTopN(subCounts, 4).forEach(([sub, sc]) => {
-                    labels.push('  \u2514 ' + sub);
-                    values.push(sc);
-                    colors.push('rgba(' + rv + ',' + gv + ',' + bv + ',0.35)');
-                    isSub.push(true);
-                });
-                if (blankSubCount) {
-                    labels.push('  \u2514 (blank)');
-                    values.push(blankSubCount);
-                    colors.push('#cfd8dc');
-                    isSub.push(true);
-                }
-            }
+            const expandSubs = vert === 'Healthcare' || vert === 'Government' || expandedHcVerts.has(vert);
+            (expandSubs ? sortedTopN(subCounts, 4) : []).forEach(([sub, sc]) => {
+                labels.push('  \u2514 ' + sub);
+                values.push(sc);
+                colors.push('rgba(' + rv + ',' + gv + ',' + bv + ',0.35)');
+                isSub.push(true);
+            });
         });
         const hcTotal = values.reduce((s, v) => s + v, 0);
         makeHBar('chartGbuHcVert', labels, values, colors, {
@@ -1598,12 +1765,12 @@
                         var lbl = labels[i];
                         var subs = subMap[lbl];
                         if (!subs || !subs.length) return [];
-                        var hint = expandedHcVerts.has(lbl) ? '(click to collapse)' : '(click to expand)';
-                        var blankCount = blankSubMap[lbl] || 0;
-                        var fullTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0) + blankCount;
-                        var lines = ['', hint, '', 'Sub-verticals:'];
-                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], fullTotal) + ')'); });
-                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, fullTotal) + ')');
+                        var isFixed = lbl === 'Healthcare' || lbl === 'Government';
+                        var hint = isFixed ? '' : expandedHcVerts.has(lbl) ? '(click to collapse)' : '(click to expand)';
+                        var subTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0);
+                        var lines = hint ? ['', hint, ''] : [''];
+                        lines.push('Sub-verticals:');
+                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], subTotal) + ')'); });
                         return lines;
                     }
                 }}
@@ -1636,6 +1803,7 @@
                 const i = els[0].index;
                 if (isSub[i]) return;
                 const raw = labels[i];
+                if (raw === 'Healthcare' || raw === 'Government') return;
                 if (expandedHcVerts.has(raw)) expandedHcVerts.delete(raw);
                 else expandedHcVerts.add(raw);
                 renderGbuHcVert(data);
@@ -1654,17 +1822,15 @@
         const counts = countBy(subset, 'vertical');
         const entries = sortedTopN(counts, 20).filter(([k]) => k !== 'Healthcare');
         const labels = [], values = [], colors = [], isSub = [];
-        const subMap = {}, blankSubMap = {};
+        const subMap = {};
         entries.forEach(([vert, cnt], vi) => {
             const base = CHART_PALETTE[vi % CHART_PALETTE.length];
             const h = base.replace('#', '');
             const rv = parseInt(h.slice(0,2),16), gv = parseInt(h.slice(2,4),16), bv = parseInt(h.slice(4,6),16);
             labels.push(vert); values.push(cnt); colors.push(base); isSub.push(false);
             const subCounts = countBy(subset.filter(r => r.vertical === vert), 'subVertical');
-            const blankSubCount = subCounts['(blank)'] || 0;
             delete subCounts['(blank)'];
             subMap[vert] = sortedTopN(subCounts, 8);
-            blankSubMap[vert] = blankSubCount;
             if (expandedIndVerts.has(vert)) {
                 sortedTopN(subCounts, 4).forEach(([sub, sc]) => {
                     labels.push('  \u2514 ' + sub);
@@ -1672,12 +1838,6 @@
                     colors.push('rgba(' + rv + ',' + gv + ',' + bv + ',0.35)');
                     isSub.push(true);
                 });
-                if (blankSubCount) {
-                    labels.push('  \u2514 (blank)');
-                    values.push(blankSubCount);
-                    colors.push('#cfd8dc');
-                    isSub.push(true);
-                }
             }
         });
         const indTotal = values.reduce((s, v) => s + v, 0);
@@ -1693,11 +1853,9 @@
                         var subs = subMap[lbl];
                         if (!subs || !subs.length) return [];
                         var hint = expandedIndVerts.has(lbl) ? '(click to collapse)' : '(click to expand)';
-                        var blankCount = blankSubMap[lbl] || 0;
-                        var fullTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0) + blankCount;
+                        var subTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0);
                         var lines = ['', hint, '', 'Sub-verticals:'];
-                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], fullTotal) + ')'); });
-                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, fullTotal) + ')');
+                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], subTotal) + ')'); });
                         return lines;
                     }
                 }}
@@ -2107,10 +2265,8 @@
     // ═══════════════════════════════════════════════════════════
     function showLoading(msg) {
         document.getElementById('emptyState').style.display    = 'none';
-        document.getElementById('dashContent').style.display   = 'none';
-        document.getElementById('qualityContent').style.display = 'none';
-        document.getElementById('filterBar').style.display     = 'none';
-        document.getElementById('tabNav').style.display        = 'none';
+        document.getElementById('demandContent').style.display = 'none';
+        document.getElementById('demandFilterBar').style.display = 'none';
         document.getElementById('footerEl').style.display      = 'none';
         document.getElementById('loadingState').style.display  = 'block';
         document.getElementById('loadingMsg').textContent      = msg || 'Loading…';
@@ -2118,10 +2274,8 @@
 
     function showEmpty() {
         document.getElementById('loadingState').style.display   = 'none';
-        document.getElementById('dashContent').style.display    = 'none';
-        document.getElementById('qualityContent').style.display = 'none';
-        document.getElementById('filterBar').style.display      = 'none';
-        document.getElementById('tabNav').style.display         = 'none';
+        document.getElementById('demandContent').style.display  = 'none';
+        document.getElementById('demandFilterBar').style.display = 'none';
         document.getElementById('footerEl').style.display       = 'none';
         document.getElementById('emptyState').style.display     = 'block';
     }
@@ -2129,19 +2283,15 @@
     function showDash() {
         document.getElementById('loadingState').style.display   = 'none';
         document.getElementById('emptyState').style.display     = 'none';
-        document.getElementById('tabNav').style.display         = 'flex';
-        setTimeout(updateStickyOffsets, 0);
+        document.getElementById('demandContent').style.display  = 'block';
+        document.getElementById('demandFilterBar').style.display = 'flex';
         document.getElementById('exportBtn').style.display      = 'flex';
-        document.getElementById('filterBar').style.display      = activeTab === 'analysis' ? 'flex' : 'none';
         document.getElementById('footerEl').style.display       = 'block';
-        document.getElementById('dashContent').style.display    = activeTab === 'analysis' ? 'block' : 'none';
-        document.getElementById('qualityContent').style.display = activeTab === 'quality'  ? 'block' : 'none';
 
         // Export date badge
         if (exportDateStr) {
             const sel = document.getElementById('exportDateSelect');
             if (sel && sel.options.length === 0) {
-                // fallback: no picklist yet (e.g. manual file load) â€" add single option
                 sel.innerHTML = '';
                 const opt = document.createElement('option');
                 opt.value = exportDateStr;
@@ -2153,27 +2303,11 @@
             }
             document.getElementById('exportBadge').style.display = 'inline-flex';
         }
-
-        updateFilterCount(allData.length);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    //  TAB NAVIGATION
-    // ═══════════════════════════════════════════════════════════
-    let activeTab = 'analysis';
     let globalLeadsOnly    = false;
     let globalContactsOnly = false;
     let globalPeopleOnly   = false;
-
-    function switchTab(tab) {
-        activeTab = tab;
-        document.getElementById('tabBtnAnalysis').classList.toggle('active', tab === 'analysis');
-        document.getElementById('tabBtnQuality').classList.toggle('active', tab === 'quality');
-        document.getElementById('dashContent').style.display    = tab === 'analysis' ? 'block' : 'none';
-        document.getElementById('qualityContent').style.display = tab === 'quality'  ? 'block' : 'none';
-        document.getElementById('filterBar').style.display      = tab === 'analysis' ? 'flex'  : 'none';
-        if (tab === 'quality')  renderQualityTab();
-    }
 
     function toggleCleanTags() {
         const clouds = document.getElementById('dqClouds');
@@ -2296,7 +2430,9 @@
     let demandFiltersInitialized = false;
     let transitionDays = 30;
     let demandStackField    = '';   // '' | 'deliverability' | 'gbu' | 'vertical' | 'channel' | 'org'
-    let timelineGranularity = 'month'; // 'month' | 'quarter' | 'year'
+    let timelineGranularity    = 'month'; // 'month' | 'quarter' | 'year'
+    let nurtureOrgGranularity  = 'month';
+    let _nurtureLeadsCache     = null;
     let scoringStatusFilter = new Set(); // empty = all statuses
 
     function toggleDms(id, e) {
@@ -2884,11 +3020,23 @@
             </div>
         </div>`;
 
+        // ── Nurture by Organisation (stacked vertical bar) ────
+        const orgNurtureHtml = `<div class="stage-detail-widget stage-timeline-widget" style="flex:2;min-width:400px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <span class="stage-detail-widget-title" style="margin-bottom:0">Nurture Leads by Organisation · by Created Date</span>
+                <div class="stack-pills" style="margin-left:auto" id="nurtureOrgGranPills"></div>
+            </div>
+            <div style="position:relative;height:200px">
+                <canvas id="chartNurtureByOrg"></canvas>
+            </div>
+        </div>`;
+
         // ── Recycled Reason (string) ──────────────────────────
         document.getElementById('stageDetailContent').innerHTML =
             boolHtml +
             makeReasonBarsHtml(nurtureLeads, 'recycledReason', 'Recycled Reason', 'Recycled Reason') +
-            makeTimelineWidgetHtml('chartNurtureTimeline', 'Moved to Nurture over time');
+            makeTimelineWidgetHtml('chartNurtureTimeline', 'Moved to Nurture over time') +
+            orgNurtureHtml;
 
         // Draw pie after DOM update
         if (charts['chartNurtureInNurture']) charts['chartNurtureInNurture'].destroy();
@@ -2911,6 +3059,98 @@
         });
 
         drawTimelineChart('chartNurtureTimeline', nurtureLeads, 'nurtureDate', '#f39c12');
+
+        _nurtureLeadsCache = nurtureLeads;
+        drawNurtureByOrgChart();
+    }
+
+    function setNurtureOrgGranularity(gran) {
+        nurtureOrgGranularity = gran;
+        drawNurtureByOrgChart();
+    }
+
+    function drawNurtureByOrgChart() {
+        const nurtureLeads = _nurtureLeadsCache;
+        if (!nurtureLeads) return;
+        const gran = nurtureOrgGranularity;
+
+        // Update pills
+        const pillsEl = document.getElementById('nurtureOrgGranPills');
+        if (pillsEl) {
+            const opts = [['month','Month'],['quarter','Quarter'],['year','Year'],['currentFY','Current FY'],['lastFY','Last FY']];
+            pillsEl.innerHTML = opts.map(([v, l]) =>
+                `<button class="stack-toggle-btn${gran === v ? ' active' : ''}" onclick="setNurtureOrgGranularity('${v}')">${l}</button>`
+            ).join('');
+        }
+
+        // Key / label helpers scoped to this chart's granularity
+        function gKey(dateStr) {
+            const d = parseDate(dateStr);
+            if (!d) return null;
+            const y = d.getFullYear();
+            if (gran === 'year')    return String(y);
+            if (gran === 'quarter') return y + '-Q' + Math.ceil((d.getMonth() + 1) / 3);
+            return y + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+        function gLabel(key) {
+            if (gran === 'year') return key;
+            if (gran === 'quarter') { const [y, q] = key.split('-'); return q + ' \'' + String(y).slice(2); }
+            const [y, m] = key.split('-');
+            return new Date(+y, +m - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        }
+
+        // Restrict to FY window when needed
+        let visibleLeads = nurtureLeads;
+        if (gran === 'currentFY' || gran === 'lastFY') {
+            const { from, to } = getFYRange(gran);
+            visibleLeads = nurtureLeads.filter(r => {
+                if (!r.createdDate) return false;
+                const d = parseDate(r.createdDate);
+                return d && d >= from && d <= to;
+            });
+        }
+
+        const orgStackMap = {}, orgTotals = {};
+        visibleLeads.forEach(r => {
+            if (!r.createdDate) return;
+            const mk = gKey(r.createdDate);
+            if (!mk) return;
+            const org = r.org || '(blank)';
+            if (!orgStackMap[org]) orgStackMap[org] = {};
+            orgStackMap[org][mk] = (orgStackMap[org][mk] || 0) + 1;
+            orgTotals[org] = (orgTotals[org] || 0) + 1;
+        });
+        const orgKeys = Object.entries(orgTotals).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+        const orgMonthSet = new Set();
+        visibleLeads.forEach(r => { if (r.createdDate) { const k = gKey(r.createdDate); if (k) orgMonthSet.add(k); } });
+        const orgMonths = [...orgMonthSet].sort();
+        const orgDatasets = orgKeys.map((org, i) => ({
+            label: org,
+            data: orgMonths.map(mk => (orgStackMap[org] && orgStackMap[org][mk]) || 0),
+            backgroundColor: (ORG_COLORS[org] || CHART_PALETTE[i % CHART_PALETTE.length]) + 'cc',
+            borderColor:     ORG_COLORS[org] || CHART_PALETTE[i % CHART_PALETTE.length],
+            borderWidth: 1, borderRadius: 2, borderSkipped: false
+        }));
+        if (charts['chartNurtureByOrg']) charts['chartNurtureByOrg'].destroy();
+        charts['chartNurtureByOrg'] = new Chart(
+            document.getElementById('chartNurtureByOrg').getContext('2d'), {
+            type: 'bar',
+            data: { labels: orgMonths.map(k => gLabel(k)), datasets: orgDatasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                    tooltip: { mode: 'index', callbacks: {
+                        label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}`,
+                        footer: items => `  Total: ${fmt(items.reduce((s, i) => s + i.parsed.y, 0))}`
+                    }}
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: { stacked: true, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } }
+                }
+            }
+        });
     }
 
     function makeBoolBar(label, count, total, cls) {
@@ -3502,7 +3742,6 @@
             });
         }
         renderRegionMismatch();
-        renderOrgMismatch();
     }
 
 
@@ -3610,174 +3849,6 @@
                 </div>
             </div>
             <div style="max-width:760px">${groupHtml}</div>
-        </div>`;
-    }
-
-    // ── Region bucket → Org region (APAC / EMEA / Americas) ─────────────────
-    const REGION_TO_ORG_REGION = (function() {
-        const apac     = ['ANZ','China','Japan','Korea','India','SEA'];
-        const emea     = ['Africa','Benelux','CEE','CIS','France','Germanic','Iberia','Italy','Mediterranean','Middle East','Nordic','UK-Eire'];
-        const americas = ['Brazil','Canada','Colombia','Mexico','OLAC','USA'];
-        const m = {};
-        apac.forEach(r     => { m[r] = 'APAC'; });
-        emea.forEach(r     => { m[r] = 'EMEA'; });
-        americas.forEach(r => { m[r] = 'Americas'; });
-        return m;
-    })();
-
-    function renderOrgMismatch() {
-        const el = document.getElementById('dqOrgMismatch');
-        if (!el || !allData.length) return;
-
-        const pool = getActiveData();
-
-        // Helper: extract GBU component from org name
-        const orgGbu    = org => org.includes('Healthcare') ? 'Healthcare' : org.includes('Industrial') ? 'Industrial' : null;
-        // Helper: extract region component from org name
-        const orgRegion = org => org.startsWith('APAC') ? 'APAC' : org.startsWith('EMEA') ? 'EMEA' : org.startsWith('Americas') ? 'Americas' : null;
-
-        // ── Section 1: GBU vs Organisation mismatch ──────────────────────────
-        const gbuCandidates = pool.filter(r => r.gbu && r.org && orgGbu(r.org));
-        const gbuMismatched = gbuCandidates.filter(r => r.gbu !== orgGbu(r.org));
-
-        // Group by (assigned org, expected org based on correct gbu + correct region component)
-        const gbuCombos = {};
-        gbuMismatched.forEach(r => {
-            const assignedOrg = r.org;
-            const correctOrg  = orgRegion(r.org) ? orgRegion(r.org) + ' ' + r.gbu : r.gbu;
-            const key = assignedOrg + '|||' + correctOrg;
-            gbuCombos[key] = (gbuCombos[key] || 0) + 1;
-        });
-        const gbuRows = Object.entries(gbuCombos)
-            .map(([key, count]) => { const [assigned, correct] = key.split('|||'); return { assigned, correct, count }; })
-            .sort((a, b) => b.count - a.count);
-
-        // Group by correct org
-        const gbuByCorrect = {};
-        gbuRows.forEach(r => {
-            if (!gbuByCorrect[r.correct]) gbuByCorrect[r.correct] = [];
-            gbuByCorrect[r.correct].push(r);
-        });
-        const gbuSorted = Object.entries(gbuByCorrect)
-            .map(([org, items]) => ({ org, items, total: items.reduce((s, i) => s + i.count, 0) }))
-            .sort((a, b) => b.total - a.total);
-        const gbuTotal = gbuMismatched.length;
-
-        // ── Section 2: Country → Org Region mismatch ─────────────────────────
-        const orgRegCandidates = pool.filter(r => r.country && r.org && orgRegion(r.org));
-        const orgRegCombos = {};
-        orgRegCandidates.forEach(r => {
-            const expectedRegion = COUNTRY_REGION_MAP[r.country.toLowerCase()];
-            if (!expectedRegion) return;
-            const expectedOrgRegion = REGION_TO_ORG_REGION[expectedRegion];
-            if (!expectedOrgRegion) return;
-            const assignedOrgRegion = orgRegion(r.org);
-            if (assignedOrgRegion === expectedOrgRegion) return; // match
-            const correctOrg = expectedOrgRegion + ' ' + (orgGbu(r.org) || '?');
-            const key = r.country + '|||' + r.org + '|||' + correctOrg;
-            orgRegCombos[key] = (orgRegCombos[key] || 0) + 1;
-        });
-        const orgRegRows = Object.entries(orgRegCombos)
-            .map(([key, count]) => { const [country, assigned, correct] = key.split('|||'); return { country, assigned, correct, count }; })
-            .sort((a, b) => b.count - a.count);
-
-        // Group by correct org
-        const orgRegByCorrect = {};
-        orgRegRows.forEach(r => {
-            if (!orgRegByCorrect[r.correct]) orgRegByCorrect[r.correct] = [];
-            orgRegByCorrect[r.correct].push(r);
-        });
-        const orgRegSorted = Object.entries(orgRegByCorrect)
-            .map(([org, items]) => ({ org, items, total: items.reduce((s, i) => s + i.count, 0) }))
-            .sort((a, b) => b.total - a.total);
-        const orgRegTotal = orgRegRows.reduce((s, r) => s + r.count, 0);
-
-        // ── Render helper: accordion group ────────────────────────────────────
-        function makeGroup(label, subLabel, items, groupTotal, mismatchTotal, rowFn) {
-            const pctOfMismatch = mismatchTotal > 0 ? (groupTotal / mismatchTotal * 100).toFixed(1) + '%' : '';
-            const rowsHtml = items.map(rowFn).join('');
-            return `<div style="margin-bottom:10px;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden">
-                <div style="background:#f5f7fa;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-                    <div>
-                        <span style="font-weight:700;font-size:13px;color:var(--ansell-blue)">${label}</span>
-                        <span style="font-size:11px;color:var(--ansell-gray);margin-left:8px">${subLabel} &middot; ${fmt(groupTotal)} records &middot; ${pctOfMismatch} of mismatches</span>
-                    </div>
-                    <span style="font-size:11px;color:var(--ansell-light-gray)">click to expand &#9660;</span>
-                </div>
-                <div style="display:none">
-                    <div style="padding:8px 14px 4px;font-size:11px;color:var(--ansell-gray);background:#fffdf5;border-bottom:1px solid #f0f0f0">&#9888; Set <strong>Organisation</strong> to <strong>${label}</strong> in Marketo for the records below.</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px">
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                </div>
-            </div>`;
-        }
-
-        function makeKpi(label, value, sub) {
-            return `<div class="dq-kpi" style="flex:0 0 auto;min-width:180px"><div class="dq-kpi-label">${label}</div><div class="dq-kpi-value">${value}</div><div class="dq-kpi-sub">${sub}</div></div>`;
-        }
-
-        // ── GBU section HTML ──────────────────────────────────────────────────
-        let gbuHtml;
-        if (!gbuTotal) {
-            gbuHtml = `<div class="dq-kpi all-clean" style="max-width:340px"><div class="dq-kpi-label">No mismatches</div><div class="dq-kpi-value">&#10003; Clean</div><div class="dq-kpi-sub">GBU matches Organisation for all records</div></div>`;
-        } else {
-            const groups = gbuSorted.map(({ org, items, total: gt }) =>
-                makeGroup(org, `${items.length} combo${items.length !== 1 ? 's' : ''}`, items, gt, gbuTotal,
-                    r => `<tr>
-                        <td style="padding:5px 14px 5px 20px">${r.assigned}</td>
-                        <td style="padding:5px 14px;color:#e65100;font-weight:600">→ should be ${r.correct}</td>
-                        <td style="padding:5px 14px;text-align:right">${fmt(r.count)}</td>
-                    </tr>`)
-            ).join('');
-            gbuHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-                ${makeKpi('Mismatched Records', fmt(gbuTotal), pct(gbuTotal, gbuCandidates.length) + ' of records with both fields')}
-                ${makeKpi('Fix Groups', fmt(gbuSorted.length), 'Target orgs with wrong GBU')}
-            </div>
-            <div style="max-width:760px">${groups}</div>`;
-        }
-
-        // ── Org Region section HTML ───────────────────────────────────────────
-        let orgRegHtml;
-        if (!orgRegTotal) {
-            orgRegHtml = `<div class="dq-kpi all-clean" style="max-width:340px"><div class="dq-kpi-label">No mismatches</div><div class="dq-kpi-value">&#10003; Clean</div><div class="dq-kpi-sub">Org region matches country for all mapped records</div></div>`;
-        } else {
-            const groups = orgRegSorted.map(({ org, items, total: gt }) =>
-                makeGroup(org, `${items.length} country combo${items.length !== 1 ? 's' : ''}`, items, gt, orgRegTotal,
-                    r => `<tr>
-                        <td style="padding:5px 14px 5px 20px">${r.country}</td>
-                        <td style="padding:5px 14px;color:#e65100;font-weight:600">${r.assigned}</td>
-                        <td style="padding:5px 14px;text-align:right">${fmt(r.count)}</td>
-                    </tr>`)
-            ).join('');
-            orgRegHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-                ${makeKpi('Mismatched Records', fmt(orgRegTotal), pct(orgRegTotal, orgRegCandidates.length) + ' of mapped records')}
-                ${makeKpi('Fix Groups', fmt(orgRegSorted.length), 'Target orgs with wrong region')}
-                ${makeKpi('Country Combos', fmt(orgRegRows.length), 'Distinct wrong country + org pairings')}
-            </div>
-            <div style="max-width:760px">${groups}</div>`;
-        }
-
-        el.innerHTML = `
-        <div style="margin-top:28px">
-            <div style="display:flex;align-items:center;margin-bottom:4px;gap:12px">
-                <div class="section-label" style="margin:0">Organisation Mismatch</div>
-            </div>
-            <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:20px">
-                Two checks: (1) GBU field conflicts with the GBU implied by the assigned Organisation. (2) Country falls in a different region than the Organisation's region prefix.
-            </div>
-
-            <div style="font-weight:700;font-size:13px;color:var(--ansell-dark);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee">
-                GBU vs Organisation
-                <span style="font-weight:400;font-size:11px;color:var(--ansell-gray);margin-left:8px">e.g. GBU = Healthcare but Org = EMEA Industrial</span>
-            </div>
-            ${gbuHtml}
-
-            <div style="font-weight:700;font-size:13px;color:var(--ansell-dark);margin-top:24px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee">
-                Country vs Organisation Region
-                <span style="font-weight:400;font-size:11px;color:var(--ansell-gray);margin-left:8px">e.g. Country = Canada but Org = APAC Healthcare</span>
-            </div>
-            ${orgRegHtml}
         </div>`;
     }
 

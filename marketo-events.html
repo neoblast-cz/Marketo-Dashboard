@@ -1,0 +1,1537 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo | Events</title>
+    <link rel="stylesheet" href="ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .filter-bar { position: sticky; top: 71px; z-index: 99; }
+
+        .size-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .size-sm   { background: #e8f5e9; color: #388e3c; }
+        .size-md   { background: #fff3e0; color: #f57c00; }
+        .size-lg   { background: #e3f2fd; color: #1565c0; }
+        .size-virt { background: #f3e5f5; color: #7b1fa2; }
+        .size-other{ background: #f5f5f5; color: #757575; }
+
+        .prog-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+        .prog-table td.prog-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prog-table th.col-sm  { width: 72px; }
+        .prog-table th.col-med { width: 86px; }
+        .prog-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb; color: #555; font-weight: 600; position: sticky; top: 0; background: #f8f9fa; z-index: 1; cursor: pointer; user-select: none; white-space: nowrap; }
+        .prog-table th:hover { background: #edf0f3; }
+        .prog-table th .sort-arrow { font-size: 10px; margin-left: 4px; color: #bbb; }
+        .prog-table th.sorted .sort-arrow { color: #0063AC; }
+        .prog-table td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .prog-table tr:hover td { background: #f8f9fa; }
+
+        .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+        .usd-cell  { text-align: right; font-variant-numeric: tabular-nums; color: #0063AC; font-weight: 500; }
+
+        .mini-bar-wrap { height: 5px; background: #e5e7eb; border-radius: 3px; width: 80px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+        .mini-bar-fill { height: 100%; border-radius: 3px; background: #0063AC; }
+
+        /* Butterfly tier selector */
+        .tier-step-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 4px 0 0; outline: none; }
+        .tier-step-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c0c5cc; background: white; transition: all .2s; }
+        .tier-step-btn:hover .tier-step-dot { border-color: #0063AC; box-shadow: 0 0 0 3px rgba(0,99,172,.15); }
+        .tier-step-btn.active .tier-step-dot { background: #0063AC; border-color: #0063AC; box-shadow: 0 0 0 3px rgba(0,99,172,.2); }
+        .tier-step-label { font-size: 10px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; transition: color .2s; }
+        .tier-step-btn:hover .tier-step-label { color: #0063AC; }
+        .tier-step-btn.active .tier-step-label { color: #0063AC; font-weight: 700; }
+        .tier-all-btn { background: none; border: 2px solid #c0c5cc; border-radius: 20px; padding: 5px 13px; font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; transition: all .2s; white-space: nowrap; line-height: 1; }
+        .tier-all-btn:hover { border-color: #0063AC; color: #0063AC; }
+        .tier-all-btn.active { background: #0063AC; border-color: #0063AC; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ HEADER ══════════════════════════════════════════════════════ -->
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>Events</span></h1>
+                <div class="header-sub">
+                    Event Channel Performance
+                    <span class="export-badge" id="exportBadge" style="display:none">
+                        <span class="export-badge-dot"></span>
+                        <span id="exportDateLabel"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <a href="marketo-index.html" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- ═══ FILTER BAR ═══════════════════════════════════════════════════ -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+        <span class="filter-label">Filter:</span>
+
+        <div class="ms-wrap" id="ms-f-status">
+            <button class="ms-btn" onclick="toggleMs('f-status',event)">
+                <span id="ms-f-status-label">Program Status</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-status-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-status')">Select All</button><button onclick="clearMs('f-status')">Clear</button></div>
+                <div class="ms-list" id="ms-f-status-list"></div>
+            </div>
+        </div>
+
+        <div class="ms-wrap" id="ms-f-stage">
+            <button class="ms-btn" onclick="toggleMs('f-stage',event)">
+                <span id="ms-f-stage-label">Opp. Stage</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-stage-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-stage')">Select All</button><button onclick="clearMs('f-stage')">Clear</button></div>
+                <div class="ms-list" id="ms-f-stage-list"></div>
+            </div>
+        </div>
+
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px;flex-shrink:0"></span>
+        <span class="filter-label">View:</span>
+        <button class="quick-filter-btn active" id="btnViewAll" onclick="setViewFilter('all')" style="margin:0">All Events</button>
+        <button class="quick-filter-btn" id="btnViewIcapture" onclick="setViewFilter('icapture')" style="margin:0">iCapture only</button>
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px;flex-shrink:0"></span>
+        <span class="filter-label">Attribution:</span>
+        <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">FT</button>
+        <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">MT</button>
+        <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
+        <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <!-- ═══ LOADING ══════════════════════════════════════════════════════ -->
+    <div id="loadingState" style="display:none;padding:80px 30px;text-align:center">
+        <div class="loading-spinner"></div>
+        <div id="loadingMsg" style="margin-top:16px;color:#888;font-size:14px">Loading…</div>
+    </div>
+
+    <!-- ═══ EMPTY STATE ══════════════════════════════════════════════════ -->
+    <div id="emptyState" style="padding:80px 30px;text-align:center">
+        <svg viewBox="0 0 64 64" width="56" height="56" style="margin-bottom:16px;opacity:.25"><rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="#0063AC" stroke-width="3"/><line x1="20" y1="24" x2="44" y2="24" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="32" x2="44" y2="32" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="34" y2="40" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/></svg>
+        <h2 style="margin:0 0 8px;font-size:20px;color:#333">No event data found</h2>
+        <p style="color:#888;font-size:14px;margin:0">Place <code>YYYY-MM-DD iCapture Events.csv</code> and related files in the <code>Reports/</code> folder to enable this dashboard.</p>
+    </div>
+
+    <!-- ═══ DASHBOARD ════════════════════════════════════════════════════ -->
+    <div id="dashContent" style="display:none">
+        <div class="main">
+
+            <!-- KPIs -->
+            <div class="section-label">Overview</div>
+            <div class="kpi-grid" id="kpiGrid"></div>
+
+            <!-- Performance Timeline -->
+            <div class="section-label" style="margin-top:28px">Performance Timeline</div>
+            <div class="chart-card">
+                <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                    <span>Members, Success &amp; Qualified &nbsp;|&nbsp; Pipeline &amp; Revenue Won</span>
+                    <span style="display:flex;gap:4px">
+                        <button class="quick-filter-btn" id="btnTsDay"   onclick="setTimeScale('day')"   style="margin:0;padding:3px 10px;font-size:11px">Day</button>
+                        <button class="quick-filter-btn" id="btnTsWeek"  onclick="setTimeScale('week')"  style="margin:0;padding:3px 10px;font-size:11px">Week</button>
+                        <button class="quick-filter-btn active" id="btnTsMonth" onclick="setTimeScale('month')" style="margin:0;padding:3px 10px;font-size:11px">Month</button>
+                        <button class="quick-filter-btn" id="btnTsYear"  onclick="setTimeScale('year')"  style="margin:0;padding:3px 10px;font-size:11px">Year</button>
+                    </span>
+                </div>
+                <div style="height:360px"><canvas id="chartCombo"></canvas></div>
+            </div>
+
+
+            <!-- iCapture-only sections (hidden when View = All Events) -->
+            <div id="icaptureSection" style="display:none;margin-top:28px">
+                <div style="background:white;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
+
+                    <!-- Header bar -->
+                    <div style="background:#0063AC;color:white;padding:13px 24px;display:flex;align-items:center;gap:10px">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span style="font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase">iCapture Event Data</span>
+                    </div>
+
+                    <!-- Content -->
+                    <div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:22px">
+
+                        <!-- Deal Performance Impact sub-section -->
+                        <div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Deal Performance Impact</div>
+                            <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:12px">
+                                <div style="padding-top:2px">
+                                    <button id="evtTierAllBtn" class="tier-all-btn" onclick="selectEvtTierAll()">All</button>
+                                </div>
+                                <div style="width:1px;background:#dde0e3;align-self:stretch;margin-top:4px"></div>
+                                <div id="evtTierSliderWrap" style="flex:1;position:relative;padding:4px 0 2px;user-select:none">
+                                    <div style="position:absolute;top:11px;left:calc(10% + 0px);right:calc(10% + 0px);height:2px;background:#dde0e3;border-radius:1px;pointer-events:none"></div>
+                                    <div id="evtTierTrackFill" style="position:absolute;top:11px;left:10%;height:2px;width:0;background:#0063AC;border-radius:1px;pointer-events:none;transition:width .3s ease"></div>
+                                    <div style="display:flex;justify-content:space-around">
+                                        <button class="tier-step-btn" onclick="selectEvtTier(0)"><div class="tier-step-dot"></div><div class="tier-step-label">&lt; $10K</div></button>
+                                        <button class="tier-step-btn" onclick="selectEvtTier(1)"><div class="tier-step-dot"></div><div class="tier-step-label">$10K &ndash; $50K</div></button>
+                                        <button class="tier-step-btn" onclick="selectEvtTier(2)"><div class="tier-step-dot"></div><div class="tier-step-label">$50K &ndash; $100K</div></button>
+                                        <button class="tier-step-btn" onclick="selectEvtTier(3)"><div class="tier-step-dot"></div><div class="tier-step-label">$100K &ndash; $250K</div></button>
+                                        <button class="tier-step-btn" onclick="selectEvtTier(4)"><div class="tier-step-dot"></div><div class="tier-step-label">$250K+</div></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="evtPerfButterflyPrompt" style="color:#888;text-align:center;padding:18px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;letter-spacing:.02em">Select All or a deal size tier to compare iCapture vs. all event performance</div>
+                            <div id="evtPerfButterfly" style="display:none"></div>
+                        </div>
+
+                        <!-- Platform Cost sub-section -->
+                        <div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Platform Economics</div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                                <div style="background:#f0f6fb;border:1px solid #cce0f0;border-radius:6px;padding:14px 18px">
+                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0063AC;margin-bottom:6px">iCapture License</div>
+                                    <div style="font-size:22px;font-weight:700;color:#2C2A29">~$21,556</div>
+                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / year &middot; EUR 23,494 &times; 0.917431</div>
+                                </div>
+                                <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
+                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Lead</div>
+                                    <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiCostPerLead">&mdash;</div>
+                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / lead captured</div>
+                                </div>
+                                <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
+                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Member</div>
+                                    <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiCostPerMember">&mdash;</div>
+                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / program member</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Overview sub-section -->
+                        <div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Event Overview</div>
+                            <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
+                                <div class="chart-title">Leads Captured per Event (by Start Date)</div>
+                                <div style="height:220px"><canvas id="chartTimeline"></canvas></div>
+                            </div>
+                            <div class="chart-grid-equal" style="margin-top:14px">
+                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
+                                    <div class="chart-title">Events by Size</div>
+                                    <div style="height:200px"><canvas id="chartSize"></canvas></div>
+                                </div>
+                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
+                                    <div class="chart-title">Budget vs Leads by Size</div>
+                                    <div style="height:200px"><canvas id="chartBudgetSize"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lead Generation sub-section -->
+                        <div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Lead Generation</div>
+                            <div class="chart-grid-equal">
+                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
+                                    <div class="chart-title">Top Events by Leads</div>
+                                    <div id="chartTopEventsWrap"><canvas id="chartTopEvents"></canvas></div>
+                                </div>
+                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
+                                    <div class="chart-title">Top Users by Leads Captured</div>
+                                    <div id="chartUsersWrap"><canvas id="chartUsers"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- /content -->
+                </div><!-- /card -->
+            </div><!-- /icaptureSection -->
+
+            <!-- Section 3: Pipeline & Revenue -->
+            <div class="section-label" style="margin-top:28px">Pipeline &amp; Revenue</div>
+            <div class="chart-grid-equal">
+                <div class="chart-card">
+                    <div class="chart-title">Pipeline FT by Program (top 10)</div>
+                    <div id="chartPipelineWrap"><canvas id="chartPipeline"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Revenue Won FT by Program (top 10)</div>
+                    <div id="chartRevenueWrap"><canvas id="chartRevenue"></canvas></div>
+                </div>
+            </div>
+
+            <div class="chart-grid-equal" style="margin-top:16px">
+                <div class="chart-card">
+                    <div class="chart-title">Pipeline FT by Region</div>
+                    <div style="height:240px;position:relative"><canvas id="chartPipelineRegion"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Revenue Won FT by Region</div>
+                    <div style="height:240px;position:relative"><canvas id="chartRevenueRegion"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Section 4: Program Health -->
+            <div class="section-label" style="margin-top:28px">Program Health</div>
+            <div class="chart-card">
+                <div class="chart-title">Opportunity Stage Breakdown</div>
+                <div id="chartStageWrap"><canvas id="chartStage"></canvas></div>
+                <div id="stageSummaryEl" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
+            </div>
+
+            <!-- Section 5: Program Table -->
+            <div class="section-label" style="margin-top:28px">Program Summary</div>
+            <div class="chart-card">
+                <div class="chart-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    All Programs
+                    <input id="tableSearch" type="text" placeholder="Search program…"
+                        oninput="filterTable()"
+                        style="font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;outline:none;min-width:200px">
+                    <span id="tableCount" style="font-size:12px;color:#888;font-weight:400;margin-left:auto"></span>
+                </div>
+                <div style="max-height:500px;overflow-y:auto;margin-top:8px">
+                    <table class="prog-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('program')" id="th-program">Program <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('members')" id="th-members" class="num-cell col-sm">Members <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('newNames')" id="th-newNames" class="num-cell col-sm">New Names <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('success')" id="th-success" class="num-cell col-sm">Qualified <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('pipelineFT')" id="th-pipelineFT" class="usd-cell col-med" style="background:#e8f0fb">Pipeline FT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('revenueFT')"  id="th-revenueFT" class="usd-cell col-med" style="background:#e8f0fb">Revenue FT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('pipelineMT')" id="th-pipelineMT" class="usd-cell col-med" style="background:#e8f5f0">Pipeline MT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('revenueMT')"  id="th-revenueMT" class="usd-cell col-med" style="background:#e8f5f0">Revenue MT <span class="sort-arrow">↕</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="progTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div><!-- /main -->
+    </div><!-- /dashContent -->
+
+    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Events Performance</div>
+
+    <script>
+    'use strict';
+
+    // ═══════════════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════════════
+    let rawEvents = [], rawUsers = [], rawMembership = [], rawRevenue = [];
+    let exportDateStr = '';
+    let charts = {};
+    let sortCol = 'leads', sortDir = -1;
+
+    const msState = { 'f-status': new Set(), 'f-stage': new Set() };
+    let viewFilter = 'all';
+    let attributionMode = 'mt';
+    let timeScale = 'month';
+    let icapturePrograms = new Set();
+
+    // ═══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function fmt(n) { if (n == null || n === '') return '—'; return Number(n).toLocaleString('en-US'); }
+    function fmtUSD(n) {
+        if (!n && n !== 0) return '—';
+        n = Number(n);
+        if (n >= 1e6)  return '$' + (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3)  return '$' + (n / 1e3).toFixed(0) + 'K';
+        return '$' + n.toFixed(0);
+    }
+    function parseMoney(v) { return parseFloat(String(v || '').replace(/[$,\s]/g, '')) || 0; }
+    function parseNum(v)   { return parseFloat(String(v || '').replace(/[,\s]/g, '')) || 0; }
+    function parseDate(v) {
+        if (!v) return null;
+        if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000)); // Excel serial
+        const d = new Date(v); return isNaN(d) ? null : d;
+    }
+    function ordinal(d) {
+        if (d > 3 && d < 21) return d + 'th';
+        return d + (['th','st','nd','rd','th','th','th','th','th','th'][d % 10] || 'th');
+    }
+    function formatExportDate(s) {
+        const [y, m, dd] = s.split('-').map(Number);
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return ordinal(dd) + ' of ' + months[m-1] + " '" + String(y).slice(-2);
+    }
+    function truncate(s, n) { if (!s) return '—'; s = String(s); return s.length > n ? s.slice(0, n) + '…' : s; }
+    function sortedTopN(obj, n) {
+        return Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n);
+    }
+    function getBucket(date, scale) {
+        if (!date) return null;
+        var y = date.getFullYear(), mo = date.getMonth(), dy = date.getDate();
+        if (scale === 'day')   return y + '-' + String(mo+1).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+        if (scale === 'week')  { var jan1 = new Date(y,0,1), wk = Math.ceil(((date-jan1)/86400000+jan1.getDay()+1)/7); return y + '-W' + String(wk).padStart(2,'0'); }
+        if (scale === 'month') return y + '-' + String(mo+1).padStart(2,'0');
+        if (scale === 'year')  return String(y);
+        return y + '-' + String(mo+1).padStart(2,'0');
+    }
+    function formatBucketLabel(key, scale) {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if (scale === 'day')   { var pts = key.split('-'); return months[+pts[1]-1] + ' ' + pts[2]; }
+        if (scale === 'week')  return key.replace('-W',' W');
+        if (scale === 'month') { var pts2 = key.split('-'); return months[+pts2[1]-1] + ' ' + pts2[0].slice(2); }
+        if (scale === 'year')  return key;
+        return key;
+    }
+    const ICAPTURE_COST_USD = Math.round(23494.38 * 0.917431 * 100) / 100; // EUR->USD @0.917431
+    const PALETTE = ['#0063AC','#00A28F','#7030A0','#ED7D31','#70AD47','#4472C4','#FF6B6B','#20B2AA','#9370DB','#FFA07A','#32CD32','#1E90FF','#FFD700','#DC143C','#FF69B4'];
+    const SIZE_COLOR = { 'Physical Small': '#70AD47', 'Physical Medium': '#ED7D31', 'Physical Large': '#0063AC', 'Virtual': '#7030A0' };
+
+    function sizeBadge(s) {
+        const cls = s === 'Physical Small' ? 'size-sm' : s === 'Physical Medium' ? 'size-md' : s === 'Physical Large' ? 'size-lg' : s === 'Virtual' ? 'size-virt' : 'size-other';
+        return '<span class="size-badge ' + cls + '">' + (s || '—') + '</span>';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILE LOADING
+    // ═══════════════════════════════════════════════════════════
+    async function readFile(path) {
+        const resp = await fetch(path);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const buf = await resp.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+    }
+
+    async function detectLatestDate() {
+        const today = new Date();
+        for (let i = 0; i < 90; i++) {
+            const d = new Date(today); d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            try {
+                const r = await fetch('Reports/' + dateStr + ' iCapture Events.csv', { method: 'HEAD' });
+                if (r.ok) return dateStr;
+            } catch {}
+        }
+        return null;
+    }
+
+    async function loadAllFiles(dateStr) {
+        showLoading('Loading event reports for ' + formatExportDate(dateStr) + '…');
+        const base = 'Reports/' + dateStr + ' iCapture ';
+        const [evRaw, usRaw, mbRaw, revRaw] = await Promise.all([
+            readFile(base + 'Events.csv').catch(() => []),
+            readFile(base + 'Users.csv').catch(() => []),
+            readFile(base + 'Membership.xlsx').catch(() => []),
+            readFile(base + 'Revenue Created.xlsx').catch(() => [])
+        ]);
+
+        rawEvents = evRaw.map(r => ({
+            eventName:   String(r['Event Name'] || '').trim(),
+            campaignName:String(r['Campaign Name'] || '').trim(),
+            startDate:   parseDate(r['Start Date']),
+            eventSize:   String(r['Event Size'] || '').trim(),
+            budget:      parseMoney(r['Budget']),
+            leads:       parseNum(r['# Leads']),
+            leadCost:    parseMoney(r['$ Lead']),
+            teamMembers: parseNum(r['# Team Members'])
+        })).filter(r => r.eventName);
+
+        rawUsers = usRaw.map(r => ({
+            name:   String(r['Name'] || '').trim(),
+            events: parseNum(r['Events']),
+            leads:  parseNum(r['Leads'])
+        })).filter(r => r.name);
+
+        rawMembership = mbRaw.map(r => ({
+            programName:    String(r['Program Name'] || '').trim(),
+            membershipDate: parseDate(r['Membership Date']),
+            programStatus:  String(r['Program Status'] || '').trim(),
+            members:        parseNum(r['Members']),
+            newNames:       parseNum(r['New Names']),
+            success:        parseNum(r['Success (Total)'])
+        })).filter(r => r.programName);
+
+        rawRevenue = revRaw.map(r => ({
+            opportunityId: String(r['Opportunity ID 18'] || '').trim(),
+            programName:   String(r['Program Name'] || '').trim(),
+            stage:         String(r['Opportunity Stage'] || '').trim(),
+            amountUSD:     parseMoney(r['Amount USD']),
+            ftCreated:     parseNum(r['(FT) Opportunities Created']),
+            ftWon:         parseNum(r['(FT) Opportunities Won']),
+            mtCreated:     parseNum(r['(MT) Opportunities Created']),
+            mtWon:         parseNum(r['(MT) Opportunities Won']),
+            createdDate:   parseDate(r['Opportunity Created Date']),
+            closedDate:    parseDate(r['Opportunity Closed Date'])
+        })).filter(r => r.opportunityId || r.programName);
+
+        exportDateStr = dateStr;
+        initFilters();
+        renderAll();
+        showDash();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILTER STATE
+    // ═══════════════════════════════════════════════════════════
+    function initFilters() {
+        const statuses = [...new Set(rawMembership.map(r => r.programStatus).filter(Boolean))].sort();
+        const stages   = [...new Set(rawRevenue.map(r => r.stage).filter(Boolean))].sort();
+        buildMsList('f-status', statuses);
+        buildMsList('f-stage',  stages);
+        // Build iCapture program set from the Events file
+        icapturePrograms = new Set(rawEvents.map(e => e.campaignName).filter(Boolean));
+    }
+
+    function buildMsList(id, options) {
+        const el = document.getElementById('ms-' + id + '-list');
+        if (!el) return;
+        el.innerHTML = options.map(v =>
+            '<label class="ms-item"><input type="checkbox" value="' + v.replace(/"/g,'&quot;') +
+            '" onchange="toggleMsOption(\'' + id + '\',this.value,this.checked)">' +
+            '<span>' + v + '</span></label>'
+        ).join('');
+    }
+
+    function toggleMs(id, e) {
+        e.stopPropagation();
+        const panel = document.getElementById('ms-' + id + '-panel');
+        const isOpen = panel.style.display !== 'none';
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+        if (!isOpen) {
+            panel.style.display = 'block';
+            document.getElementById('ms-' + id.replace('f-','ms-f-')).querySelector('.ms-btn').classList.add('open');
+        }
+    }
+
+    function filterMsItems(id, q) {
+        document.querySelectorAll('#ms-' + id + '-list .ms-item').forEach(el => {
+            el.style.display = el.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+        });
+    }
+
+    function toggleMsOption(id, value, checked) {
+        checked ? msState[id].add(value) : msState[id].delete(value);
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function selectAllMs(id) {
+        document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => { cb.checked = true; msState[id].add(cb.value); });
+        updateMsBtn(id); onMsChange();
+    }
+
+    function clearMs(id) {
+        document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => { cb.checked = false; });
+        msState[id].clear(); updateMsBtn(id); onMsChange();
+    }
+
+    function updateMsBtn(id) {
+        const labels = { 'f-status': 'Program Status', 'f-stage': 'Opp. Stage' };
+        const el = document.getElementById('ms-' + id + '-label');
+        if (!el) return;
+        const n = msState[id].size;
+        el.textContent = n === 0 ? labels[id] : n === 1 ? [...msState[id]][0] : n + ' selected';
+        document.querySelector('#ms-' + id + ' .ms-btn').classList.toggle('active', n > 0);
+    }
+
+    function onMsChange() {
+        const { evts, mems, revs } = applyFilters();
+        const activeCount = Object.values(msState).reduce((s, set) => s + set.size, 0);
+        document.getElementById('filterCount').textContent = activeCount > 0
+            ? evts.length + ' events · ' + revs.length + ' opps' : '';
+        renderAll(evts, mems, revs);
+    }
+
+    function applyFilters() {
+        let evts = rawEvents;
+        let mems = rawMembership;
+        let revs = rawRevenue;
+        // iCapture-only view: restrict membership + revenue to iCapture programs
+        if (viewFilter === 'icapture' && icapturePrograms.size) {
+            mems = mems.filter(r => icapturePrograms.has(r.programName));
+            revs = revs.filter(r => icapturePrograms.has(r.programName));
+        }
+        if (msState['f-status'].size) mems = mems.filter(r => msState['f-status'].has(r.programStatus));
+        if (msState['f-stage'].size)  revs = revs.filter(r => msState['f-stage'].has(r.stage));
+        return { evts, mems, revs };
+    }
+
+    function setViewFilter(v) {
+        viewFilter = v;
+        document.getElementById('btnViewAll').classList.toggle('active', v === 'all');
+        document.getElementById('btnViewIcapture').classList.toggle('active', v === 'icapture');
+        document.getElementById('icaptureSection').style.display = v === 'icapture' ? 'block' : 'none';
+        onMsChange();
+    }
+    function setAttrMode(m) {
+        attributionMode = m;
+        document.getElementById('btnAttrFT').classList.toggle('active', m === 'ft');
+        document.getElementById('btnAttrMT').classList.toggle('active', m === 'mt');
+        onMsChange();
+    }
+    function setTimeScale(s) {
+        timeScale = s;
+        ['Day','Week','Month','Year'].forEach(function(x) { document.getElementById('btnTs'+x).classList.toggle('active', s === x.toLowerCase()); });
+        onMsChange();
+    }
+
+    function resetFilters() {
+        Object.keys(msState).forEach(id => { msState[id].clear(); updateMsBtn(id); });
+        document.querySelectorAll('.ms-list input').forEach(cb => cb.checked = false);
+        document.getElementById('filterCount').textContent = '';
+        setViewFilter('all');
+        setAttrMode('mt');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHART HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function makeHBar(id, labels, values, colors, opts = {}) {
+        const wrap = document.getElementById(id + 'Wrap');
+        if (wrap) wrap.style.height = Math.max(160, labels.length * 30) + 'px';
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, borderRadius: 3 }] },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: {
+                    label: c => ' ' + (opts.usd ? fmtUSD(c.parsed.x) : fmt(c.parsed.x)),
+                    afterBody: opts.afterBody || null
+                }}},
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => opts.usd ? fmtUSD(v) : fmt(v) } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                },
+                onClick: opts.onClick || null,
+                onHover: opts.onHover || null
+            }
+        });
+    }
+
+    function makeVBar(id, labels, values, color, opts = {}) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data: values, backgroundColor: color || PALETTE[0], borderWidth: 0, borderRadius: 3 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: {
+                    label: c => ' ' + (opts.usd ? fmtUSD(c.parsed.y) : fmt(c.parsed.y))
+                }}},
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => opts.usd ? fmtUSD(v) : fmt(v) } }
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  RENDER
+    // ═══════════════════════════════════════════════════════════
+    // â”€â”€ Butterfly chart: iCapture vs All Events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const EVT_DEAL_TIERS = [
+        { label: '< $10K',        min: 0,      max: 10000 },
+        { label: '$10K â€“ $50K',   min: 10000,  max: 50000 },
+        { label: '$50K â€“ $100K',  min: 50000,  max: 100000 },
+        { label: '$100K â€“ $250K', min: 100000, max: 250000 },
+        { label: '$250K+',        min: 250000, max: Infinity }
+    ];
+    function renderICaptureCost(evts, mems) {
+        var leads = evts.reduce(function(s, e) { return s + (e.leads || 0); }, 0);
+        var icMems = mems.filter(function(r) { return icapturePrograms.has(r.programName); });
+        var members = icMems.reduce(function(s, r) { return s + (r.members || 0); }, 0);
+
+        var elLead = document.getElementById('kpiCostPerLead');
+        var elMem  = document.getElementById('kpiCostPerMember');
+        if (elLead) elLead.textContent = fmtUSD(leads > 0 ? ICAPTURE_COST_USD / leads : null);
+        if (elMem)  elMem.textContent  = fmtUSD(members > 0 ? ICAPTURE_COST_USD / members : null);
+    }
+
+    let evtButterflyGlobal = null;
+    let evtButterflyTierStats = [];
+    let activeEvtTier = -2; // -2 = nothing selected
+
+    function computeButterflyStats(icapRevs, allRevs, label) {
+        function side(recs) {
+            let closed = 0, won = 0, wonRev = 0, daysTotal = 0, daysCount = 0, sizeTotal = 0, sizeCount = 0;
+            recs.forEach(function(r) {
+                var stg = (r.stage || '').toLowerCase();
+                var isClosed = stg.includes('closed');
+                var isWon    = isClosed && !stg.includes('lost');
+                if (!isClosed) return;
+                closed++;
+                if (isWon) {
+                    won++;
+                    var attrWon = attributionMode === 'ft' ? r.ftWon : r.mtWon;
+                    wonRev += attrWon * r.amountUSD;
+                    if (r.closedDate && r.createdDate) {
+                        var days = Math.round((new Date(r.closedDate) - new Date(r.createdDate)) / 86400000);
+                        if (days > 0) { daysTotal += days; daysCount++; }
+                    }
+                    sizeTotal += r.amountUSD; sizeCount++;
+                }
+            });
+            return { closed, won, wonRev, daysTotal, daysCount, sizeTotal, sizeCount };
+        }
+        var ic = side(icapRevs), al = side(allRevs);
+        return { label,
+            icClosed: ic.closed, icWon: ic.won, icRev: ic.wonRev, icDaysT: ic.daysTotal, icDaysN: ic.daysCount, icSzT: ic.sizeTotal, icSzN: ic.sizeCount,
+            alClosed: al.closed, alWon: al.won, alRev: al.wonRev, alDaysT: al.daysTotal, alDaysN: al.daysCount, alSzT: al.sizeTotal, alSzN: al.sizeCount };
+    }
+
+    function buildEvtButterflyAll() {
+        var allRevs = rawRevenue.slice();
+        if (msState['f-stage'].size) allRevs = allRevs.filter(function(r) { return msState['f-stage'].has(r.stage); });
+        var icapRevs = allRevs.filter(function(r) { return icapturePrograms.has(r.programName); });
+        evtButterflyGlobal = computeButterflyStats(icapRevs, allRevs, 'All Deals');
+        evtButterflyTierStats = EVT_DEAL_TIERS.map(function(t) {
+            var ti = icapRevs.filter(function(r) { return r.amountUSD >= t.min && r.amountUSD < t.max; });
+            var ta = allRevs.filter(function(r) { return r.amountUSD >= t.min && r.amountUSD < t.max; });
+            return computeButterflyStats(ti, ta, t.label);
+        });
+        if (activeEvtTier === -1) renderEvtButterfly(evtButterflyGlobal);
+        else if (activeEvtTier >= 0) renderEvtButterfly(evtButterflyTierStats[activeEvtTier]);
+    }
+
+    function selectEvtTier(idx) {
+        activeEvtTier = idx;
+        var allBtn = document.getElementById('evtTierAllBtn');
+        if (allBtn) allBtn.classList.remove('active');
+        document.querySelectorAll('#evtTierSliderWrap .tier-step-btn').forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+        var fill = document.getElementById('evtTierTrackFill');
+        if (fill) fill.style.width = (idx / 4 * 80) + '%';
+        document.getElementById('evtPerfButterfly').style.display = '';
+        document.getElementById('evtPerfButterflyPrompt').style.display = 'none';
+        if (evtButterflyTierStats[idx]) renderEvtButterfly(evtButterflyTierStats[idx]);
+    }
+
+    function selectEvtTierAll() {
+        activeEvtTier = -1;
+        var allBtn = document.getElementById('evtTierAllBtn');
+        if (allBtn) allBtn.classList.add('active');
+        document.querySelectorAll('#evtTierSliderWrap .tier-step-btn').forEach(function(b) { b.classList.remove('active'); });
+        var fill = document.getElementById('evtTierTrackFill');
+        if (fill) fill.style.width = '0';
+        document.getElementById('evtPerfButterfly').style.display = '';
+        document.getElementById('evtPerfButterflyPrompt').style.display = 'none';
+        if (evtButterflyGlobal) renderEvtButterfly(evtButterflyGlobal);
+    }
+
+    function renderEvtButterfly(s) {
+        var el = document.getElementById('evtPerfButterfly');
+        if (!el) return;
+        var attrLbl = attributionMode.toUpperCase();
+
+        var icWinRate = s.icClosed > 0 ? s.icWon / s.icClosed * 100 : null;
+        var alWinRate = s.alClosed > 0 ? s.alWon / s.alClosed * 100 : null;
+        var icAvgLen  = s.icDaysN  > 0 ? Math.round(s.icDaysT / s.icDaysN) : null;
+        var alAvgLen  = s.alDaysN  > 0 ? Math.round(s.alDaysT / s.alDaysN) : null;
+        var icAvgSz   = s.icSzN   > 0 ? Math.round(s.icSzT / s.icSzN)   : null;
+        var alAvgSz   = s.alSzN   > 0 ? Math.round(s.alSzT / s.alSzN)   : null;
+        var icRevVal  = s.icSzN   > 0 ? s.icRev : null;
+        var alRevVal  = s.alSzN   > 0 ? s.alRev : null;
+
+        function mkRow(label, sub, lVal, rVal, fmtFn, deltaFmtFn, lowerIsBetter) {
+            var l = lVal !== null ? lVal : 0;
+            var r = rVal !== null ? rVal : 0;
+            var maxV = Math.max(l, r) || 1;
+            var lp = lVal !== null ? Math.max(Math.round(l / maxV * 100), 3) : 0;
+            var rp = rVal !== null ? Math.max(Math.round(r / maxV * 100), 3) : 0;
+            var both = lVal !== null && rVal !== null;
+            var icWins = both ? (lowerIsBetter ? l < r : l > r) : null;
+            var lColor = icWins === true ? '#1a7a4a' : icWins === false ? '#e67e22' : '#0063AC';
+            var rColor = icWins === false ? '#1a7a4a' : '#6b7280';
+            var deltaHtml = '';
+            if (both) {
+                var diff = lowerIsBetter ? r - l : l - r;
+                var pos = diff > 0;
+                deltaHtml = '<div style="font-size:10px;font-weight:700;margin-top:3px;color:' + (pos ? '#1a7a4a' : '#c0392b') + ';">' + (pos ? '+' : '\u2212') + deltaFmtFn(Math.abs(diff)) + '</div>';
+            }
+            return '<div style="display:grid;grid-template-columns:1fr 180px 1fr;align-items:center;padding:14px 0;border-bottom:1px solid #eee;">'
+                + '<div style="display:flex;align-items:center;gap:10px;padding-right:8px;">'
+                +   '<span style="font-size:17px;font-weight:700;color:' + lColor + ';white-space:nowrap;min-width:72px;text-align:right;">' + (lVal !== null ? fmtFn(l) : '&mdash;') + '</span>'
+                +   '<div style="flex:1;overflow:hidden;display:flex;justify-content:flex-end;height:28px;min-width:0;">'
+                +     '<div style="height:100%;width:' + lp + '%;background:' + lColor + ';border-radius:3px 0 0 3px;opacity:.85;"></div>'
+                +   '</div>'
+                + '</div>'
+                + '<div style="text-align:center;padding:0 10px;border-left:2px solid #d0d0d0;border-right:2px solid #d0d0d0;">'
+                +   '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#444;">' + label + '</div>'
+                +   '<div style="font-size:9px;color:#aaa;margin-top:1px;">' + sub + '</div>'
+                +   deltaHtml
+                + '</div>'
+                + '<div style="display:flex;align-items:center;gap:10px;padding-left:8px;">'
+                +   '<div style="flex:1;overflow:hidden;display:flex;justify-content:flex-start;height:28px;min-width:0;">'
+                +     '<div style="height:100%;width:' + rp + '%;background:' + rColor + ';border-radius:0 3px 3px 0;opacity:.85;"></div>'
+                +   '</div>'
+                +   '<span style="font-size:17px;font-weight:700;color:' + rColor + ';white-space:nowrap;min-width:72px;">' + (rVal !== null ? fmtFn(r) : '&mdash;') + '</span>'
+                + '</div>'
+                + '</div>';
+        }
+
+        var noData = s.icClosed === 0 && s.alClosed === 0;
+        el.innerHTML = noData
+            ? '<div style="color:#aaa;text-align:center;padding:20px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;">No closed deals in the <strong>' + s.label + '</strong> tier</div>'
+            : '<div style="background:#f8f9fa;border:1px solid #e5e7eb;padding:16px 20px;">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e5e7eb;">'
+            +   '<div style="display:flex;align-items:center;gap:7px;">'
+            +     '<div style="width:12px;height:12px;background:#0063AC;border-radius:2px;"></div>'
+            +     '<span style="font-size:11px;font-weight:700;color:#0063AC;text-transform:uppercase;letter-spacing:.06em;">iCapture Events</span>'
+            +     '<span style="font-size:10px;color:#aaa;">' + s.icClosed + ' closed</span>'
+            +   '</div>'
+            +   '<span style="font-size:10px;font-weight:700;color:#444;">' + s.label + ' &nbsp;&middot;&nbsp; ' + attrLbl + ' Attribution</span>'
+            +   '<div style="display:flex;align-items:center;gap:7px;">'
+            +     '<span style="font-size:10px;color:#aaa;">' + s.alClosed + ' closed</span>'
+            +     '<span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;">All Events</span>'
+            +     '<div style="width:12px;height:12px;background:#9ca3af;border-radius:2px;"></div>'
+            +   '</div>'
+            + '</div>'
+            + mkRow('Opportunities',   'Closed deals touched',           s.icClosed, s.alClosed, function(v) { return v.toLocaleString(); },                    function(v) { return v.toLocaleString() + ' deals'; }, false)
+            + mkRow('Won Revenue',     'Total won deal value &middot; ' + attrLbl, icRevVal,  alRevVal,  function(v) { return fmtUSD(v); },                    function(v) { return fmtUSD(v); },                    false)
+            + mkRow('Win Rate',        'Won \u00f7 Closed deals',          icWinRate,  alWinRate,  function(v) { return v.toFixed(1) + '%'; },                function(v) { return v.toFixed(1) + ' pp'; },          false)
+            + mkRow('Avg Deal Length', 'Days to close (won deals)',       icAvgLen,   alAvgLen,   function(v) { return v + 'd'; },                            function(v) { return v + 'd'; },                       true)
+            + mkRow('Avg Deal Size',   'Won deal value',                  icAvgSz,    alAvgSz,    function(v) { return fmtUSD(v); },                          function(v) { return fmtUSD(v); },                    false)
+            + '</div>';
+    }
+    // â”€â”€ End butterfly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    function renderAll(evts, mems, revs) {
+        if (evts === undefined) ({ evts, mems, revs } = applyFilters());
+        const stats = buildProgramStats(evts, mems, revs);
+        renderKPIs(evts, mems, revs, stats);
+        renderCombo(mems, revs);
+        buildEvtButterflyAll();
+        buildOppIndex(revs);
+        renderICaptureCost(evts, mems);
+        renderTimeline(evts);
+        renderSize(evts);
+        renderBudgetSize(evts);
+        renderTopEvents(evts);
+        renderUsers();
+        renderPipeline(stats);
+        renderRevenue(stats);
+        renderRegionPies(stats);
+        renderStage(revs);
+        renderTable(stats);
+    }
+
+    function renderCombo(mems, revs) {
+        var STAGE_PROB = { 'Create': 0.10, 'Qualify': 0.30, 'Develop': 0.50, 'Validate': 0.80, 'Negotiate': 0.95, 'Implementation': 1.00, 'Closed Won': 1.00, 'Closed Lost': 0.00 };
+        var today = new Date();
+        var todayBucket = getBucket(today, timeScale);
+
+        var memBuckets = {}, sucBuckets = {}, qualBuckets = {}, pipeBuckets = {}, wonBuckets = {}, predBuckets = {};
+        mems.forEach(function(m) {
+            var key = getBucket(m.membershipDate, timeScale);
+            if (!key) return;
+            memBuckets[key]  = (memBuckets[key]  || 0) + m.members;
+            sucBuckets[key]  = (sucBuckets[key]  || 0) + m.success;
+            if (m.programStatus && m.programStatus.toLowerCase().indexOf('qualif') !== -1)
+                qualBuckets[key] = (qualBuckets[key] || 0) + m.members;
+        });
+        revs.forEach(function(r) {
+            var pkey = getBucket(r.createdDate, timeScale);
+            if (pkey) pipeBuckets[pkey] = (pipeBuckets[pkey] || 0) +
+                (attributionMode === 'ft' ? r.ftCreated * r.amountUSD : r.mtCreated * r.amountUSD);
+            var wkey = getBucket(r.closedDate, timeScale);
+            if (wkey) wonBuckets[wkey] = (wonBuckets[wkey] || 0) +
+                (attributionMode === 'ft' ? r.ftWon * r.amountUSD : r.mtWon * r.amountUSD);
+            // Prediction: open opps with known probability
+            var prob = STAGE_PROB[r.stage];
+            if (prob === undefined || prob === 0 || prob === 1) return;
+            var attributed = attributionMode === 'ft' ? r.ftCreated : r.mtCreated;
+            if (!attributed) return;
+            var expClose = (r.closedDate && r.closedDate > today) ? r.closedDate : today;
+            var predKey = getBucket(expClose, timeScale);
+            predBuckets[predKey] = (predBuckets[predKey] || 0) + prob * r.amountUSD;
+        });
+
+        var allKeys = Array.from(new Set([].concat(
+            Object.keys(memBuckets), Object.keys(pipeBuckets), Object.keys(wonBuckets),
+            Object.keys(predBuckets), [todayBucket]
+        ))).sort();
+        var nowIdx = allKeys.indexOf(todayBucket);
+        var labels = allKeys.map(function(k) { return formatBucketLabel(k, timeScale); });
+        var ctx = document.getElementById('chartCombo').getContext('2d');
+        if (charts['chartCombo']) charts['chartCombo'].destroy();
+        var attrLbl = attributionMode.toUpperCase();
+
+        var nowLinePlugin = {
+            id: 'nowLine',
+            afterDraw: function(chart) {
+                if (nowIdx < 0) return;
+                var meta = chart.getDatasetMeta(0);
+                if (!meta.data[nowIdx]) return;
+                var x = meta.data[nowIdx].x;
+                var c = chart.ctx, ca = chart.chartArea;
+                c.save();
+                c.beginPath(); c.moveTo(x, ca.top); c.lineTo(x, ca.bottom);
+                c.strokeStyle = 'rgba(210,40,40,0.65)'; c.lineWidth = 2; c.setLineDash([5,3]); c.stroke();
+                c.setLineDash([]);
+                c.fillStyle = 'rgba(210,40,40,0.85)'; c.font = 'bold 10px sans-serif'; c.textAlign = 'center';
+                c.fillText('NOW', x, ca.top + 12);
+                c.restore();
+            }
+        };
+
+        charts['chartCombo'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { type: 'bar',  label: 'Members',                  data: allKeys.map(function(k) { return memBuckets[k]  || 0; }), backgroundColor: 'rgba(0,99,172,0.7)',   borderRadius: 2, yAxisID: 'yL', order: 3 },
+                    { type: 'bar',  label: 'Success',                  data: allKeys.map(function(k) { return sucBuckets[k]  || 0; }), backgroundColor: 'rgba(0,162,143,0.8)',  borderRadius: 2, yAxisID: 'yL', order: 3 },
+                    { type: 'bar',  label: 'Qualified',                data: allKeys.map(function(k) { return qualBuckets[k] || 0; }), backgroundColor: 'rgba(112,48,160,0.8)', borderRadius: 2, yAxisID: 'yL', order: 3 },
+                    { type: 'line', label: 'Pipeline ' + attrLbl,      data: allKeys.map(function(k) { return pipeBuckets[k] || 0; }), borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 1 },
+                    { type: 'line', label: 'Revenue Won ' + attrLbl,   data: allKeys.map(function(k) { return wonBuckets[k]  || 0; }), borderColor: '#70AD47', backgroundColor: 'rgba(112,173,71,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 2 },
+                    { type: 'line', label: 'Predicted Revenue',        data: allKeys.map(function(k) { return k >= todayBucket ? (predBuckets[k] || null) : null; }), borderColor: 'rgba(112,173,71,0.55)', backgroundColor: 'rgba(112,173,71,0.04)', borderDash: [7,4], fill: true, tension: 0.3, pointRadius: 3, pointStyle: 'triangle', borderWidth: 2, yAxisID: 'yR', order: 1 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: { mode: 'index', intersect: false, callbacks: { label: function(c) { if (c.parsed.y === null) return null; return ' ' + c.dataset.label + ': ' + (c.dataset.yAxisID === 'yR' ? fmtUSD(c.parsed.y) : fmt(c.parsed.y)); } } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
+                    yL: { type: 'linear', position: 'left',  beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: function(v) { return fmt(v); } }, title: { display: true, text: 'Members', font: { size: 10 }, color: '#888' } },
+                    yR: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { font: { size: 11 }, callback: function(v) { return fmtUSD(v); } }, title: { display: true, text: 'USD', font: { size: 10 }, color: '#888' } }
+                }
+            },
+            plugins: [nowLinePlugin]
+        });
+    }
+
+
+    function buildProgramStats(evts, mems, revs) {
+        const stats = {};
+        const ensure = p => { if (!stats[p]) stats[p] = { program: p, eventName: '', eventSize: '', leads: 0, budget: 0, members: 0, newNames: 0, success: 0, pipelineFT: 0, revenueFT: 0, pipelineMT: 0, revenueMT: 0, oppsCreated: 0, oppsWon: 0 }; };
+        evts.forEach(e => {
+            const p = e.campaignName || e.eventName;
+            if (!p) return;
+            ensure(p);
+            stats[p].leads      += e.leads;
+            stats[p].budget     += e.budget;
+            stats[p].eventName   = e.eventName;
+            stats[p].eventSize   = e.eventSize;
+        });
+        mems.forEach(m => {
+            ensure(m.programName);
+            stats[m.programName].members  += m.members;
+            stats[m.programName].newNames += m.newNames;
+            stats[m.programName].success  += m.success;
+        });
+        revs.forEach(r => {
+            ensure(r.programName);
+            const s = stats[r.programName];
+            s.pipelineFT += r.ftCreated * r.amountUSD;
+            s.revenueFT  += r.ftWon     * r.amountUSD;
+            s.pipelineMT += r.mtCreated * r.amountUSD;
+            s.revenueMT  += r.mtWon     * r.amountUSD;
+            if (r.ftCreated) s.oppsCreated++;
+            if (r.ftWon)     s.oppsWon++;
+        });
+        return stats;
+    }
+
+    function renderKPIs(evts, mems, revs, stats) {
+        const STAGE_PROB = { 'Create': 0.10, 'Qualify': 0.30, 'Develop': 0.50, 'Validate': 0.80, 'Negotiate': 0.95, 'Implementation': 1.00, 'Closed Won': 1.00, 'Closed Lost': 0.00 };
+        const uniquePrograms = new Set(mems.map(r => r.programName).filter(Boolean)).size;
+        const totalMembers   = mems.reduce((s, r) => s + r.members, 0);
+        const totalSuccess   = mems.reduce((s, r) => s + r.success, 0);
+        const totalQualified = mems.filter(r => r.programStatus && r.programStatus.toLowerCase().indexOf('qualif') !== -1)
+                                   .reduce((s, r) => s + r.members, 0);
+        const isFT = attributionMode === 'ft';
+        const totalPipeline     = isFT ? revs.reduce((s, r) => s + r.ftCreated * r.amountUSD, 0)
+                                       : revs.reduce((s, r) => s + r.mtCreated * r.amountUSD, 0);
+        const totalOpenPipeline = isFT ? revs.filter(r => r.stage && !r.stage.toLowerCase().includes('closed')).reduce((s, r) => s + r.ftCreated * r.amountUSD, 0)
+                                       : revs.filter(r => r.stage && !r.stage.toLowerCase().includes('closed')).reduce((s, r) => s + r.mtCreated * r.amountUSD, 0);
+        const totalRevenue      = isFT ? revs.reduce((s, r) => s + r.ftWon * r.amountUSD, 0)
+                                       : revs.reduce((s, r) => s + r.mtWon * r.amountUSD, 0);
+        // Predicted revenue: open opps with stage probability between 0 and 1 (exclusive)
+        const totalPredicted = revs.reduce((s, r) => {
+            const prob = STAGE_PROB[r.stage];
+            if (prob === undefined || prob === 0 || prob === 1) return s;
+            const attributed = isFT ? r.ftCreated : r.mtCreated;
+            if (!attributed) return s;
+            return s + prob * r.amountUSD;
+        }, 0);
+        // Opportunity counts (deduped by opportunityId)
+        const oppsPipeline = new Set(revs.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
+        const oppsOpen     = new Set(revs.filter(r => (isFT ? r.ftCreated : r.mtCreated) && r.stage && !r.stage.toLowerCase().includes('closed')).map(r => r.opportunityId)).size;
+        const oppsWon      = new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
+        const attrLabel = attributionMode.toUpperCase();
+        const memberCard =
+            '<div class="kpi-card teal">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Membership</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalMembers) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Members</div>' +
+                    '</div>' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding:0 12px;text-align:center">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalSuccess) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Success</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalQualified) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Qualified</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        const attributionCard =
+            '<div class="kpi-card amber">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Attribution: ' + attrLabel + '</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(totalPipeline) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Pipeline Created</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsPipeline) + ' opps</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(totalRevenue) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Revenue Won</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsWon) + ' opps</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        const outstandingCard =
+            '<div class="kpi-card blue">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Outstanding</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(totalOpenPipeline) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Open Pipeline</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsOpen) + ' opps</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px;color:#70ad47">' + fmtUSD(totalPredicted) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Predicted Revenue</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">weighted by stage</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        const grid = document.getElementById('kpiGrid');
+        grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        grid.innerHTML =
+            '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
+            memberCard +
+            attributionCard +
+            outstandingCard;
+    }
+
+    function renderTimeline(evts) {
+        const byDate = {};
+        evts.forEach(e => {
+            if (!e.startDate) return;
+            const key = e.startDate.toISOString().slice(0, 7); // YYYY-MM
+            byDate[key] = (byDate[key] || 0) + e.leads;
+        });
+        const keys = Object.keys(byDate).sort();
+        const labels = keys.map(k => { const [y, m] = k.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1] + ' ' + y.slice(2); });
+        makeVBar('chartTimeline', labels, keys.map(k => byDate[k]), '#0063AC');
+    }
+
+    function renderSize(evts) {
+        const bySizeLeads = {}, bySizeCount = {};
+        evts.forEach(e => {
+            const s = e.eventSize || 'Other';
+            bySizeLeads[s] = (bySizeLeads[s] || 0) + e.leads;
+            bySizeCount[s] = (bySizeCount[s] || 0) + 1;
+        });
+        const sizes = Object.keys(bySizeLeads).sort();
+        makeHBar('chartSize', sizes, sizes.map(s => bySizeLeads[s]),
+            sizes.map(s => SIZE_COLOR[s] || '#888'));
+    }
+
+    function renderBudgetSize(evts) {
+        const bySizeBudget = {};
+        evts.forEach(e => { const s = e.eventSize || 'Other'; bySizeBudget[s] = (bySizeBudget[s] || 0) + e.budget; });
+        const sizes = Object.keys(bySizeBudget).sort();
+        makeHBar('chartBudgetSize', sizes, sizes.map(s => bySizeBudget[s]),
+            sizes.map(s => SIZE_COLOR[s] || '#888'), { usd: true });
+    }
+
+    function renderTopEvents(evts) {
+        const top = [...evts].sort((a, b) => b.leads - a.leads).slice(0, 15);
+        makeHBar('chartTopEvents',
+            top.map(e => truncate(e.eventName, 35)),
+            top.map(e => e.leads),
+            top.map(e => SIZE_COLOR[e.eventSize] || PALETTE[0]));
+    }
+
+    function renderUsers() {
+        const top = [...rawUsers].sort((a, b) => b.leads - a.leads).slice(0, 15);
+        makeHBar('chartUsers', top.map(u => u.name), top.map(u => u.leads),
+            top.map((_, i) => PALETTE[i % PALETTE.length]));
+    }
+
+    function renderPipeline(stats) {
+        const key = attributionMode === 'ft' ? 'pipelineFT' : 'pipelineMT';
+        const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
+        if (!top.length) return;
+        makeHBar('chartPipeline', top.map(s => truncate(s.program, 55)), top.map(s => s[key]),
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true,
+            onHover: (evt, els) => { if (sfLocked) return; if (!els.length) { hideSfTooltipDelayed(); return; } clearTimeout(sfHideTimer); showSfTooltip(evt.native.clientX, evt.native.clientY, oppByProgram[top[els[0].index].program] || [], top[els[0].index].program); },
+            onClick: (evt, els) => { if (!els.length) return; sfLockNext = true; showSfTooltip(evt.native.clientX, evt.native.clientY, oppByProgram[top[els[0].index].program] || [], top[els[0].index].program); }
+        });
+    }
+
+    function renderRevenue(stats) {
+        const key = attributionMode === 'ft' ? 'revenueFT' : 'revenueMT';
+        const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
+        if (!top.length) return;
+        makeHBar('chartRevenue', top.map(s => truncate(s.program, 55)), top.map(s => s[key]),
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true,
+            onHover: (evt, els) => { if (sfLocked) return; if (!els.length) { hideSfTooltipDelayed(); return; } clearTimeout(sfHideTimer); showSfTooltip(evt.native.clientX, evt.native.clientY, oppByProgram[top[els[0].index].program] || [], top[els[0].index].program); },
+            onClick: (evt, els) => { if (!els.length) return; sfLockNext = true; showSfTooltip(evt.native.clientX, evt.native.clientY, oppByProgram[top[els[0].index].program] || [], top[els[0].index].program); }
+        });
+    }
+
+
+    function getRegion(programName) {
+        const parts = (programName || '').split('_');
+        return parts.length >= 5 ? parts[4] : null;
+    }
+
+    function renderRegionPies(stats) {
+        const key_pl = attributionMode === 'ft' ? 'pipelineFT' : 'pipelineMT';
+        const key_rv = attributionMode === 'ft' ? 'revenueFT'  : 'revenueMT';
+        const REGION_COLORS = ['#0063AC','#00A28F','#ED7D31','#7030A0','#70AD47','#4472C4','#FF6B6B','#20B2AA','#FFD700','#DC143C','#FF69B4','#32CD32'];
+        const OTHER_COLOR = '#c4cdd6';
+
+        const plByRegion = {}, rvByRegion = {};
+        Object.values(stats).forEach(s => {
+            const region = getRegion(s.program) || 'Other';
+            plByRegion[region] = (plByRegion[region] || 0) + s[key_pl];
+            rvByRegion[region] = (rvByRegion[region] || 0) + s[key_rv];
+        });
+
+        function makePie(canvasId, byRegion) {
+            const entries = Object.entries(byRegion).filter(([, v]) => v > 0);
+            const named = entries.filter(([k]) => k !== 'Other').sort((a, b) => b[1] - a[1]);
+            const other = entries.find(([k]) => k === 'Other');
+            const sorted = other ? [...named, other] : named;
+            if (!sorted.length) return;
+            const labels = sorted.map(([k]) => k);
+            const data   = sorted.map(([, v]) => v);
+            const total  = data.reduce((s, v) => s + v, 0);
+            const colors = sorted.map(([k], i) => k === 'Other' ? OTHER_COLOR : REGION_COLORS[i % REGION_COLORS.length]);
+            if (charts[canvasId]) charts[canvasId].destroy();
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+                        tooltip: { callbacks: {
+                            label: c => ' ' + c.label + ': ' + fmtUSD(c.parsed) + '  (' + (c.parsed / total * 100).toFixed(1) + '%)'
+                        }}
+                    }
+                }
+            });
+        }
+
+        makePie('chartPipelineRegion', plByRegion);
+        makePie('chartRevenueRegion',  rvByRegion);
+    }
+
+    function renderStage(revs) {
+        const GROUP_STAGES = ['Create', 'Qualify', 'Develop', 'Validate', 'Negotiate', 'Implementation'];
+        const GROUP_LABEL  = 'Open Pipeline';
+        const OPEN_SHADES  = ['rgba(0,99,172,0.30)','rgba(0,99,172,0.44)','rgba(0,99,172,0.58)','rgba(0,99,172,0.72)','rgba(0,99,172,0.86)','rgba(0,99,172,1.00)'];
+        const stageData = {};
+        revs.forEach(r => {
+            if (!r.stage) return;
+            if (!stageData[r.stage]) stageData[r.stage] = { count: 0, value: 0 };
+            stageData[r.stage].count++;
+            stageData[r.stage].value += r.amountUSD;
+        });
+        // Pull grouped stages out
+        let groupCnt = 0;
+        const groupBreakdown = [];
+        GROUP_STAGES.forEach(s => {
+            if (stageData[s]) {
+                groupBreakdown.push({ stage: s, count: stageData[s].count, value: stageData[s].value });
+                groupCnt += stageData[s].count;
+                delete stageData[s];
+            }
+        });
+        // Remaining stages sorted by count
+        const others = sortedTopN(Object.fromEntries(Object.entries(stageData).map(([k, v]) => [k, v.count])), 10);
+        const sorted = others.slice();
+        if (groupCnt > 0) sorted.push([GROUP_LABEL, groupCnt]);
+        sorted.sort((a, b) => b[1] - a[1]);
+        const labels = sorted.map(s => s[0]);
+        const n = labels.length;
+        const groupIdx = labels.indexOf(GROUP_LABEL);
+
+        function singleBarColor(lbl) {
+            const l = lbl.toLowerCase();
+            if (l.includes('won'))  return 'rgba(26,122,74,0.85)';
+            if (l.includes('lost')) return 'rgba(192,57,43,0.85)';
+            return '#90a4ae';
+        }
+
+        // Build datasets: one per non-group stage + one per sub-stage in the group
+        const datasets = [];
+        sorted.forEach(([lbl], idx) => {
+            if (lbl === GROUP_LABEL) return;
+            const data = new Array(n).fill(0);
+            data[idx] = sorted[idx][1];
+            datasets.push({ label: lbl, data, backgroundColor: singleBarColor(lbl), borderWidth: 0, stack: 'bar' });
+        });
+        groupBreakdown.forEach((b, i) => {
+            if (groupIdx === -1) return;
+            const data = new Array(n).fill(0);
+            data[groupIdx] = b.count;
+            datasets.push({ label: b.stage, data, backgroundColor: OPEN_SHADES[i % OPEN_SHADES.length], borderWidth: 0, stack: 'bar' });
+        });
+
+        const wrap = document.getElementById('chartStageWrap');
+        if (wrap) wrap.style.height = Math.max(160, n * 32) + 'px';
+        const ctx = document.getElementById('chartStage').getContext('2d');
+        if (charts['chartStage']) charts['chartStage'].destroy();
+        charts['chartStage'] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index', intersect: false,
+                        callbacks: {
+                            label: c => c.parsed.x ? (' ' + c.dataset.label + ': ' + fmt(c.parsed.x)) : null
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } },
+                    y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } }
+                },
+                onHover: (evt, els) => {
+                    if (sfLocked) return;
+                    if (!els.length) { hideSfTooltipDelayed(); return; }
+                    clearTimeout(sfHideTimer);
+                    const lbl = labels[els[0].index];
+                    let opps = [];
+                    if (lbl === GROUP_LABEL) {
+                        GROUP_STAGES.forEach(s => { opps = opps.concat(oppByStage[s] || []); });
+                    } else {
+                        opps = oppByStage[lbl] || [];
+                    }
+                    showSfTooltip(evt.native.clientX, evt.native.clientY, opps, lbl);
+                },
+                onClick: (evt, els) => {
+                    if (!els.length) return;
+                    const lbl = labels[els[0].index];
+                    let opps = [];
+                    if (lbl === GROUP_LABEL) {
+                        GROUP_STAGES.forEach(s => { opps = opps.concat(oppByStage[s] || []); });
+                    } else {
+                        opps = oppByStage[lbl] || [];
+                    }
+                    sfLockNext = true;
+                    showSfTooltip(evt.native.clientX, evt.native.clientY, opps, lbl);
+                }
+            }
+        });
+        // Stage summary
+        let wonCnt = 0, wonAmt = 0, lostCnt = 0, lostAmt = 0, openCnt = 0, openAmt = 0;
+        revs.forEach(r => {
+            const s = (r.stage || '').toLowerCase();
+            const isClosed = s.includes('closed');
+            const isWon = isClosed && s.includes('won');
+            const isLost = isClosed && !s.includes('won');
+            if (isWon)       { wonCnt++;  wonAmt  += r.amountUSD; }
+            else if (isLost) { lostCnt++; lostAmt += r.amountUSD; }
+            else             { openCnt++; openAmt += r.amountUSD; }
+        });
+        const el = document.getElementById('stageSummaryEl');
+        if (!el) return;
+        function mkStat(label, count, amount, accent) {
+            return '<div style="flex:1;min-width:160px;background:#f8f9fa;border:1px solid #e5e7eb;border-left:3px solid ' + accent + ';border-radius:0 5px 5px 0;padding:10px 14px;">'
+                + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + accent + ';margin-bottom:5px;">' + label + '</div>'
+                + '<div style="display:flex;align-items:baseline;gap:12px;">'
+                +   '<span style="font-size:18px;font-weight:700;color:#2C2A29;">' + fmt(count) + ' opps</span>'
+                +   '<span style="font-size:13px;font-weight:600;color:#555;">' + fmtUSD(amount) + '</span>'
+                + '</div>'
+                + '</div>';
+        }
+        el.innerHTML = mkStat('Won', wonCnt, wonAmt, '#1a7a4a')
+                     + mkStat('Lost', lostCnt, lostAmt, '#c0392b')
+                     + mkStat('Open Pipeline', openCnt, openAmt, '#0063AC');
+    }
+
+    function renderStatus(mems) {
+        const bySt = {};
+        mems.forEach(r => { if (r.programStatus) bySt[r.programStatus] = (bySt[r.programStatus] || 0) + r.members; });
+        const sorted = sortedTopN(bySt, 12);
+        makeHBar('chartStatus', sorted.map(s => s[0]), sorted.map(s => s[1]),
+            sorted.map((_, i) => PALETTE[i % PALETTE.length]));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  PROGRAM TABLE
+    // ═══════════════════════════════════════════════════════════
+    let tableData = [];
+    function renderTable(stats) {
+        tableData = Object.values(stats);
+        _sortAndRenderTable();
+    }
+
+    function sortTable(col) {
+        if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
+        document.querySelectorAll('.prog-table th').forEach(th => th.classList.remove('sorted'));
+        const th = document.getElementById('th-' + col);
+        if (th) th.classList.add('sorted');
+        _sortAndRenderTable();
+    }
+
+    function filterTable() {
+        _sortAndRenderTable();
+    }
+
+    function _sortAndRenderTable() {
+        const q = (document.getElementById('tableSearch').value || '').toLowerCase();
+        let rows = tableData.filter(s => !q || s.program.toLowerCase().includes(q) || s.eventName.toLowerCase().includes(q));
+        rows.sort((a, b) => {
+            const av = a[sortCol] || 0, bv = b[sortCol] || 0;
+            return typeof av === 'string' ? av.localeCompare(bv) * sortDir : (bv - av) * sortDir;
+        });
+        const maxPFT = Math.max(...rows.map(s => s.pipelineFT), 1);
+        const maxRFT = Math.max(...rows.map(s => s.revenueFT),  1);
+        const maxPMT = Math.max(...rows.map(s => s.pipelineMT), 1);
+        const maxRMT = Math.max(...rows.map(s => s.revenueMT),  1);
+        function lerpColor(lo, hi, t) {
+            return 'rgb(' + Math.round(lo[0]+(hi[0]-lo[0])*t) + ',' + Math.round(lo[1]+(hi[1]-lo[1])*t) + ',' + Math.round(lo[2]+(hi[2]-lo[2])*t) + ')';
+        }
+        const FT_LO = [197,216,247], FT_HI = [0,99,172];
+        const MT_LO = [180,230,210], MT_HI = [0,130,115];
+        function miniBar(val, maxVal, lo, hi) {
+            if (!val) return '';
+            const t = Math.min(val / maxVal, 1);
+            return '<span style="display:block;height:3px;width:' + Math.round(t * 64) + 'px;background:' + lerpColor(lo, hi, t) + ';border-radius:2px;margin-top:3px"></span>';
+        }
+        const tbody = document.getElementById('progTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = rows.map(s => {
+            var prog = (s.program || '').replace(/"/g, '&quot;');
+            return '<tr data-prog="' + prog + '">' +
+                '<td class="prog-name" title="' + prog + '">' + (s.program || '&mdash;') + '</td>' +
+                '<td class="num-cell">' + (s.members ? fmt(s.members) : '—') + '</td>' +
+                '<td class="num-cell">' + (s.newNames ? fmt(s.newNames) : '—') + '</td>' +
+                '<td class="num-cell">' + (s.success  ? fmt(s.success)  : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="cursor:pointer;background:#f0f4fd">' + (s.pipelineFT ? fmtUSD(s.pipelineFT) + miniBar(s.pipelineFT, maxPFT, FT_LO, FT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="cursor:pointer;background:#f0f4fd">' + (s.revenueFT  ? fmtUSD(s.revenueFT)  + miniBar(s.revenueFT,  maxRFT, FT_LO, FT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="cursor:pointer;background:#f0faf5">' + (s.pipelineMT ? fmtUSD(s.pipelineMT) + miniBar(s.pipelineMT, maxPMT, MT_LO, MT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="cursor:pointer;background:#f0faf5">' + (s.revenueMT  ? fmtUSD(s.revenueMT)  + miniBar(s.revenueMT,  maxRMT, MT_LO, MT_HI) : '—') + '</td>' +
+                '</tr>';
+        }).join('');
+        document.getElementById('tableCount').textContent = fmt(rows.length) + ' programs';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  UI STATE
+    // ═══════════════════════════════════════════════════════════
+    function showLoading(msg) {
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('loadingMsg').textContent     = msg || 'Loading…';
+    }
+
+    function showEmpty() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('emptyState').style.display   = 'block';
+    }
+
+    function showDash() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('dashContent').style.display  = 'block';
+        document.getElementById('filterBar').style.display    = 'flex';
+        document.getElementById('footerEl').style.display     = 'block';
+        if (exportDateStr) {
+            document.getElementById('exportDateLabel').textContent = 'Last Export: ' + formatExportDate(exportDateStr);
+            document.getElementById('exportBadge').style.display = 'inline-flex';
+        }
+    }
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    //  INIT
+    // ═══════════════════════════════════════════════════════════
+    window.addEventListener('load', async () => {
+        const dateStr = await detectLatestDate();
+        if (dateStr) {
+            await loadAllFiles(dateStr);
+        } else {
+            showEmpty();
+        }
+    });
+    </script>
+    <!-- Salesforce opportunity tooltip -->
+    <div id="sfOppTooltip" style="display:none;position:fixed;z-index:9999;background:white;border:1px solid #dde0e7;border-radius:7px;box-shadow:0 4px 20px rgba(0,0,0,0.14);padding:12px 16px;max-height:320px;overflow-y:auto;min-width:230px;max-width:300px;pointer-events:auto"></div>
+
+    <script>
+    // â”€â”€ Salesforce opportunity tooltip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    var oppByProgram = {}, oppByStage = {}, sfHideTimer = null, sfLocked = false, sfLockNext = false, sfCurrentTitle = null;
+
+    function buildOppIndex(revs) {
+        oppByProgram = {}; oppByStage = {};
+        var seen = {};
+        revs.forEach(function(r) {
+            if (!r.opportunityId) return;
+            var prog = r.programName, stg = r.stage || '(none)', key = r.opportunityId;
+            if (!seen[key]) {
+                seen[key] = true;
+                if (!oppByProgram[prog]) oppByProgram[prog] = [];
+                oppByProgram[prog].push({ id: key, stage: stg, amount: r.amountUSD });
+                if (!oppByStage[stg]) oppByStage[stg] = [];
+                oppByStage[stg].push({ id: key, prog: prog, amount: r.amountUSD });
+            }
+        });
+    }
+
+    function _lockSfTip() {
+        sfLocked = true;
+        var el = document.getElementById('sfOppTooltip');
+        if (el) el.style.border = '2px solid #0063AC';
+    }
+
+    function showSfTooltip(x, y, opps, title) {
+        clearTimeout(sfHideTimer);
+        var el = document.getElementById('sfOppTooltip');
+        if (!el || !opps.length) return;
+        // If same content already visible and not locked, just reposition
+        if (!sfLocked && sfCurrentTitle === title && el.style.display === 'block') {
+            _posSfTip(x, y); return;
+        }
+        sfCurrentTitle = title;
+        var lbl = title.length > 36 ? title.slice(0, 36) + '\u2026' : title;
+        var html = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;padding-bottom:7px;margin-bottom:8px;border-bottom:1px solid #eee;">'
+            + lbl + ' <span style="font-weight:400;">' + opps.length + ' opp' + (opps.length !== 1 ? 's' : '') + '</span></div>';
+        // Group by stage
+        var byStage = {};
+        opps.forEach(function(o) {
+            var s = o.stage || '(none)';
+            if (!byStage[s]) byStage[s] = [];
+            byStage[s].push(o);
+        });
+        var stageOrder = ['Closed Won','Closed Lost','Negotiation','Validate','Develop','Qualify','Create','Implementation','(none)'];
+        var stages = Object.keys(byStage).sort(function(a, b) {
+            var ai = stageOrder.indexOf(a), bi = stageOrder.indexOf(b);
+            if (ai === -1) ai = 99; if (bi === -1) bi = 99;
+            return ai !== bi ? ai - bi : a.localeCompare(b);
+        });
+        var shown = 0;
+        stages.forEach(function(stage) {
+            var group = byStage[stage];
+            html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin:8px 0 4px;">'
+                + stage + ' <span style="font-weight:400;">(' + group.length + ')</span></div>';
+            group.forEach(function(o) {
+                if (shown >= 30) return;
+                shown++;
+                html += '<div style="margin-bottom:4px;">'
+                    + '<a href="https://myansell.lightning.force.com/lightning/r/' + o.id + '/view" target="_blank" rel="noopener" '
+                    + 'style="font-size:11px;color:#0063AC;text-decoration:none;font-family:monospace;">'
+                    + o.id + '</a>'
+                    + (o.amount ? '<span style="font-size:10px;color:#555;margin-left:8px;">' + fmtUSD(o.amount) + '</span>' : '')
+                    + '</div>';
+            });
+        });
+        if (opps.length > 30) html += '<div style="font-size:10px;color:#aaa;margin-top:6px;">+ ' + (opps.length - 30) + ' more</div>';
+        el.innerHTML = '<button onclick="sfUnlock()" style="position:absolute;top:7px;right:9px;background:none;border:none;font-size:15px;color:#aaa;cursor:pointer;line-height:1;padding:0;" title="Close">&times;</button>' + html;
+        el.style.display = 'block';
+        el.style.border = sfLocked ? '2px solid #0063AC' : '1px solid #dde0e7';
+        if (!sfLocked) _posSfTip(x, y);
+    }
+
+    function sfUnlock() {
+        sfLocked = false;
+        sfCurrentTitle = null;
+        var el = document.getElementById('sfOppTooltip');
+        if (el) el.style.display = 'none';
+    }
+
+    function _posSfTip(x, y) {
+        var el = document.getElementById('sfOppTooltip');
+        if (!el || sfLocked) return;
+        var tw = 300, th = el.offsetHeight || 200;
+        var lx = x + 18, ly = y + 8;
+        if (lx + tw > window.innerWidth)  lx = x - tw - 8;
+        if (ly + th > window.innerHeight) ly = y - th - 8;
+        el.style.left = lx + 'px'; el.style.top = ly + 'px';
+    }
+
+    function hideSfTooltipDelayed() {
+        if (sfLocked) return;
+        sfHideTimer = setTimeout(function() { document.getElementById('sfOppTooltip').style.display = 'none'; }, 220);
+    }
+
+    document.addEventListener('mouseover', function(evt) {
+        if (sfLocked) return;
+        if (evt.target.closest('#sfOppTooltip')) { clearTimeout(sfHideTimer); return; }
+        var cell = evt.target.closest('.opp-cell');
+        if (!cell) return;
+        var row = cell.closest('tr[data-prog]');
+        if (!row) return;
+        var opps = oppByProgram[row.dataset.prog] || [];
+        if (opps.length) showSfTooltip(evt.clientX, evt.clientY, opps, row.dataset.prog);
+    });
+
+    document.addEventListener('mouseout', function(evt) {
+        if (sfLocked) return;
+        var fromCell = evt.target.closest && evt.target.closest('.opp-cell');
+        var fromTip  = evt.target.closest && evt.target.closest('#sfOppTooltip');
+        if (!fromCell && !fromTip) return;
+        var toCell = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('.opp-cell');
+        var toTip  = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('#sfOppTooltip');
+        if (!toCell && !toTip) hideSfTooltipDelayed(); else clearTimeout(sfHideTimer);
+    });
+
+    document.addEventListener('mousemove', function(evt) {
+        if (sfLocked) return;
+        if (evt.target.closest && evt.target.closest('.opp-cell')) _posSfTip(evt.clientX, evt.clientY);
+    });
+
+    document.addEventListener('click', function(evt) {
+        if (evt.target.closest && evt.target.closest('#sfOppTooltip')) return;
+        // Chart onClick already called showSfTooltip + set sfLockNext
+        if (sfLockNext) { sfLockNext = false; _lockSfTip(); return; }
+        var cell = evt.target.closest && evt.target.closest('.opp-cell');
+        if (cell) {
+            var row = cell.closest('tr[data-prog]');
+            if (!row) return;
+            var opps = oppByProgram[row.dataset.prog] || [];
+            if (opps.length) { showSfTooltip(evt.clientX, evt.clientY, opps, row.dataset.prog); _lockSfTip(); }
+            return;
+        }
+        if (sfLocked) sfUnlock();
+    });
+    </script>
+</body>
+</html>

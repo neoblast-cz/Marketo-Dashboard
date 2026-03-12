@@ -475,9 +475,10 @@
     // ═══════════════════════════════════════════════════════════
     //  FILE DETECTION & LOADING
     // ═══════════════════════════════════════════════════════════
-    async function detectLatestExport() {
+    async function detectAllExports() {
+        const results = [];
         const today = new Date();
-        for (let i = 0; i < 90; i++) {
+        for (let i = 0; i < 365; i++) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
             const y = d.getFullYear();
@@ -487,10 +488,38 @@
             const path = `Reports/${dateStr} Audit_Trail_Asset.csv`;
             try {
                 const r = await fetch(path, { method: 'HEAD' });
-                if (r.ok) return { path, dateStr };
+                if (r.ok) results.push({ path, dateStr });
             } catch {}
         }
-        return null;
+        return results; // newest first
+    }
+
+    async function loadAllExports(files) {
+        if (!files.length) { showEmpty(); return; }
+        showLoading('Loading ' + files.length + ' file(s)...');
+        const allRows = await Promise.all(
+            files.map(async ({ path }) => {
+                try {
+                    const resp = await fetch(path);
+                    if (!resp.ok) return [];
+                    const text = await resp.text();
+                    return Papa.parse(text, {
+                        header: true, skipEmptyLines: true,
+                        transformHeader: h => h.trim()
+                    }).data;
+                } catch (e) { return []; }
+            })
+        );
+        // Merge with dedup by Id
+        const seen = new Set();
+        const combined = [];
+        allRows.forEach(rows => rows.forEach(r => {
+            const id = (r['Id'] || '').trim();
+            if (id && !seen.has(id)) { seen.add(id); combined.push(r); }
+        }));
+        // Use the newest file's date as the export date label
+        exportDateStr = files[0].dateStr;
+        processData(combined);
     }
 
     function handleFileInput(e) {
@@ -914,8 +943,8 @@
     //  INIT
     // ═══════════════════════════════════════════════════════════
     window.addEventListener('load', async () => {
-        const found = await detectLatestExport();
-        if (found) loadCSV(found.path, found.dateStr);
+        const files = await detectAllExports();
+        loadAllExports(files);
     });
     </script>
 </body>

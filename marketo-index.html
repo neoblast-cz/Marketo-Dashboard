@@ -29,10 +29,11 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
 
-        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px)  { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px)  { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .dash-card {
             background: white;
@@ -115,7 +116,28 @@
     </header>
 
     <main class="main">
+        <!-- Dashboards -->
         <div class="section-title">Dashboards</div>
+        <div class="dashboard-grid">
+            <a href="marketo-db-analysis.html" class="dash-card teal">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                </div>
+                <h2>Database Analysis</h2>
+                <p>Full database health snapshot: deliverability segments, geographic spread, GBU composition, growth trends, verticals, and acquisition channels.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotDB"></span>
+                    <code id="exportFileLabel">Dashboard_Export.csv</code>
+                </div>
+            </a>
+        </div>
+
+        <!-- Analytics -->
+        <div class="section-title">Analytics</div>
         <div class="dashboard-grid">
             <a href="marketo-user-activity.html" class="dash-card blue">
                 <div class="dash-card-icon">
@@ -134,32 +156,71 @@
                 </div>
             </a>
 
-            <a href="marketo-db-analysis.html" class="dash-card teal">
-                <div class="dash-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                    </svg>
-                </div>
-                <h2>Database Analysis</h2>
-                <p>Full database health snapshot: deliverability segments, geographic spread, GBU composition, growth trends, verticals, and acquisition channels.</p>
-                <div class="data-file">
-                    <span class="status-dot" id="dotDB"></span>
-                    <code id="exportFileLabel">Dashboard_Export.csv</code>
-                </div>
-            </a>
-
-            <div class="dash-card purple disabled">
+            <a href="marketo-lead-generation.html" class="dash-card blue">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
                 </div>
-                <h2>Campaign Performance</h2>
-                <p>Analyse send volume, open rates, click-through rates, and unsubscribe trends by campaign, program type, and audience segment.</p>
-                <span class="coming-soon-badge">Coming Soon</span>
-            </div>
+                <h2>Lead Generation</h2>
+                <p>Lead management process flow: stage distribution, transition velocity, scoring matrix, and pipeline health across all lead statuses.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotLeadGen"></span>
+                    <code id="leadGenFileLabel">Dashboard_Export.csv</code>
+                </div>
+            </a>
+
+            <a href="marketo-events.html" class="dash-card purple">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <h2>Events Performance</h2>
+                <p>Event channel lead capture, pipeline and revenue attribution across all events programs.</p>
+                <div class="data-file" style="display:flex;flex-direction:column;gap:4px">
+                    <div><span class="status-dot" id="dotEvt1"></span><code id="evtFile1">iCapture Events.csv</code></div>
+                    <div><span class="status-dot" id="dotEvt2"></span><code id="evtFile2">iCapture Users.csv</code></div>
+                    <div><span class="status-dot" id="dotEvt3"></span><code id="evtFile3">iCapture Membership.xlsx</code></div>
+                    <div><span class="status-dot" id="dotEvt4"></span><code id="evtFile4">iCapture Revenue Created.xlsx</code></div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tools -->
+        <div class="section-title">Tools</div>
+        <div class="dashboard-grid">
+            <a href="marketo-landing-pages.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
+                <h2>Landing Pages</h2>
+                <p>Live inventory of all Marketo landing pages via API — status, workspace, folder, URL, and last updated.</p>
+                <div class="data-file">
+                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
+                </div>
+            </a>
+
+            <a href="marketo-forms.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M8 12h8M8 8h8M8 16h5"/>
+                    </svg>
+                </div>
+                <h2>Forms</h2>
+                <p>Live inventory of all Marketo forms via API — status, folder, language, theme, progressive profiling, and last updated.</p>
+                <div class="data-file">
+                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
+                </div>
+            </a>
         </div>
 
         <div class="faq-header">
@@ -206,11 +267,122 @@
             document.getElementById(dotId).classList.add('missing');
         }
 
-        findLatest('Audit_Trail_Asset.csv', 'dotActivity', 'auditFileLabel');
-        findLatest('Dashboard_Export.csv',  'dotDB',       'exportFileLabel');
+        findLatest('Audit_Trail_Asset.csv',          'dotActivity', 'auditFileLabel');
+        findLatest('Dashboard_Export.csv',           'dotDB',       'exportFileLabel');
+        findLatest('Dashboard_Export.csv',           'dotLeadGen',  'leadGenFileLabel');
+        findLatest('iCapture Events.csv',            'dotEvt1',     'evtFile1');
+        findLatest('iCapture Users.csv',             'dotEvt2',     'evtFile2');
+        findLatest('iCapture Membership.xlsx',       'dotEvt3',     'evtFile3');
+        findLatest('iCapture Revenue Created.xlsx',  'dotEvt4',     'evtFile4');
 
         // ---- FAQ Data ----
         const FAQ = [
+            // ── Events Performance ──────────────────────────────────────
+            {
+                q: 'What does the Events Performance page show?',
+                a: 'Events Performance analyses the <b>iCapture channel</b> — in-person and virtual events where leads are captured using the iCapture app.<br><br>' +
+                   'The page is built from four source files exported from iCapture and Marketo:<br>' +
+                   '— <b>iCapture Events</b>: event metadata (name, size, date, budget, team)<br>' +
+                   '— <b>iCapture Users</b>: rep-level lead capture activity<br>' +
+                   '— <b>iCapture Membership</b>: Marketo program membership and status per program<br>' +
+                   '— <b>iCapture Revenue Created</b>: opportunities attributed to event programs, with FT and MT attribution flags<br><br>' +
+                   'The join key between files is <b>Program Name / Campaign Name</b>.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What do the four Overview KPI cards show on Events Performance?',
+                a: '<b>Programs</b> — count of unique Marketo programs linked to iCapture events.<br><br>' +
+                   '<b>Membership</b> — total members, successes, and qualified leads across all programs (from iCapture Membership file).<br><br>' +
+                   '<b>Attribution (FT or MT)</b> — total pipeline created and revenue won attributed to event programs. Attribution model (First Touch or Multi Touch) is toggled in the filter bar.<br><br>' +
+                   '<b>Outstanding</b> — open pipeline (opportunities not yet closed) and predicted revenue, which is open pipeline weighted by stage probability.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is the difference between First Touch (FT) and Multi Touch (MT) attribution?',
+                a: '<b>First Touch (FT)</b>: credit goes to the event program that <i>first</i> touched the contact before the opportunity was created. One program gets 100% of the credit.<br><br>' +
+                   '<b>Multi Touch (MT)</b>: credit is shared across all programs that touched the contact at any point in the opportunity lifecycle.<br><br>' +
+                   'FT answers "which event sourced this opportunity?". MT answers "which events influenced this opportunity?".<br><br>' +
+                   'Toggle between the two models using the <b>FT / MT</b> buttons in the filter bar. All KPIs, charts and tables update instantly.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How is Predicted Revenue calculated on Events Performance?',
+                a: 'Predicted Revenue is the sum of all open attributed opportunities weighted by their stage probability:<br><br>' +
+                   '<code>Predicted Revenue = Σ (amountUSD × stageProbability)</code><br><br>' +
+                   'Stage probabilities used:<br>' +
+                   '<b>Create</b> 10% · <b>Qualify</b> 30% · <b>Develop</b> 50% · <b>Validate</b> 80% · <b>Negotiate</b> 95% · <b>Implementation / Closed Won</b> 100% · <b>Closed Lost</b> 0%<br><br>' +
+                   'Only opportunities that are attributed (FT or MT flag = 1) and have a probability between 0% and 100% exclusive are included. Closed Won and Closed Lost are excluded from the prediction.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How does the Performance Timeline chart work?',
+                a: 'The Performance Timeline is a combo chart that overlays four series over time (monthly or quarterly):<br><br>' +
+                   '— <b>Members</b> (bar): program members added in each period, from iCapture Membership<br>' +
+                   '— <b>Pipeline Created</b> (line): opportunities created, bucketed by <b>Opportunity Created Date</b><br>' +
+                   '— <b>Revenue Won</b> (line): closed won revenue, bucketed by <b>Opportunity Closed Date</b><br>' +
+                   '— <b>Predicted Revenue</b> (dashed line): future predicted revenue bucketed by expected close date, shown only for future periods<br><br>' +
+                   'Members use the left axis; pipeline/revenue/prediction use the right (USD) axis.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How do I export the iCapture files for Events Performance?',
+                a: 'Four files are required, all named with the export date prefix <code>YYYY-MM-DD</code>:<br><br>' +
+                   '<b>iCapture Events.csv</b> — export from the iCapture portal → Reports → Events<br>' +
+                   '<b>iCapture Users.csv</b> — export from iCapture portal → Reports → Users<br>' +
+                   '<b>iCapture Membership.xlsx</b> — export from Marketo → Analytics → iCapture program membership report<br>' +
+                   '<b>iCapture Revenue Created.xlsx</b> — export from Marketo → Analytics → iCapture revenue attribution report<br><br>' +
+                   'Place all four files in the <code>Reports/</code> folder. The page auto-detects the latest date that has an Events file present.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            // ── Landing Pages ────────────────────────────────────────────
+            {
+                q: 'What does the Landing Pages tool show?',
+                a: 'Landing Pages provides a <b>live inventory</b> of all Marketo landing pages fetched directly from the Marketo REST API — no file export needed.<br><br>' +
+                   'Each row shows: ID, name, title, status (Approved / Draft / Has Pending Draft), workspace, folder, vanity URL, template, and last updated / created dates.<br><br>' +
+                   'KPI cards show totals for approved, draft, and pages with a pending draft. Two breakdown cards (By Workspace, By Template) are collapsible.<br><br>' +
+                   'You can filter by status, workspace, and template, and search across name, title, URL, and folder.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How do I connect Landing Pages to the Marketo API?',
+                a: 'Click the <b>API</b> button in the top-right header to open the credentials panel. Enter your:<br><br>' +
+                   '— <b>Munchkin ID</b>: found in Marketo → Admin → Munchkin<br>' +
+                   '— <b>Client ID</b> and <b>Client Secret</b>: from a LaunchPoint API-Only service in Marketo → Admin → LaunchPoint<br><br>' +
+                   'Click <b>Save</b> then <b>Test</b> to verify connectivity. Credentials are stored in session storage (cleared when the browser tab closes).<br><br>' +
+                   'A local proxy must also be running: open a terminal and run <code>powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1</code>. The proxy is needed because browsers block direct cross-origin requests to the Marketo API.',
+                tag: 'howto', tagLabel: 'How-To'
+            },
+            {
+                q: 'What do the Unapprove and Delete actions do on Landing Pages?',
+                a: 'Both actions use a two-click confirm pattern to prevent accidental changes — click once to arm, click again within 3 seconds to confirm.<br><br>' +
+                   '<b>Unapprove</b>: calls <code>POST /rest/asset/v1/landingPage/{id}/unapprove.json</code>. The page reverts to Draft status. Shown for Approved and Has-Draft pages.<br><br>' +
+                   '<b>Delete</b>: calls <code>POST /rest/asset/v1/landingPage/{id}/delete.json</code>. The page is permanently deleted from Marketo and removed from the table with a slide animation. Only available for Draft pages (Marketo requires a page to be unapproved before deletion).',
+                tag: 'data', tagLabel: 'Data'
+            },
+            // ── Forms ────────────────────────────────────────────────────
+            {
+                q: 'What does the Forms tool show?',
+                a: 'Forms provides a <b>live inventory</b> of all Marketo forms fetched from the Marketo REST API.<br><br>' +
+                   'Each row shows: ID, name, status, folder, language, theme, progressive profiling flag, submit button label, description, and last updated / created dates.<br><br>' +
+                   'Breakdown cards show distribution <b>By Folder</b> and <b>By Language</b>. Filter by status, folder, and language, or free-text search across name, description, folder, language and theme.<br><br>' +
+                   'Uses the same API credentials and local proxy as Landing Pages — configure once and both tools share the session.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What is Progressive Profiling on a Marketo form?',
+                a: 'Progressive Profiling is a Marketo feature that hides fields a contact has already filled in and replaces them with new questions on subsequent form submissions.<br><br>' +
+                   'This lets forms stay short for returning visitors while gathering richer data over time.<br><br>' +
+                   'In the Forms table, the <b>Prog. Prof.</b> column shows <span style="background:#e8f5ee;color:#1a7a4a;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">Yes</span> or <span style="background:#f5f6f7;color:#aaa;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">No</span> for each form.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'What does Discard Draft do on Forms?',
+                a: 'The <b>Discard Draft</b> action calls <code>POST /rest/asset/v1/form/{id}/discardDraft.json</code>. It removes any unapproved draft from an approved form, reverting it to the last approved version.<br><br>' +
+                   'This is useful when a draft edit was started but should be abandoned. The approved version remains live.<br><br>' +
+                   'Delete is available only on pure Draft forms (not yet approved). Both actions use the two-click confirm pattern.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            // ── User Activity ────────────────────────────────────────────
             {
                 q: 'What does the User Activity dashboard show?',
                 a: 'The User Activity dashboard analyses the <b>Marketo Audit Trail</b> — a log of every action performed by every user in the Marketo instance.<br><br>' +
@@ -367,11 +539,12 @@
                 tag: 'data', tagLabel: 'Data'
             },
             {
-                q: 'What does the Demand Generation tab show?',
-                a: 'The Demand Generation tab focuses exclusively on <b>SFDC Leads</b> (including records with a blank SFDC Type, which exist only in Marketo). Contacts are excluded because they are already associated with a Salesforce Account and are managed through a different sales motion.<br><br>' +
-                   'The tab contains two sections:<br>' +
+                q: 'What does the Lead Generation page show?',
+                a: 'The Lead Generation page focuses exclusively on <b>SFDC Leads</b> (including records with a blank SFDC Type, which exist only in Marketo). Contacts are excluded because they are already associated with a Salesforce Account and are managed through a different sales motion.<br><br>' +
+                   'The page contains two sections:<br>' +
                    '— <b>Lead Management Process</b>: a visual flow of how leads move through Person Status stages, with proportional box sizing based on record counts<br>' +
-                   '— <b>Lead Scoring Matrix</b>: a heatmap showing how leads are distributed across Relative Urgency (0–3) and Relative Score (0–3) combinations',
+                   '— <b>Lead Scoring Matrix</b>: a heatmap showing how leads are distributed across Relative Urgency (0–3) and Relative Score (0–3) combinations<br><br>' +
+                   'It uses the same <code>YYYY-MM-DD Dashboard_Export.csv</code> file as Database Analysis.',
                 tag: 'data', tagLabel: 'Data'
             },
             {
@@ -389,9 +562,8 @@
                 tag: 'data', tagLabel: 'Data'
             },
             {
-                q: 'How are the Demand Generation tab filters applied?',
-                a: 'The Demand tab has five filters: <b>Organisation</b>, <b>GBU</b>, <b>Deliverability</b>, <b>Vertical</b>, and <b>Country</b>.<br><br>' +
-                   'These filters are completely independent from the filters on the Database Analysis tab — changing one does not affect the other.<br><br>' +
+                q: 'How are the Lead Generation filters applied?',
+                a: 'The Lead Generation page has five filters: <b>Organisation</b>, <b>GBU</b>, <b>Deliverability</b>, <b>Vertical</b>, and <b>Country</b>.<br><br>' +
                    'The base population is always limited to <b>SFDC Leads + blank SFDC Type</b> before any filters are applied. The filter logic is:<br>' +
                    '<code>sfdcType === "Lead" || sfdcType === ""</code>, then each active filter further narrows the set by the selected field values.<br><br>' +
                    'The record counter in the filter bar shows how many leads match the current selection versus the total lead pool.',
