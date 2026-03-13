@@ -118,6 +118,9 @@
         <span class="filter-label">Attribution:</span>
         <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">FT</button>
         <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">MT</button>
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px;flex-shrink:0"></span>
+        <input id="filterBarSearch" type="text" placeholder="Search program…" oninput="onFilterBarSearch(this.value)"
+            style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:4px;outline:none;min-width:180px;max-width:240px;height:28px">
         <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
         <span class="filter-count" id="filterCount"></span>
     </div>
@@ -295,7 +298,7 @@
                     All Programs
                     <input id="tableSearch" type="text" placeholder="Search program…"
                         oninput="filterTable()"
-                        style="font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;outline:none;min-width:200px">
+                        style="display:none">
                     <span id="tableCount" style="font-size:12px;color:#888;font-weight:400;margin-left:auto"></span>
                 </div>
                 <div style="max-height:500px;overflow-y:auto;margin-top:8px">
@@ -559,6 +562,17 @@
         }
         if (msState['f-status'].size) mems = mems.filter(r => msState['f-status'].has(r.programStatus));
         if (msState['f-stage'].size)  revs = revs.filter(r => msState['f-stage'].has(r.stage));
+        // Search filter: restrict to matching programs across all sources
+        const q = (document.getElementById('tableSearch') && document.getElementById('tableSearch').value || '').toLowerCase().trim();
+        if (q) {
+            evts = evts.filter(r => (r.eventName || '').toLowerCase().includes(q) || (r.campaignName || '').toLowerCase().includes(q));
+            const matchedPrograms = new Set([
+                ...evts.map(r => r.campaignName),
+                ...mems.filter(r => (r.programName || '').toLowerCase().includes(q)).map(r => r.programName)
+            ]);
+            mems = mems.filter(r => matchedPrograms.has(r.programName) || (r.programName || '').toLowerCase().includes(q));
+            revs = revs.filter(r => matchedPrograms.has(r.programName) || (r.programName || '').toLowerCase().includes(q));
+        }
         return { evts, mems, revs };
     }
 
@@ -581,10 +595,20 @@
         onMsChange();
     }
 
+    function onFilterBarSearch(val) {
+        var ts = document.getElementById('tableSearch');
+        if (ts) ts.value = val;
+        onMsChange();
+    }
+
     function resetFilters() {
         Object.keys(msState).forEach(id => { msState[id].clear(); updateMsBtn(id); });
         document.querySelectorAll('.ms-list input').forEach(cb => cb.checked = false);
         document.getElementById('filterCount').textContent = '';
+        var fbs = document.getElementById('filterBarSearch');
+        if (fbs) fbs.value = '';
+        var ts = document.getElementById('tableSearch');
+        if (ts) ts.value = '';
         setViewFilter('all');
         setAttrMode('mt');
     }
@@ -888,9 +912,9 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { type: 'bar',  label: 'Members',                  data: allKeys.map(function(k) { return memBuckets[k]  || 0; }), backgroundColor: 'rgba(0,99,172,0.7)',   borderRadius: 2, yAxisID: 'yL', order: 3 },
-                    { type: 'bar',  label: 'Success',                  data: allKeys.map(function(k) { return sucBuckets[k]  || 0; }), backgroundColor: 'rgba(0,162,143,0.8)',  borderRadius: 2, yAxisID: 'yL', order: 3 },
-                    { type: 'bar',  label: 'Qualified',                data: allKeys.map(function(k) { return qualBuckets[k] || 0; }), backgroundColor: 'rgba(112,48,160,0.8)', borderRadius: 2, yAxisID: 'yL', order: 3 },
+                    { type: 'bar',  label: 'Members',                  data: allKeys.map(function(k) { return memBuckets[k]  || 0; }), backgroundColor: 'rgba(0,99,172,0.7)',   borderRadius: 2, yAxisID: 'yL', order: 3, stack: 'members' },
+                    { type: 'bar',  label: 'Success',                  data: allKeys.map(function(k) { return Math.max(0, (sucBuckets[k] || 0) - (qualBuckets[k] || 0)); }), backgroundColor: 'rgba(0,162,143,0.8)',  borderRadius: 0, yAxisID: 'yL', order: 3, stack: 'success' },
+                    { type: 'bar',  label: 'Qualified',                data: allKeys.map(function(k) { return qualBuckets[k] || 0; }), backgroundColor: 'rgba(112,48,160,0.85)', borderRadius: 2, yAxisID: 'yL', order: 3, stack: 'success' },
                     { type: 'line', label: 'Pipeline ' + attrLbl,      data: allKeys.map(function(k) { return pipeBuckets[k] || 0; }), borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 1 },
                     { type: 'line', label: 'Revenue Won ' + attrLbl,   data: allKeys.map(function(k) { return wonBuckets[k]  || 0; }), borderColor: '#70AD47', backgroundColor: 'rgba(112,173,71,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 2 },
                     { type: 'line', label: 'Predicted Revenue',        data: allKeys.map(function(k) { return k >= todayBucket ? (predBuckets[k] || null) : null; }), borderColor: 'rgba(112,173,71,0.55)', backgroundColor: 'rgba(112,173,71,0.04)', borderDash: [7,4], fill: true, tension: 0.3, pointRadius: 3, pointStyle: 'triangle', borderWidth: 2, yAxisID: 'yR', order: 1 }
@@ -900,11 +924,32 @@
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-                    tooltip: { mode: 'index', intersect: false, callbacks: { label: function(c) { if (c.parsed.y === null) return null; return ' ' + c.dataset.label + ': ' + (c.dataset.yAxisID === 'yR' ? fmtUSD(c.parsed.y) : fmt(c.parsed.y)); } } }
+                    tooltip: {
+                        mode: 'index', intersect: false,
+                        callbacks: {
+                            label: function(c) {
+                                if (c.parsed.y === null) return null;
+                                // For the Success dataset show total success (non-qual + qual)
+                                if (c.dataset.label === 'Success') {
+                                    var k = allKeys[c.dataIndex];
+                                    var total = sucBuckets[k] || 0;
+                                    return ' Success (total): ' + fmt(total);
+                                }
+                                if (c.dataset.label === 'Qualified') {
+                                    var k = allKeys[c.dataIndex];
+                                    var total = sucBuckets[k] || 0;
+                                    var qual  = qualBuckets[k] || 0;
+                                    var pct   = total > 0 ? Math.round(qual / total * 100) : 0;
+                                    return ' Qualified: ' + fmt(qual) + ' (' + pct + '% of success)';
+                                }
+                                return ' ' + c.dataset.label + ': ' + (c.dataset.yAxisID === 'yR' ? fmtUSD(c.parsed.y) : fmt(c.parsed.y));
+                            }
+                        }
+                    }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
-                    yL: { type: 'linear', position: 'left',  beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: function(v) { return fmt(v); } }, title: { display: true, text: 'Members', font: { size: 10 }, color: '#888' } },
+                    x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
+                    yL: { stacked: true, type: 'linear', position: 'left',  beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: function(v) { return fmt(v); } }, title: { display: true, text: 'Members', font: { size: 10 }, color: '#888' } },
                     yR: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { font: { size: 11 }, callback: function(v) { return fmtUSD(v); } }, title: { display: true, text: 'USD', font: { size: 10 }, color: '#888' } }
                 }
             },

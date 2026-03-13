@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo | Analytics</title>
+    <link rel="stylesheet" href="ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .filter-bar { position: sticky; top: 71px; z-index: 99; flex-direction: column; padding: 0; gap: 0; }
+        .fb-row { display: flex; align-items: center; gap: 8px; padding: 7px 30px; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
+        .fb-row + .fb-row { border-top: 1px solid #f0f0f0; }
+
+        .prog-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+        .prog-table td.prog-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prog-table th.col-xs  { width: 60px; }
+        .prog-table th.col-sm  { width: 72px; }
+        .prog-table th.col-med { width: 86px; }
+        .prog-table th.col-ch  { width: 110px; }
+        .prog-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb; color: #555; font-weight: 600; position: sticky; top: 0; background: #f8f9fa; z-index: 1; cursor: pointer; user-select: none; white-space: nowrap; }
+        .prog-table th:hover { background: #edf0f3; }
+        .prog-table th .sort-arrow { font-size: 10px; margin-left: 4px; color: #bbb; }
+        .prog-table th.sorted .sort-arrow { color: #0063AC; }
+        .prog-table td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .prog-table tr:hover td { background: #f8f9fa; }
+        .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+        .usd-cell  { text-align: right; font-variant-numeric: tabular-nums; color: #0063AC; font-weight: 500; }
+        .ch-badge  { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; white-space: nowrap; background: #e8f0fb; color: #1565c0; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+
+        /* Butterfly channel selector */
+        .bf-ch-list { border: 1px solid #e5e7eb; border-radius: 5px; max-height: 220px; overflow-y: auto; font-size: 12px; }
+        .bf-ch-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
+        .bf-ch-item:last-child { border-bottom: none; }
+        .bf-ch-item:hover { background: #f4f7fb; }
+        .bf-ch-item input { accent-color: #0063AC; cursor: pointer; flex-shrink: 0; }
+        .bf-ch-item span  { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ HEADER ══════════════════════════════════════════════════════ -->
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>Program Analytics Overview</span></h1>
+                <div class="header-sub">
+                    Omnichannel Program Performance
+                    <span class="export-badge" id="exportBadge" style="display:none">
+                        <span class="export-badge-dot"></span>
+                        <span id="exportDateLabel"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <a href="marketo-index.html" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- ═══ FILTER BAR ═══════════════════════════════════════════════════ -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+
+        <!-- Row 1: Attribution + Time Scale + Reset -->
+        <div class="fb-row">
+            <span class="filter-label">Attribution:</span>
+            <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">FT</button>
+            <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">MT</button>
+
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+            <span class="filter-label">Scale:</span>
+            <button class="quick-filter-btn" id="btnTsWeek"    onclick="setTimeScale('week')"    style="margin:0">Week</button>
+            <button class="quick-filter-btn active" id="btnTsMonth"   onclick="setTimeScale('month')"   style="margin:0">Month</button>
+            <button class="quick-filter-btn" id="btnTsQuarter" onclick="setTimeScale('quarter')" style="margin:0">Quarter</button>
+            <button class="quick-filter-btn" id="btnTsYear"    onclick="setTimeScale('year')"    style="margin:0">Year</button>
+            <button class="quick-filter-btn" id="btnTsFY"      onclick="setTimeScale('fy')"      style="margin:0">FY</button>
+
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+            <button class="quick-filter-btn" id="btnIncludeSales" onclick="toggleIncludeSales()" style="margin:0"
+                title="'Record Created in Salesforce' is excluded by default as it inflates FT attribution numbers. Toggle to include it.">
+                Include Sales
+            </button>
+
+            <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
+            <span class="filter-count" id="filterCount"></span>
+        </div>
+
+        <!-- Row 2: Dimension filters + Search -->
+        <div class="fb-row">
+            <span class="filter-label">Filter:</span>
+
+            <div class="ms-wrap" id="ms-f-gbu">
+                <button class="ms-btn" onclick="toggleMs('f-gbu',event)">
+                    <span id="ms-f-gbu-label">GBU</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-f-gbu-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('f-gbu')">Select All</button><button onclick="clearMs('f-gbu')">Clear</button></div>
+                    <div class="ms-list" id="ms-f-gbu-list"></div>
+                </div>
+            </div>
+
+            <div class="ms-wrap" id="ms-f-region">
+                <button class="ms-btn" onclick="toggleMs('f-region',event)">
+                    <span id="ms-f-region-label">Region</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-f-region-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('f-region')">Select All</button><button onclick="clearMs('f-region')">Clear</button></div>
+                    <div class="ms-list" id="ms-f-region-list"></div>
+                </div>
+            </div>
+
+            <div class="ms-wrap" id="ms-f-channel">
+                <button class="ms-btn" onclick="toggleMs('f-channel',event)">
+                    <span id="ms-f-channel-label">Channel</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-f-channel-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('f-channel')">Select All</button><button onclick="clearMs('f-channel')">Clear</button></div>
+                    <div class="ms-list" id="ms-f-channel-list"></div>
+                </div>
+            </div>
+
+            <div class="ms-wrap" id="ms-f-stage">
+                <button class="ms-btn" onclick="toggleMs('f-stage',event)">
+                    <span id="ms-f-stage-label">Opp. Stage</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-f-stage-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('f-stage')">Select All</button><button onclick="clearMs('f-stage')">Clear</button></div>
+                    <div class="ms-list" id="ms-f-stage-list"></div>
+                </div>
+            </div>
+
+            <input id="filterBarSearch" type="text" placeholder="Search program…" oninput="onFilterBarSearch(this.value)"
+                style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:4px;outline:none;min-width:180px;max-width:260px;height:28px;margin-left:4px">
+        </div>
+
+        <!-- Row 3: Date Range -->
+        <div class="fb-row">
+            <span class="filter-label">Date Range:</span>
+            <input type="date" id="dateFrom" oninput="onMsChange()"
+                style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+            <span style="color:#bbb;font-size:12px">to</span>
+            <input type="date" id="dateTo" oninput="onMsChange()"
+                style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+            <span style="font-size:11px;color:#b0b7c3;margin-left:8px;font-style:italic"
+                title="Each source uses its own date field: Pipeline (Opps Create) → Opportunity Created Date · Revenue (Opps Won) → Opportunity Closed Date · Membership → Membership Date">
+                ℹ Pipeline uses <em>created date</em> · Revenue uses <em>closed date</em> · Membership uses <em>membership date</em>
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ═══ LOADING ══════════════════════════════════════════════════════ -->
+    <div id="loadingState" style="display:none;padding:80px 30px;text-align:center">
+        <div class="loading-spinner"></div>
+        <div id="loadingMsg" style="margin-top:16px;color:#888;font-size:14px">Loading…</div>
+    </div>
+
+    <!-- ═══ EMPTY STATE ══════════════════════════════════════════════════ -->
+    <div id="emptyState" style="padding:80px 30px;text-align:center">
+        <svg viewBox="0 0 64 64" width="56" height="56" style="margin-bottom:16px;opacity:.25"><rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="#0063AC" stroke-width="3"/><line x1="20" y1="24" x2="44" y2="24" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="32" x2="44" y2="32" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="34" y2="40" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/></svg>
+        <h2 style="margin:0 0 8px;font-size:20px;color:#333">No data found</h2>
+        <p style="color:#888;font-size:14px;margin:0">Place Supermetrics export files in <code>Reports/omnichannel/</code> and reload.</p>
+    </div>
+
+    <!-- ═══ DASHBOARD CONTENT ════════════════════════════════════════════ -->
+    <div id="dashContent" style="display:none">
+        <div class="main">
+
+            <!-- KPI Cards -->
+            <div id="kpiGrid" class="kpi-grid" style="grid-template-columns:repeat(4,1fr)"></div>
+
+            <!-- ── Section 1: Performance Trendline ── -->
+            <div class="section-label">Performance Trendline</div>
+            <div class="chart-card">
+                <div class="chart-title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    Members, Success &amp; Qualified vs Pipeline/Revenue over time
+                </div>
+                <div style="position:relative;height:320px"><canvas id="chartCombo"></canvas></div>
+            </div>
+
+            <!-- ── Section 2: Pipeline & Revenue Top Programs ── -->
+            <div class="section-label">Pipeline &amp; Revenue Attribution</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                <div class="chart-card">
+                    <div class="chart-title">Top Programs by Pipeline <span id="pipeAttrLabel" style="color:#0063AC">MT</span></div>
+                    <div id="chartPipelineWrap" style="position:relative;height:300px"><canvas id="chartPipeline"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Top Programs by Revenue Won <span id="revAttrLabel" style="color:#70AD47">MT</span></div>
+                    <div id="chartRevenueWrap" style="position:relative;height:300px"><canvas id="chartRevenue"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">First Touch vs Multi Touch — Top Programs</div>
+                    <div style="position:relative;height:300px"><canvas id="chartFTvsMT"></canvas></div>
+                </div>
+            </div>
+
+            <!-- ── Section 4: Channel & GBU ── -->
+            <div class="section-label">Channel &amp; Segment Breakdown</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="chart-card">
+                    <div class="chart-title">Members by Channel</div>
+                    <div id="chartChannelWrap" style="position:relative;height:260px"><canvas id="chartChannel"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Pipeline by GBU</div>
+                    <div id="chartGBUWrap" style="position:relative;height:260px"><canvas id="chartGBU"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Pipeline by Region</div>
+                    <div style="position:relative;height:240px"><canvas id="chartRegionPipeline"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Revenue Won by Region</div>
+                    <div style="position:relative;height:240px"><canvas id="chartRegionRevenue"></canvas></div>
+                </div>
+            </div>
+
+            <!-- ── Section 5: Opp Stage Funnel ── -->
+            <div class="section-label">Opportunity Stages</div>
+            <div class="chart-card">
+                <div class="chart-title">Opportunity Stage Breakdown (from Pipeline file)</div>
+                <div id="chartStageWrap" style="position:relative;height:260px"><canvas id="chartStage"></canvas></div>
+            </div>
+
+            <!-- ── Section 6: Channel Comparison Butterfly ── -->
+            <div class="section-label" style="margin-top:28px">Channel Comparison</div>
+            <div class="chart-card">
+                <div class="chart-title">Deal Performance by Channel &amp; Deal Size</div>
+                <div style="display:grid;grid-template-columns:170px 1fr 170px;gap:20px;align-items:start;margin-top:14px">
+
+                    <!-- Left channel selector -->
+                    <div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#0063AC;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                            <div style="width:10px;height:10px;background:#0063AC;border-radius:2px;flex-shrink:0"></div>
+                            Left
+                            <button onclick="bfClearSide('left')" style="margin-left:auto;padding:1px 7px;border:1px solid #dde0e7;border-radius:3px;background:none;color:#999;font-size:10px;cursor:pointer;line-height:1.5" title="Clear left selection">✕</button>
+                        </div>
+                        <div id="bfLeftList" class="bf-ch-list"></div>
+                    </div>
+
+                    <!-- Center: tier selector + butterfly output -->
+                    <div>
+                        <div id="bfTierRow" style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+                            <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap">Deal Size:</span>
+                            <button id="bfTierAllBtn" class="quick-filter-btn active" onclick="bfSelectTier(-1)" style="margin:0;padding:3px 10px;font-size:11px">All Deals</button>
+                        </div>
+                        <div id="bfOutput">
+                            <div style="color:#aaa;text-align:center;padding:32px 20px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:4px;letter-spacing:.02em">
+                                Select at least one channel on each side to compare
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right channel selector -->
+                    <div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:flex-end">
+                            <button onclick="bfClearSide('right')" style="margin-right:auto;padding:1px 7px;border:1px solid #dde0e7;border-radius:3px;background:none;color:#999;font-size:10px;cursor:pointer;line-height:1.5" title="Clear right selection">✕</button>
+                            Right
+                            <div style="width:10px;height:10px;background:#9ca3af;border-radius:2px;flex-shrink:0"></div>
+                        </div>
+                        <div id="bfRightList" class="bf-ch-list"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Section 7: Program Table ── -->
+            <div class="section-label" style="margin-top:28px">Program Summary</div>
+            <div class="chart-card">
+                <div class="chart-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    All Programs
+                    <input id="tableSearch" type="text" placeholder="Search program…" oninput="filterTable()" style="display:none">
+                    <span id="tableCount" style="font-size:12px;color:#888;font-weight:400;margin-left:auto"></span>
+                </div>
+                <div style="max-height:520px;overflow-y:auto;margin-top:8px">
+                    <table class="prog-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('program')" id="th-program">Program <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('programChannel')" id="th-programChannel" class="col-ch">Channel <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('gbu')" id="th-gbu" class="col-sm">GBU <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('region')" id="th-region" class="col-sm">Region <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('members')" id="th-members" class="num-cell col-sm">Members <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('successTotal')" id="th-successTotal" class="num-cell col-sm">Success <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('qualified')" id="th-qualified" class="num-cell col-sm">Qualified <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('pipelineFT')" id="th-pipelineFT" class="usd-cell col-med" style="background:#e8f0fb">Pipeline FT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('revenueFT')" id="th-revenueFT" class="usd-cell col-med" style="background:#e8f0fb">Revenue FT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('pipelineMT')" id="th-pipelineMT" class="usd-cell col-med" style="background:#e6f4ee">Pipeline MT <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('revenueMT')" id="th-revenueMT" class="usd-cell col-med" style="background:#e6f4ee">Revenue MT <span class="sort-arrow">↕</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="progTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
+    <div id="footerEl" class="footer" style="display:none">Marketo Analytics &mdash; Ansell Healthcare</div>
+
+    <!-- Salesforce opportunity tooltip -->
+    <div id="sfOppTooltip" style="display:none;position:fixed;z-index:9999;background:white;border:1px solid #dde0e7;border-radius:7px;box-shadow:0 4px 20px rgba(0,0,0,0.14);padding:12px 16px;max-height:320px;overflow-y:auto;min-width:230px;max-width:300px;pointer-events:auto"></div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════════════
+    var rawMembership  = [];   // from Supermetrics - Membership v2
+    var rawQualified   = [];   // from Supermetrics - Qualified v3
+    var rawOppsCreate  = [];   // from Supermetrics Opps Create v8 ex  (pipeline, use createdDate)
+    var rawOppsWon     = [];   // from Supermetrics Opps Won v10        (revenue, use closedDate)
+    var exportDateStr  = '';
+    var charts         = {};
+    var sortCol        = 'members';
+    var sortDir        = -1;
+
+    const msState = {
+        'f-gbu':     new Set(),
+        'f-region':  new Set(),
+        'f-channel': new Set(),
+        'f-stage':   new Set()
+    };
+    var attributionMode  = 'mt';
+    var timeScale        = 'month';
+    var dateMinDefault   = '';   // YYYY-MM-DD — set from data on load, used by resetFilters
+    var dateMaxDefault   = '';
+    var includeSalesCRM  = false;
+    var SALES_CRM_PROG   = 'Record Created in Salesforce';
+
+    // ═══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function fmt(n)    { if (n == null || n === '') return '—'; return Number(n).toLocaleString('en-US'); }
+    function fmtUSD(n) {
+        if (!n && n !== 0) return '—';
+        n = Number(n);
+        if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+        return '$' + n.toFixed(0);
+    }
+    function parseMoney(v) { return parseFloat(String(v || '').replace(/[$,\s]/g, '')) || 0; }
+    function parseNum(v)   { return parseFloat(String(v || '').replace(/[,\s]/g, '')) || 0; }
+    function parseDate(v) {
+        if (!v) return null;
+        if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000));
+        var d = new Date(v); return isNaN(d) ? null : d;
+    }
+    function ordinal(d) {
+        if (d > 3 && d < 21) return d + 'th';
+        return d + (['th','st','nd','rd','th','th','th','th','th','th'][d % 10] || 'th');
+    }
+    function formatExportDate(s) {
+        var parts = s.split('-').map(Number);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return ordinal(parts[2]) + ' of ' + months[parts[1]-1] + " '" + String(parts[0]).slice(-2);
+    }
+    function truncate(s, n) { if (!s) return '—'; s = String(s); return s.length > n ? s.slice(0, n) + '…' : s; }
+    function sortedTopN(obj, n) { return Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n); }
+
+    function getBucket(date, scale) {
+        if (!date) return null;
+        var y = date.getFullYear(), mo = date.getMonth(), dy = date.getDate();
+        if (scale === 'week')    { var jan1 = new Date(y,0,1), wk = Math.ceil(((date-jan1)/86400000+jan1.getDay()+1)/7); return y + '-W' + String(wk).padStart(2,'0'); }
+        if (scale === 'month')   return y + '-' + String(mo+1).padStart(2,'0');
+        if (scale === 'quarter') return y + '-Q' + (Math.floor(mo / 3) + 1);
+        if (scale === 'year')    return String(y);
+        if (scale === 'fy') {
+            // FY starts 1 July — months 6–11 (Jul–Dec) belong to next calendar year's FY
+            var fy = mo >= 6 ? y + 1 : y;
+            return 'FY' + String(fy).slice(-2);
+        }
+        return y + '-' + String(mo+1).padStart(2,'0');
+    }
+    function formatBucketLabel(key, scale) {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if (scale === 'week')    return key.replace('-W',' W');
+        if (scale === 'month')   { var pts = key.split('-'); return months[+pts[1]-1] + ' ' + pts[0].slice(2); }
+        if (scale === 'quarter') return key; // e.g. 2025-Q3
+        if (scale === 'year')    return key;
+        if (scale === 'fy')      return key; // e.g. FY25
+        return key;
+    }
+
+    const PALETTE = ['#0063AC','#00A28F','#7030A0','#ED7D31','#70AD47','#4472C4','#FF6B6B','#20B2AA','#9370DB','#FFA07A','#32CD32','#1E90FF','#FFD700','#DC143C','#FF69B4'];
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILE LOADING
+    // ═══════════════════════════════════════════════════════════
+    async function readFile(path) {
+        const resp = await fetch(path);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const buf = await resp.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+    }
+
+    async function detectLatestDate() {
+        const today = new Date();
+        for (let i = 0; i < 90; i++) {
+            const d = new Date(today); d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            try {
+                const r = await fetch('Reports/omnichannel/' + dateStr + ' Supermetrics - Membership v2.xlsx', { method: 'HEAD' });
+                if (r.ok) return dateStr;
+            } catch {}
+        }
+        return null;
+    }
+
+    async function loadAllFiles(dateStr) {
+        showLoading('Loading Supermetrics exports for ' + formatExportDate(dateStr) + '…');
+        const base = 'Reports/omnichannel/' + dateStr + ' Supermetrics';
+        const [mbRaw, qlRaw, pcRaw, pwRaw] = await Promise.all([
+            readFile(base + ' - Membership v2.xlsx').catch(() => []),
+            readFile(base + ' - Qualified v3.xlsx').catch(() => []),
+            readFile(base + ' Opps Create v8 ex.xlsx').catch(() => []),
+            readFile(base + ' Opps Won v10.xlsx').catch(() => [])
+        ]);
+
+        rawMembership = mbRaw.map(r => ({
+            programName:    String(r['Program Name'] || '').trim(),
+            membershipDate: parseDate(r['Membership Date']),
+            gbu:            String(r['GBU'] || '').trim(),
+            region:         String(r['Region'] || '').trim(),
+            emailType:      String(r['Email Type'] || '').trim(),
+            programChannel: String(r['Program Channel'] || '').trim(),
+            members:        parseNum(r['Members']),
+            newNames:       parseNum(r['New Names']),
+            successTotal:   parseNum(r['Success (Total)']),
+            successNewNames:parseNum(r['Success (New Names)'])
+        })).filter(r => r.programName);
+
+        rawQualified = qlRaw.map(r => ({
+            programName:    String(r['Program Name'] || '').trim(),
+            membershipDate: parseDate(r['Membership Date']),
+            members:        parseNum(r['Members']),
+            newNames:       parseNum(r['New Names'])
+        })).filter(r => r.programName);
+
+        function normaliseOpp(r) {
+            return {
+                opportunityId:  String(r['Opportunity ID 18'] || '').trim(),
+                programName:    String(r['Program Name'] || '').trim(),
+                amountUSD:      parseMoney(r['Amount USD']),
+                stage:          String(r['Opportunity Stage'] || '').trim(),
+                isClosed:       String(r['Opportunity Closed'] || '').trim().toLowerCase() === 'yes',
+                createdDate:    parseDate(r['Opportunity Created Date']),
+                closedDate:     parseDate(r['Opportunity Closed Date']),
+                gbu:            String(r['GBU'] || '').trim(),
+                region:         String(r['Region'] || '').trim(),
+                year:           String(r['Year'] || '').trim(),
+                programChannel: String(r['Program Channel'] || '').trim(),
+                emailType:      String(r['Email Type'] || '').trim(),
+                mtCreated:      parseNum(r['(MT) Opportunities Created']),
+                mtWon:          parseNum(r['(MT) Opportunities Won']),
+                ftCreated:      parseNum(r['(FT) Opportunities Created']),
+                ftWon:          parseNum(r['(FT) Opportunities Won'])
+            };
+        }
+        rawOppsCreate = pcRaw.map(normaliseOpp).filter(r => r.opportunityId || r.programName);
+        rawOppsWon    = pwRaw.map(normaliseOpp).filter(r => r.opportunityId || r.programName);
+
+        exportDateStr = dateStr;
+        initFilters();
+        initButterflyLists();
+        renderAll();
+        showDash();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FILTER STATE
+    // ═══════════════════════════════════════════════════════════
+    function toDateStr(d) {
+        if (!d || isNaN(d)) return '';
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
+    function initFilters() {
+        const gbus     = [...new Set(rawMembership.map(r => r.gbu).filter(Boolean))].sort();
+        const regions  = [...new Set(rawMembership.map(r => r.region).filter(Boolean))].sort();
+        const channels = [...new Set(rawMembership.map(r => r.programChannel).filter(Boolean))].sort();
+        const stages   = [...new Set([...rawOppsCreate, ...rawOppsWon].map(r => r.stage).filter(Boolean))].sort();
+        buildMsList('f-gbu',     gbus);
+        buildMsList('f-region',  regions);
+        buildMsList('f-channel', channels);
+        buildMsList('f-stage',   stages);
+
+        // Pre-populate date range from all date fields across all sources
+        const allDates = [
+            ...rawMembership.map(r => r.membershipDate),
+            ...rawOppsCreate.map(r => r.createdDate),
+            ...rawOppsWon.map(r => r.closedDate)
+        ].filter(d => d && !isNaN(d));
+        if (allDates.length) {
+            let minTs = Infinity, maxTs = -Infinity;
+            allDates.forEach(d => { const t = d.getTime(); if (t < minTs) minTs = t; if (t > maxTs) maxTs = t; });
+            dateMinDefault = toDateStr(new Date(minTs));
+            dateMaxDefault = toDateStr(new Date(maxTs));
+            var fromEl = document.getElementById('dateFrom');
+            var toEl   = document.getElementById('dateTo');
+            if (fromEl) fromEl.value = dateMinDefault;
+            if (toEl)   toEl.value   = dateMaxDefault;
+        }
+    }
+
+    function buildMsList(id, options) {
+        const el = document.getElementById('ms-' + id + '-list');
+        if (!el) return;
+        el.innerHTML = options.map(v =>
+            '<label class="ms-item"><input type="checkbox" value="' + v.replace(/"/g,'&quot;') +
+            '" onchange="toggleMsOption(\'' + id + '\',this.value,this.checked)">' +
+            '<span>' + v + '</span></label>'
+        ).join('');
+    }
+
+    function toggleMs(id, e) {
+        e.stopPropagation();
+        const panel = document.getElementById('ms-' + id + '-panel');
+        const isOpen = panel.style.display !== 'none';
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+        if (!isOpen) {
+            panel.style.display = 'block';
+            document.getElementById('ms-' + id).querySelector('.ms-btn').classList.add('open');
+        }
+    }
+
+    function toggleMsOption(id, val, checked) {
+        if (checked) msState[id].add(val); else msState[id].delete(val);
+        updateMsBtn(id);
+        onMsChange();
+    }
+
+    function updateMsBtn(id) {
+        const n = msState[id].size;
+        const labels = { 'f-gbu': 'GBU', 'f-region': 'Region', 'f-channel': 'Channel', 'f-stage': 'Opp. Stage' };
+        const el = document.getElementById('ms-' + id + '-label');
+        if (el) el.textContent = n ? labels[id] + ' (' + n + ')' : labels[id];
+        const btn = document.getElementById('ms-' + id) && document.getElementById('ms-' + id).querySelector('.ms-btn');
+        if (btn) btn.classList.toggle('has-selection', n > 0);
+    }
+
+    function selectAllMs(id) {
+        document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => { cb.checked = true; msState[id].add(cb.value); });
+        updateMsBtn(id); onMsChange();
+    }
+
+    function clearMs(id) {
+        document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => { cb.checked = false; });
+        msState[id].clear(); updateMsBtn(id); onMsChange();
+    }
+
+    function onMsChange() { renderAll(); }
+
+    function applyFilters() {
+        let mems  = rawMembership;
+        let pipes = rawOppsCreate;
+        let revs  = rawOppsWon;
+
+        // Exclude "Record Created in Salesforce" unless explicitly toggled on
+        if (!includeSalesCRM) {
+            const excl = r => r.programName !== SALES_CRM_PROG;
+            mems  = mems.filter(excl);
+            pipes = pipes.filter(excl);
+            revs  = revs.filter(excl);
+        }
+
+        // Date range filter — each source uses its own date field
+        const fromVal = (document.getElementById('dateFrom') || {}).value;
+        const toVal   = (document.getElementById('dateTo')   || {}).value;
+        // Parse as local midnight to avoid timezone shifts
+        const dateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+        const dateTo   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
+        if (dateFrom || dateTo) {
+            mems  = mems.filter(r => {
+                const d = r.membershipDate;
+                return d && (!dateFrom || d >= dateFrom) && (!dateTo || d <= dateTo);
+            });
+            pipes = pipes.filter(r => {
+                const d = r.createdDate;
+                return d && (!dateFrom || d >= dateFrom) && (!dateTo || d <= dateTo);
+            });
+            revs  = revs.filter(r => {
+                const d = r.closedDate;
+                return d && (!dateFrom || d >= dateFrom) && (!dateTo || d <= dateTo);
+            });
+        }
+
+        if (msState['f-gbu'].size) {
+            mems  = mems.filter(r => msState['f-gbu'].has(r.gbu));
+            pipes = pipes.filter(r => msState['f-gbu'].has(r.gbu));
+            revs  = revs.filter(r => msState['f-gbu'].has(r.gbu));
+        }
+        if (msState['f-region'].size) {
+            mems  = mems.filter(r => msState['f-region'].has(r.region));
+            pipes = pipes.filter(r => msState['f-region'].has(r.region));
+            revs  = revs.filter(r => msState['f-region'].has(r.region));
+        }
+        if (msState['f-channel'].size) {
+            mems  = mems.filter(r => msState['f-channel'].has(r.programChannel));
+            pipes = pipes.filter(r => msState['f-channel'].has(r.programChannel));
+            revs  = revs.filter(r => msState['f-channel'].has(r.programChannel));
+        }
+        if (msState['f-stage'].size) {
+            pipes = pipes.filter(r => msState['f-stage'].has(r.stage));
+            revs  = revs.filter(r => msState['f-stage'].has(r.stage));
+        }
+
+        // Filter qualified by program names in filtered membership
+        const memProgs = new Set(mems.map(r => r.programName));
+        let quals = rawQualified.filter(r => memProgs.has(r.programName));
+
+        // Search filter
+        const q = ((document.getElementById('tableSearch') || {}).value || '').toLowerCase().trim();
+        if (q) {
+            mems  = mems.filter(r => (r.programName || '').toLowerCase().includes(q));
+            quals = quals.filter(r => (r.programName || '').toLowerCase().includes(q));
+            pipes = pipes.filter(r => (r.programName || '').toLowerCase().includes(q));
+            revs  = revs.filter(r => (r.programName || '').toLowerCase().includes(q));
+        }
+
+        return { mems, quals, pipes, revs };
+    }
+
+    function toggleIncludeSales() {
+        includeSalesCRM = !includeSalesCRM;
+        var btn = document.getElementById('btnIncludeSales');
+        if (btn) btn.classList.toggle('active', includeSalesCRM);
+        onMsChange();
+    }
+
+    function setAttrMode(m) {
+        attributionMode = m;
+        document.getElementById('btnAttrFT').classList.toggle('active', m === 'ft');
+        document.getElementById('btnAttrMT').classList.toggle('active', m === 'mt');
+        onMsChange();
+    }
+
+    function setTimeScale(s) {
+        timeScale = s;
+        ['Week','Month','Quarter','Year','FY'].forEach(function(x) {
+            var btn = document.getElementById('btnTs' + x);
+            if (btn) btn.classList.toggle('active', s === x.toLowerCase());
+        });
+        onMsChange();
+    }
+
+    function onFilterBarSearch(val) {
+        var ts = document.getElementById('tableSearch');
+        if (ts) ts.value = val;
+        onMsChange();
+    }
+
+    function resetFilters() {
+        Object.keys(msState).forEach(id => { msState[id].clear(); updateMsBtn(id); });
+        document.querySelectorAll('.ms-list input').forEach(cb => cb.checked = false);
+        document.getElementById('filterCount').textContent = '';
+        var fbs = document.getElementById('filterBarSearch'); if (fbs) fbs.value = '';
+        var ts  = document.getElementById('tableSearch');    if (ts)  ts.value = '';
+        var fromEl = document.getElementById('dateFrom'); if (fromEl) fromEl.value = dateMinDefault;
+        var toEl   = document.getElementById('dateTo');   if (toEl)   toEl.value   = dateMaxDefault;
+        includeSalesCRM = false;
+        var sBtn = document.getElementById('btnIncludeSales');
+        if (sBtn) sBtn.classList.remove('active');
+        attributionMode = 'mt';
+        document.getElementById('btnAttrFT').classList.remove('active');
+        document.getElementById('btnAttrMT').classList.add('active');
+        setTimeScale('month');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHART HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function makeHBar(id, labels, values, colors, opts) {
+        opts = opts || {};
+        const wrap = document.getElementById(id + 'Wrap');
+        if (wrap) wrap.style.height = Math.max(160, labels.length * 30) + 'px';
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, borderRadius: 3 }] },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: {
+                    label: c => ' ' + (opts.usd ? fmtUSD(c.parsed.x) : fmt(c.parsed.x))
+                }}},
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => opts.usd ? fmtUSD(v) : fmt(v) } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+    }
+
+    function makeDoughnut(id, labels, values, colors) {
+        const total = values.reduce((s, v) => s + v, 0);
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+                    tooltip: { callbacks: {
+                        label: c => ' ' + c.label + ': ' + fmtUSD(c.parsed) + ' (' + (total > 0 ? (c.parsed/total*100).toFixed(1) : 0) + '%)'
+                    }}
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  RENDER ALL
+    // ═══════════════════════════════════════════════════════════
+    function renderAll(mems, quals, pipes, revs) {
+        if (mems === undefined) { var f = applyFilters(); mems = f.mems; quals = f.quals; pipes = f.pipes; revs = f.revs; }
+        const stats = buildProgramStats(mems, quals, pipes, revs);
+        renderKPIs(mems, quals, pipes, revs, stats);
+        renderCombo(mems, quals, pipes, revs);
+        renderTopPipeline(stats);
+        renderTopRevenue(stats);
+        renderFTvsMT(stats);
+        renderChannel(mems);
+        renderGBURegion(pipes, revs);
+        renderStage(pipes);
+        buildButterfly();
+        buildOppIndex(pipes, revs);
+        renderTable(stats);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  BUILD PROGRAM STATS
+    // ═══════════════════════════════════════════════════════════
+    function buildProgramStats(mems, quals, pipes, revs) {
+        const stats = {};
+        const ensure = p => {
+            if (!stats[p]) stats[p] = {
+                program: p, programChannel: '', gbu: '', region: '',
+                members: 0, newNames: 0, successTotal: 0, qualified: 0,
+                pipelineFT: 0, pipelineMT: 0, revenueFT: 0, revenueMT: 0,
+                oppsCreated: 0, oppsWon: 0
+            };
+        };
+        mems.forEach(m => {
+            ensure(m.programName);
+            const s = stats[m.programName];
+            s.members      += m.members;
+            s.newNames     += m.newNames;
+            s.successTotal += m.successTotal;
+            s.programChannel = s.programChannel || m.programChannel;
+            s.gbu            = s.gbu            || m.gbu;
+            s.region         = s.region         || m.region;
+        });
+        quals.forEach(q => {
+            ensure(q.programName);
+            stats[q.programName].qualified += q.members;
+        });
+        pipes.forEach(r => {
+            ensure(r.programName);
+            const s = stats[r.programName];
+            s.pipelineFT += r.ftCreated * r.amountUSD;
+            s.pipelineMT += r.mtCreated * r.amountUSD;
+            if (r.ftCreated > 0) s.oppsCreated++;
+        });
+        revs.forEach(r => {
+            ensure(r.programName);
+            const s = stats[r.programName];
+            s.revenueFT += r.ftWon * r.amountUSD;
+            s.revenueMT += r.mtWon * r.amountUSD;
+            if (r.ftWon > 0) s.oppsWon++;
+        });
+        return stats;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  KPIs
+    // ═══════════════════════════════════════════════════════════
+    function renderKPIs(mems, quals, pipes, revs, stats) {
+        const STAGE_PROB = { 'Create': 0.10, 'Qualify': 0.30, 'Develop': 0.50, 'Validate': 0.80, 'Negotiate': 0.95, 'Implementation': 1.00, 'Closed Won': 1.00, 'Closed Lost': 0.00 };
+        const isFT = attributionMode === 'ft';
+        const attrLabel = attributionMode.toUpperCase();
+
+        const uniquePrograms = new Set(mems.map(r => r.programName)).size;
+        const totalMembers   = mems.reduce((s, r) => s + r.members, 0);
+        const totalSuccess   = mems.reduce((s, r) => s + r.successTotal, 0);
+        const totalQualified = quals.reduce((s, r) => s + r.members, 0);
+
+        const totalPipeline = pipes.reduce((s, r) => s + (isFT ? r.ftCreated : r.mtCreated) * r.amountUSD, 0);
+        const totalRevenue  = revs.reduce((s, r)  => s + (isFT ? r.ftWon : r.mtWon) * r.amountUSD, 0);
+        const openPipeline  = pipes.filter(r => !r.isClosed).reduce((s, r) => s + (isFT ? r.ftCreated : r.mtCreated) * r.amountUSD, 0);
+        const totalPredicted = pipes.reduce((s, r) => {
+            const prob = STAGE_PROB[r.stage];
+            if (prob === undefined || prob === 0 || prob === 1) return s;
+            const attr = isFT ? r.ftCreated : r.mtCreated;
+            return s + (attr || 0) * prob * r.amountUSD;
+        }, 0);
+
+        const oppsPipeline = new Set(pipes.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
+        const oppsWon      = new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
+
+        document.getElementById('kpiGrid').innerHTML =
+            '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
+
+            '<div class="kpi-card teal">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Membership</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalMembers) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Members</div>' +
+                    '</div>' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding:0 12px;text-align:center">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalSuccess) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Success</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalQualified) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Qualified</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="kpi-card amber">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Attribution: ' + attrLabel + '</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(totalPipeline) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Pipeline Created</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsPipeline) + ' opps</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(totalRevenue) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Revenue Won</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsWon) + ' opps</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="kpi-card blue">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Outstanding</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmtUSD(openPipeline) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Open Pipeline</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px;color:#70ad47">' + fmtUSD(totalPredicted) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Predicted Revenue</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">weighted by stage</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+        // Update attr labels on chart titles
+        var pl = document.getElementById('pipeAttrLabel'); if (pl) pl.textContent = attrLabel;
+        var rl = document.getElementById('revAttrLabel');  if (rl) rl.textContent = attrLabel;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  PERFORMANCE TRENDLINE (COMBO)
+    // ═══════════════════════════════════════════════════════════
+    function renderCombo(mems, quals, pipes, revs) {
+        var STAGE_PROB = { 'Create': 0.10, 'Qualify': 0.30, 'Develop': 0.50, 'Validate': 0.80, 'Negotiate': 0.95, 'Implementation': 1.00, 'Closed Won': 1.00, 'Closed Lost': 0.00 };
+        var today       = new Date();
+        var todayBucket = getBucket(today, timeScale);
+        var isFT        = attributionMode === 'ft';
+
+        var memBuckets = {}, sucBuckets = {}, qualBuckets = {}, pipeBuckets = {}, wonBuckets = {}, predBuckets = {};
+
+        mems.forEach(function(m) {
+            var key = getBucket(m.membershipDate, timeScale);
+            if (!key) return;
+            memBuckets[key] = (memBuckets[key] || 0) + m.members;
+            sucBuckets[key] = (sucBuckets[key] || 0) + m.successTotal;
+        });
+        quals.forEach(function(q) {
+            var key = getBucket(q.membershipDate, timeScale);
+            if (!key) return;
+            qualBuckets[key] = (qualBuckets[key] || 0) + q.members;
+        });
+        // Pipeline: use createdDate from oppsCreate
+        pipes.forEach(function(r) {
+            var pkey = getBucket(r.createdDate, timeScale);
+            if (pkey) pipeBuckets[pkey] = (pipeBuckets[pkey] || 0) + (isFT ? r.ftCreated : r.mtCreated) * r.amountUSD;
+            // Predicted: open opps, expected close date
+            var prob = STAGE_PROB[r.stage];
+            if (prob === undefined || prob === 0 || prob === 1) return;
+            var attr = isFT ? r.ftCreated : r.mtCreated;
+            if (!attr) return;
+            var expClose = (r.closedDate && r.closedDate > today) ? r.closedDate : today;
+            var predKey = getBucket(expClose, timeScale);
+            predBuckets[predKey] = (predBuckets[predKey] || 0) + prob * r.amountUSD * attr;
+        });
+        // Revenue Won: use closedDate from oppsWon
+        revs.forEach(function(r) {
+            var wkey = getBucket(r.closedDate, timeScale);
+            if (wkey) wonBuckets[wkey] = (wonBuckets[wkey] || 0) + (isFT ? r.ftWon : r.mtWon) * r.amountUSD;
+        });
+
+        var allKeys = Array.from(new Set([].concat(
+            Object.keys(memBuckets), Object.keys(pipeBuckets), Object.keys(wonBuckets),
+            Object.keys(predBuckets), [todayBucket]
+        ))).sort();
+        var nowIdx = allKeys.indexOf(todayBucket);
+        var labels = allKeys.map(function(k) { return formatBucketLabel(k, timeScale); });
+        var attrLbl = attributionMode.toUpperCase();
+
+        var nowLinePlugin = {
+            id: 'nowLine',
+            afterDraw: function(chart) {
+                if (nowIdx < 0) return;
+                var meta = chart.getDatasetMeta(0);
+                if (!meta.data[nowIdx]) return;
+                var x = meta.data[nowIdx].x;
+                var c = chart.ctx, ca = chart.chartArea;
+                c.save();
+                c.beginPath(); c.moveTo(x, ca.top); c.lineTo(x, ca.bottom);
+                c.strokeStyle = 'rgba(210,40,40,0.65)'; c.lineWidth = 2; c.setLineDash([5,3]); c.stroke();
+                c.setLineDash([]);
+                c.fillStyle = 'rgba(210,40,40,0.85)'; c.font = 'bold 10px sans-serif'; c.textAlign = 'center';
+                c.fillText('NOW', x, ca.top + 12);
+                c.restore();
+            }
+        };
+
+        var ctx = document.getElementById('chartCombo').getContext('2d');
+        if (charts['chartCombo']) charts['chartCombo'].destroy();
+        charts['chartCombo'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { type: 'bar',  label: 'Members',               data: allKeys.map(k => memBuckets[k]  || 0), backgroundColor: 'rgba(0,99,172,0.7)',    borderRadius: 2, yAxisID: 'yL', order: 3, stack: 'members' },
+                    { type: 'bar',  label: 'Success',               data: allKeys.map(k => Math.max(0, (sucBuckets[k] || 0) - (qualBuckets[k] || 0))), backgroundColor: 'rgba(0,162,143,0.8)',  borderRadius: 0, yAxisID: 'yL', order: 3, stack: 'success' },
+                    { type: 'bar',  label: 'Qualified',             data: allKeys.map(k => qualBuckets[k] || 0), backgroundColor: 'rgba(112,48,160,0.85)', borderRadius: 2, yAxisID: 'yL', order: 3, stack: 'success' },
+                    { type: 'line', label: 'Pipeline ' + attrLbl,   data: allKeys.map(k => pipeBuckets[k] || 0), borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 1 },
+                    { type: 'line', label: 'Revenue Won ' + attrLbl,data: allKeys.map(k => wonBuckets[k]  || 0), borderColor: '#70AD47', backgroundColor: 'rgba(112,173,71,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 2 },
+                    { type: 'line', label: 'Predicted Revenue',     data: allKeys.map(k => k >= todayBucket ? (predBuckets[k] || null) : null), borderColor: 'rgba(112,173,71,0.55)', backgroundColor: 'rgba(112,173,71,0.04)', borderDash: [7,4], fill: true, tension: 0.3, pointRadius: 3, pointStyle: 'triangle', borderWidth: 2, yAxisID: 'yR', order: 1 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        mode: 'index', intersect: false,
+                        callbacks: {
+                            label: function(c) {
+                                if (c.parsed.y === null) return null;
+                                if (c.dataset.label === 'Success') {
+                                    var total = sucBuckets[allKeys[c.dataIndex]] || 0;
+                                    return ' Success (total): ' + fmt(total);
+                                }
+                                if (c.dataset.label === 'Qualified') {
+                                    var total2 = sucBuckets[allKeys[c.dataIndex]] || 0;
+                                    var qual   = qualBuckets[allKeys[c.dataIndex]] || 0;
+                                    var pct    = total2 > 0 ? Math.round(qual / total2 * 100) : 0;
+                                    return ' Qualified: ' + fmt(qual) + ' (' + pct + '% of success)';
+                                }
+                                return ' ' + c.dataset.label + ': ' + (c.dataset.yAxisID === 'yR' ? fmtUSD(c.parsed.y) : fmt(c.parsed.y));
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x:  { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
+                    yL: { stacked: true, type: 'linear', position: 'left',  beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) }, title: { display: true, text: 'Members', font: { size: 10 }, color: '#888' } },
+                    yR: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { font: { size: 11 }, callback: v => fmtUSD(v) }, title: { display: true, text: 'USD', font: { size: 10 }, color: '#888' } }
+                }
+            },
+            plugins: [nowLinePlugin]
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  TOP PIPELINE & REVENUE
+    // ═══════════════════════════════════════════════════════════
+    function renderTopPipeline(stats) {
+        const key = attributionMode === 'ft' ? 'pipelineFT' : 'pipelineMT';
+        const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
+        if (!top.length) return;
+        makeHBar('chartPipeline', top.map(s => truncate(s.program, 50)), top.map(s => s[key]),
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true });
+    }
+
+    function renderTopRevenue(stats) {
+        const key = attributionMode === 'ft' ? 'revenueFT' : 'revenueMT';
+        const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
+        if (!top.length) return;
+        makeHBar('chartRevenue', top.map(s => truncate(s.program, 50)), top.map(s => s[key]),
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  FT vs MT COMPARISON
+    // ═══════════════════════════════════════════════════════════
+    function renderFTvsMT(stats) {
+        const top = Object.values(stats)
+            .filter(s => s.pipelineFT > 0 || s.pipelineMT > 0)
+            .sort((a, b) => b.pipelineFT - a.pipelineFT)
+            .slice(0, 8);
+        if (!top.length) return;
+        const labels = top.map(s => truncate(s.program, 30));
+        const ctx = document.getElementById('chartFTvsMT').getContext('2d');
+        if (charts['chartFTvsMT']) charts['chartFTvsMT'].destroy();
+        charts['chartFTvsMT'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Pipeline FT',  data: top.map(s => s.pipelineFT),  backgroundColor: 'rgba(0,99,172,0.75)',   borderRadius: 2 },
+                    { label: 'Pipeline MT',  data: top.map(s => s.pipelineMT),  backgroundColor: 'rgba(0,162,143,0.75)',  borderRadius: 2 },
+                    { label: 'Revenue FT',   data: top.map(s => s.revenueFT),   backgroundColor: 'rgba(112,173,71,0.85)', borderRadius: 2 },
+                    { label: 'Revenue MT',   data: top.map(s => s.revenueMT),   backgroundColor: 'rgba(237,125,49,0.75)', borderRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmtUSD(c.parsed.y) } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } },
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmtUSD(v) } }
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHANNEL BREAKDOWN
+    // ═══════════════════════════════════════════════════════════
+    function renderChannel(mems) {
+        const byChannel = {};
+        mems.forEach(m => { if (m.programChannel) byChannel[m.programChannel] = (byChannel[m.programChannel] || 0) + m.members; });
+        const sorted = sortedTopN(byChannel, 12);
+        if (!sorted.length) return;
+        makeHBar('chartChannel', sorted.map(s => s[0]), sorted.map(s => s[1]),
+            sorted.map((_, i) => PALETTE[i % PALETTE.length]));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  GBU & REGION DOUGHNUTS
+    // ═══════════════════════════════════════════════════════════
+    function renderGBURegion(pipes, revs) {
+        const isFT = attributionMode === 'ft';
+        const key_pl = isFT ? 'ftCreated' : 'mtCreated';
+        const key_rv = isFT ? 'ftWon'     : 'mtWon';
+        const COLORS = ['#0063AC','#00A28F','#7030A0','#ED7D31','#70AD47','#4472C4','#FF6B6B','#20B2AA'];
+
+        // GBU doughnut (pipeline from pipes)
+        const byGBU = {};
+        pipes.forEach(r => { if (r.gbu) byGBU[r.gbu] = (byGBU[r.gbu] || 0) + (r[key_pl] || 0) * r.amountUSD; });
+        const gbuEntries = sortedTopN(byGBU, 8).filter(([, v]) => v > 0);
+        if (gbuEntries.length) makeDoughnut('chartGBU', gbuEntries.map(e => e[0]), gbuEntries.map(e => e[1]), COLORS);
+
+        // Region doughnuts
+        const byRegionPl = {}, byRegionRv = {};
+        pipes.forEach(r => { if (r.region) byRegionPl[r.region] = (byRegionPl[r.region] || 0) + (r[key_pl] || 0) * r.amountUSD; });
+        revs.forEach(r => { if (r.region) byRegionRv[r.region] = (byRegionRv[r.region] || 0) + (r[key_rv] || 0) * r.amountUSD; });
+
+        const plEntries = sortedTopN(byRegionPl, 8).filter(([, v]) => v > 0);
+        const rvEntries = sortedTopN(byRegionRv, 8).filter(([, v]) => v > 0);
+        if (plEntries.length) makeDoughnut('chartRegionPipeline', plEntries.map(e => e[0]), plEntries.map(e => e[1]), COLORS);
+        if (rvEntries.length) makeDoughnut('chartRegionRevenue',  rvEntries.map(e => e[0]), rvEntries.map(e => e[1]), COLORS);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  OPPORTUNITY STAGE FUNNEL
+    // ═══════════════════════════════════════════════════════════
+    function renderStage(pipes) {
+        const GROUP_STAGES = ['Create', 'Qualify', 'Develop', 'Validate', 'Negotiate', 'Implementation'];
+        const GROUP_LABEL  = 'Open Pipeline';
+        const OPEN_SHADES  = ['rgba(0,99,172,0.30)','rgba(0,99,172,0.44)','rgba(0,99,172,0.58)','rgba(0,99,172,0.72)','rgba(0,99,172,0.86)','rgba(0,99,172,1.00)'];
+
+        const stageData = {};
+        pipes.forEach(r => {
+            if (!r.stage) return;
+            if (!stageData[r.stage]) stageData[r.stage] = { count: 0, value: 0 };
+            stageData[r.stage].count++;
+            stageData[r.stage].value += r.amountUSD;
+        });
+        let groupCnt = 0;
+        const groupBreakdown = [];
+        GROUP_STAGES.forEach(s => {
+            if (stageData[s]) {
+                groupBreakdown.push({ stage: s, count: stageData[s].count });
+                groupCnt += stageData[s].count;
+                delete stageData[s];
+            }
+        });
+        const others = sortedTopN(Object.fromEntries(Object.entries(stageData).map(([k, v]) => [k, v.count])), 10);
+        const sorted = others.slice();
+        if (groupCnt > 0) sorted.push([GROUP_LABEL, groupCnt]);
+        sorted.sort((a, b) => b[1] - a[1]);
+
+        const labels = sorted.map(s => s[0]);
+        const n = labels.length;
+        const groupIdx = labels.indexOf(GROUP_LABEL);
+
+        function singleBarColor(lbl) {
+            const l = lbl.toLowerCase();
+            if (l.includes('won'))  return 'rgba(26,122,74,0.85)';
+            if (l.includes('lost')) return 'rgba(192,57,43,0.85)';
+            return '#90a4ae';
+        }
+        const datasets = [];
+        sorted.forEach(([lbl], idx) => {
+            if (lbl === GROUP_LABEL) return;
+            const data = new Array(n).fill(0); data[idx] = sorted[idx][1];
+            datasets.push({ label: lbl, data, backgroundColor: singleBarColor(lbl), borderWidth: 0, stack: 'bar' });
+        });
+        groupBreakdown.forEach((b, i) => {
+            if (groupIdx === -1) return;
+            const data = new Array(n).fill(0); data[groupIdx] = b.count;
+            datasets.push({ label: b.stage, data, backgroundColor: OPEN_SHADES[i % OPEN_SHADES.length], borderWidth: 0, stack: 'bar' });
+        });
+
+        const wrap = document.getElementById('chartStageWrap');
+        if (wrap) wrap.style.height = Math.max(160, n * 32) + 'px';
+        const ctx = document.getElementById('chartStage').getContext('2d');
+        if (charts['chartStage']) charts['chartStage'].destroy();
+        charts['chartStage'] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false, callbacks: {
+                        title: ts => ts[0].label,
+                        label: c => c.parsed.x > 0 ? (' ' + c.dataset.label + ': ' + fmt(c.parsed.x)) : null
+                    }}
+                },
+                scales: {
+                    x: { stacked: true, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } },
+                    y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  PROGRAM TABLE
+    // ═══════════════════════════════════════════════════════════
+    var tableData = [];
+
+    function renderTable(stats) {
+        tableData = Object.values(stats);
+        _sortAndRenderTable();
+    }
+
+    function sortTable(col) {
+        if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
+        document.querySelectorAll('.prog-table th').forEach(th => th.classList.remove('sorted'));
+        const th = document.getElementById('th-' + col); if (th) th.classList.add('sorted');
+        _sortAndRenderTable();
+    }
+
+    function filterTable() { _sortAndRenderTable(); }
+
+    function _sortAndRenderTable() {
+        const q = ((document.getElementById('tableSearch') || {}).value || '').toLowerCase();
+        let rows = tableData.filter(s => !q || (s.program || '').toLowerCase().includes(q));
+        rows.sort((a, b) => {
+            const av = a[sortCol] || 0, bv = b[sortCol] || 0;
+            return typeof av === 'string' ? av.localeCompare(bv) * sortDir : (bv - av) * sortDir;
+        });
+        const maxPFT = Math.max(...rows.map(s => s.pipelineFT), 1);
+        const maxRFT = Math.max(...rows.map(s => s.revenueFT),  1);
+        const maxPMT = Math.max(...rows.map(s => s.pipelineMT), 1);
+        const maxRMT = Math.max(...rows.map(s => s.revenueMT),  1);
+        function lerpColor(lo, hi, t) { return 'rgb(' + Math.round(lo[0]+(hi[0]-lo[0])*t) + ',' + Math.round(lo[1]+(hi[1]-lo[1])*t) + ',' + Math.round(lo[2]+(hi[2]-lo[2])*t) + ')'; }
+        const FT_LO = [197,216,247], FT_HI = [0,99,172];
+        const MT_LO = [180,230,210], MT_HI = [0,130,115];
+        function miniBar(val, maxVal, lo, hi) {
+            if (!val) return '';
+            const t = Math.min(val / maxVal, 1);
+            return '<span style="display:block;height:3px;width:' + Math.round(t*64) + 'px;background:' + lerpColor(lo, hi, t) + ';border-radius:2px;margin-top:3px"></span>';
+        }
+        const tbody = document.getElementById('progTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = rows.map(s => {
+            var prog = (s.program || '').replace(/"/g, '&quot;');
+            return '<tr data-prog="' + prog + '">' +
+                '<td class="prog-name" title="' + prog + '">' + (s.program || '&mdash;') + '</td>' +
+                '<td class="col-ch" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#555">' + (s.programChannel ? '<span class="ch-badge">' + s.programChannel + '</span>' : '—') + '</td>' +
+                '<td style="font-size:11px;color:#555">' + (s.gbu || '—') + '</td>' +
+                '<td style="font-size:11px;color:#555">' + (s.region || '—') + '</td>' +
+                '<td class="num-cell">' + (s.members ? fmt(s.members) : '—') + '</td>' +
+                '<td class="num-cell">' + (s.successTotal ? fmt(s.successTotal) : '—') + '</td>' +
+                '<td class="num-cell">' + (s.qualified ? fmt(s.qualified) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="background:#f0f4fd;cursor:pointer" title="Hover to see opportunities">' + (s.pipelineFT ? fmtUSD(s.pipelineFT) + miniBar(s.pipelineFT, maxPFT, FT_LO, FT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="background:#f0f4fd;cursor:pointer" title="Hover to see opportunities">' + (s.revenueFT  ? fmtUSD(s.revenueFT)  + miniBar(s.revenueFT,  maxRFT, FT_LO, FT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="background:#f0faf5;cursor:pointer" title="Hover to see opportunities">' + (s.pipelineMT ? fmtUSD(s.pipelineMT) + miniBar(s.pipelineMT, maxPMT, MT_LO, MT_HI) : '—') + '</td>' +
+                '<td class="usd-cell opp-cell" style="background:#f0faf5;cursor:pointer" title="Hover to see opportunities">' + (s.revenueMT  ? fmtUSD(s.revenueMT)  + miniBar(s.revenueMT,  maxRMT, MT_LO, MT_HI) : '—') + '</td>' +
+                '</tr>';
+        }).join('');
+        document.getElementById('tableCount').textContent = fmt(rows.length) + ' programs';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHANNEL COMPARISON BUTTERFLY
+    // ═══════════════════════════════════════════════════════════
+    var BF_TIERS = [
+        { label: '< $10K',        min: 0,      max: 10000 },
+        { label: '$10K – $50K',   min: 10000,  max: 50000 },
+        { label: '$50K – $100K',  min: 50000,  max: 100000 },
+        { label: '$100K – $250K', min: 100000, max: 250000 },
+        { label: '$250K+',        min: 250000, max: Infinity }
+    ];
+    var bfLeftSel  = new Set();
+    var bfRightSel = new Set(['__all__']);
+    var bfTierIdx  = -1;
+
+    function initButterflyLists() {
+        var channels = [...new Set(rawOppsCreate.map(function(r) { return r.programChannel; }).filter(Boolean))].sort();
+
+        function buildList(containerId, side) {
+            var el = document.getElementById(containerId);
+            if (!el) return;
+            var items = side === 'right'
+                ? [{ val: '__all__', label: 'All Programs' }].concat(channels.map(function(c) { return { val: c, label: c }; }))
+                : channels.map(function(c) { return { val: c, label: c }; });
+            el.innerHTML = items.map(function(item) {
+                var checked = side === 'right' && item.val === '__all__' ? ' checked' : '';
+                return '<label class="bf-ch-item">'
+                    + '<input type="checkbox" data-val="' + item.val.replace(/"/g, '&quot;') + '"' + checked
+                    + ' onchange="bfToggle(\'' + side + '\',\'' + item.val.replace(/'/g, '\\\'') + '\',this.checked)">'
+                    + '<span title="' + item.label + '">' + item.label + '</span></label>';
+            }).join('');
+        }
+        buildList('bfLeftList',  'left');
+        buildList('bfRightList', 'right');
+
+        // Add tier buttons
+        var tierRow = document.getElementById('bfTierRow');
+        if (tierRow) {
+            BF_TIERS.forEach(function(t, i) {
+                var btn = document.createElement('button');
+                btn.className = 'quick-filter-btn';
+                btn.style.cssText = 'margin:0;padding:3px 10px;font-size:11px';
+                btn.textContent = t.label;
+                btn.id = 'bfTier' + i;
+                btn.onclick = function() { bfSelectTier(i); };
+                tierRow.appendChild(btn);
+            });
+        }
+    }
+
+    function bfToggle(side, val, checked) {
+        if (side === 'left') {
+            if (checked) bfLeftSel.add(val); else bfLeftSel.delete(val);
+        } else {
+            if (val === '__all__') {
+                if (checked) {
+                    bfRightSel.clear();
+                    bfRightSel.add('__all__');
+                    document.querySelectorAll('#bfRightList input[type=checkbox]').forEach(function(cb) {
+                        if (cb.getAttribute('data-val') !== '__all__') cb.checked = false;
+                    });
+                } else {
+                    bfRightSel.delete('__all__');
+                }
+            } else {
+                if (checked) {
+                    bfRightSel.add(val);
+                    bfRightSel.delete('__all__');
+                    var allCb = document.querySelector('#bfRightList input[data-val="__all__"]');
+                    if (allCb) allCb.checked = false;
+                } else {
+                    bfRightSel.delete(val);
+                }
+            }
+        }
+        buildButterfly();
+    }
+
+    function bfSelectTier(idx) {
+        bfTierIdx = idx;
+        var allBtn = document.getElementById('bfTierAllBtn');
+        if (allBtn) allBtn.classList.toggle('active', idx === -1);
+        BF_TIERS.forEach(function(_, i) {
+            var btn = document.getElementById('bfTier' + i);
+            if (btn) btn.classList.toggle('active', i === idx);
+        });
+        buildButterfly();
+    }
+
+    function bfBaseOpps() {
+        var opps = rawOppsCreate;
+        if (msState['f-gbu'].size)    opps = opps.filter(function(r) { return msState['f-gbu'].has(r.gbu); });
+        if (msState['f-region'].size)  opps = opps.filter(function(r) { return msState['f-region'].has(r.region); });
+        if (msState['f-stage'].size)   opps = opps.filter(function(r) { return msState['f-stage'].has(r.stage); });
+        var q = ((document.getElementById('tableSearch') || {}).value || '').toLowerCase().trim();
+        if (q) opps = opps.filter(function(r) { return (r.programName || '').toLowerCase().includes(q); });
+        return opps;
+    }
+
+    var BF_STAGE_PROB = { 'Create': 0.10, 'Qualify': 0.30, 'Develop': 0.50, 'Validate': 0.80, 'Negotiate': 0.95, 'Implementation': 1.00, 'Closed Won': 1.00, 'Closed Lost': 0.00 };
+
+    function computeBfSide(opps, tierMin, tierMax) {
+        var isFT = attributionMode === 'ft';
+        var filtered = opps.filter(function(r) { return r.amountUSD >= tierMin && r.amountUSD < tierMax; });
+        var closed = 0, won = 0, wonRev = 0, daysTotal = 0, daysCount = 0, sizeTotal = 0, sizeCount = 0;
+        var pipelineCreated = 0, predicted = 0;
+        filtered.forEach(function(r) {
+            var attr = isFT ? r.ftCreated : r.mtCreated;
+            pipelineCreated += (attr || 0) * r.amountUSD;
+            var prob = BF_STAGE_PROB[r.stage];
+            if (prob !== undefined && prob > 0 && prob < 1 && attr) predicted += prob * attr * r.amountUSD;
+
+            var stg = (r.stage || '').toLowerCase();
+            var isClosed = stg.includes('closed');
+            var isWon    = isClosed && !stg.includes('lost');
+            if (!isClosed) return;
+            closed++;
+            if (isWon) {
+                won++;
+                wonRev += (isFT ? r.ftWon : r.mtWon) * r.amountUSD;
+                if (r.closedDate && r.createdDate) {
+                    var days = Math.round((r.closedDate - r.createdDate) / 86400000);
+                    if (days > 0) { daysTotal += days; daysCount++; }
+                }
+                sizeTotal += r.amountUSD; sizeCount++;
+            }
+        });
+        return { closed, won, wonRev, daysTotal, daysCount, sizeTotal, sizeCount, pipelineCreated, predicted };
+    }
+
+    function bfClearSide(side) {
+        if (side === 'left') {
+            bfLeftSel.clear();
+            document.querySelectorAll('#bfLeftList .bf-ch-item input').forEach(function(cb) { cb.checked = false; });
+        } else {
+            bfRightSel.clear();
+            bfRightSel.add('__all__');
+            document.querySelectorAll('#bfRightList .bf-ch-item input').forEach(function(cb) {
+                cb.checked = cb.getAttribute('data-val') === '__all__';
+            });
+        }
+        buildButterfly();
+    }
+
+    function buildButterfly() {
+        var base = bfBaseOpps();
+        var leftOpps  = bfLeftSel.size > 0 ? base.filter(function(r) { return bfLeftSel.has(r.programChannel); }) : null;
+        var rightOpps = bfRightSel.has('__all__') ? base
+                      : bfRightSel.size > 0 ? base.filter(function(r) { return bfRightSel.has(r.programChannel); })
+                      : null;
+
+        var el = document.getElementById('bfOutput');
+        if (!el) return;
+        if (!leftOpps || !rightOpps || (leftOpps.length === 0 && rightOpps.length === 0)) {
+            el.innerHTML = '<div style="color:#aaa;text-align:center;padding:32px 20px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:4px;letter-spacing:.02em">Select at least one channel on each side to compare</div>';
+            return;
+        }
+
+        var tierMin = 0, tierMax = Infinity;
+        var tierLabel = 'All Deals';
+        if (bfTierIdx >= 0) { tierMin = BF_TIERS[bfTierIdx].min; tierMax = BF_TIERS[bfTierIdx].max; tierLabel = BF_TIERS[bfTierIdx].label; }
+
+        var L = computeBfSide(leftOpps,  tierMin, tierMax);
+        var R = computeBfSide(rightOpps, tierMin, tierMax);
+
+        var leftLabel  = bfLeftSel.size > 0 ? [...bfLeftSel].sort().join(' + ') : 'Left';
+        var rightLabel = bfRightSel.has('__all__') ? 'All Programs' : [...bfRightSel].filter(function(v) { return v !== '__all__'; }).sort().join(' + ');
+
+        el.innerHTML = renderButterflyHTML(L, R, leftLabel, rightLabel, tierLabel);
+    }
+
+    function renderButterflyHTML(L, R, leftLabel, rightLabel, tierLabel) {
+        var attrLbl = attributionMode.toUpperCase();
+        var lWinRate = L.closed > 0 ? L.won / L.closed * 100 : null;
+        var rWinRate = R.closed > 0 ? R.won / R.closed * 100 : null;
+        var lAvgLen  = L.daysCount > 0 ? Math.round(L.daysTotal / L.daysCount) : null;
+        var rAvgLen  = R.daysCount > 0 ? Math.round(R.daysTotal / R.daysCount) : null;
+        var lAvgSz   = L.sizeCount > 0 ? Math.round(L.sizeTotal / L.sizeCount) : null;
+        var rAvgSz   = R.sizeCount > 0 ? Math.round(R.sizeTotal / R.sizeCount) : null;
+        var lRevVal  = L.sizeCount > 0 ? L.wonRev : null;
+        var rRevVal  = R.sizeCount > 0 ? R.wonRev : null;
+
+        function mkRow(label, sub, lVal, rVal, fmtFn, deltaFmtFn, lowerIsBetter) {
+            var l = lVal !== null ? lVal : 0, r = rVal !== null ? rVal : 0;
+            var maxV = Math.max(l, r) || 1;
+            var lp = lVal !== null ? Math.max(Math.round(l / maxV * 100), 3) : 0;
+            var rp = rVal !== null ? Math.max(Math.round(r / maxV * 100), 3) : 0;
+            var both = lVal !== null && rVal !== null;
+            var lWins = both ? (lowerIsBetter ? l < r : l > r) : null;
+            var lColor = lWins === true ? '#1a7a4a' : lWins === false ? '#e67e22' : '#0063AC';
+            var rColor = lWins === false ? '#1a7a4a' : '#6b7280';
+            var delta = '';
+            if (both) {
+                var diff = lowerIsBetter ? r - l : l - r;
+                var pos  = diff > 0;
+                delta = '<div style="font-size:10px;font-weight:700;margin-top:3px;color:' + (pos ? '#1a7a4a' : '#c0392b') + ';">'
+                      + (pos ? '+' : '\u2212') + deltaFmtFn(Math.abs(diff)) + '</div>';
+            }
+            return '<div style="display:grid;grid-template-columns:1fr 200px 1fr;align-items:center;padding:13px 0;border-bottom:1px solid #eee;">'
+                + '<div style="display:flex;align-items:center;gap:10px;padding-right:8px;">'
+                +   '<span style="font-size:17px;font-weight:700;color:' + lColor + ';white-space:nowrap;min-width:72px;text-align:right;">' + (lVal !== null ? fmtFn(l) : '&mdash;') + '</span>'
+                +   '<div style="flex:1;overflow:hidden;display:flex;justify-content:flex-end;height:26px;min-width:0;">'
+                +     '<div style="height:100%;width:' + lp + '%;background:' + lColor + ';border-radius:3px 0 0 3px;opacity:.85;"></div>'
+                +   '</div>'
+                + '</div>'
+                + '<div style="text-align:center;padding:0 10px;border-left:2px solid #d0d0d0;border-right:2px solid #d0d0d0;">'
+                +   '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#444;">' + label + '</div>'
+                +   '<div style="font-size:9px;color:#aaa;margin-top:1px;">' + sub + '</div>'
+                +   delta
+                + '</div>'
+                + '<div style="display:flex;align-items:center;gap:10px;padding-left:8px;">'
+                +   '<div style="flex:1;overflow:hidden;display:flex;justify-content:flex-start;height:26px;min-width:0;">'
+                +     '<div style="height:100%;width:' + rp + '%;background:' + rColor + ';border-radius:0 3px 3px 0;opacity:.85;"></div>'
+                +   '</div>'
+                +   '<span style="font-size:17px;font-weight:700;color:' + rColor + ';white-space:nowrap;min-width:72px;">' + (rVal !== null ? fmtFn(r) : '&mdash;') + '</span>'
+                + '</div>'
+                + '</div>';
+        }
+
+        if (L.closed === 0 && R.closed === 0) {
+            return '<div style="color:#aaa;text-align:center;padding:20px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;">No closed deals in the <strong>' + tierLabel + '</strong> tier for these selections</div>';
+        }
+
+        return '<div style="background:#f8f9fa;border:1px solid #e5e7eb;padding:16px 20px;">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e5e7eb;">'
+            +   '<div style="display:flex;align-items:center;gap:7px;max-width:38%;overflow:hidden;">'
+            +     '<div style="width:12px;height:12px;background:#0063AC;border-radius:2px;flex-shrink:0"></div>'
+            +     '<span style="font-size:11px;font-weight:700;color:#0063AC;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + leftLabel + '">' + leftLabel + '</span>'
+            +     '<span style="font-size:10px;color:#aaa;white-space:nowrap;">' + L.closed + ' closed</span>'
+            +   '</div>'
+            +   '<span style="font-size:10px;font-weight:700;color:#444;white-space:nowrap;">' + tierLabel + ' &nbsp;&middot;&nbsp; ' + attrLbl + '</span>'
+            +   '<div style="display:flex;align-items:center;gap:7px;max-width:38%;overflow:hidden;justify-content:flex-end;">'
+            +     '<span style="font-size:10px;color:#aaa;white-space:nowrap;">' + R.closed + ' closed</span>'
+            +     '<span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + rightLabel + '">' + rightLabel + '</span>'
+            +     '<div style="width:12px;height:12px;background:#9ca3af;border-radius:2px;flex-shrink:0"></div>'
+            +   '</div>'
+            + '</div>'
+            + mkRow('Pipeline Created', 'Attributed pipeline &middot; ' + attrLbl, L.pipelineCreated, R.pipelineCreated, function(v) { return fmtUSD(v); }, function(v) { return fmtUSD(v); }, false)
+            + mkRow('Predicted Revenue','Open opps weighted by stage',            L.predicted > 0 ? L.predicted : null, R.predicted > 0 ? R.predicted : null, function(v) { return fmtUSD(v); }, function(v) { return fmtUSD(v); }, false)
+            + mkRow('Opportunities',   'Closed deals',                           L.closed,   R.closed,   function(v) { return v.toLocaleString(); }, function(v) { return v.toLocaleString(); },      false)
+            + mkRow('Won Revenue',     'Won deal value &middot; ' + attrLbl,     lRevVal,    rRevVal,    function(v) { return fmtUSD(v); },           function(v) { return fmtUSD(v); },             false)
+            + mkRow('Win Rate',        'Won &divide; Closed deals',               lWinRate,   rWinRate,   function(v) { return v.toFixed(1) + '%'; },  function(v) { return v.toFixed(1) + ' pp'; }, false)
+            + mkRow('Avg Deal Length', 'Days to close (won deals)',               lAvgLen,    rAvgLen,    function(v) { return v + 'd'; },             function(v) { return v + 'd'; },               true)
+            + mkRow('Avg Deal Size',   'Won deal value',                          lAvgSz,     rAvgSz,     function(v) { return fmtUSD(v); },           function(v) { return fmtUSD(v); },             false)
+            + '</div>';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  UI STATE
+    // ═══════════════════════════════════════════════════════════
+    function showLoading(msg) {
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('loadingMsg').textContent     = msg || 'Loading…';
+    }
+    function showEmpty() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('dashContent').style.display  = 'none';
+        document.getElementById('filterBar').style.display    = 'none';
+        document.getElementById('footerEl').style.display     = 'none';
+        document.getElementById('emptyState').style.display   = 'block';
+    }
+    function showDash() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('emptyState').style.display   = 'none';
+        document.getElementById('dashContent').style.display  = 'block';
+        document.getElementById('filterBar').style.display    = 'block';
+        document.getElementById('footerEl').style.display     = 'block';
+        if (exportDateStr) {
+            document.getElementById('exportDateLabel').textContent = 'Last Export: ' + formatExportDate(exportDateStr);
+            document.getElementById('exportBadge').style.display = 'inline-flex';
+        }
+    }
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    //  OPPORTUNITY TOOLTIP
+    // ═══════════════════════════════════════════════════════════
+    var oppByProgram = {}, sfHideTimer = null, sfLocked = false, sfCurrentTitle = null;
+
+    function buildOppIndex(pipes, revs) {
+        oppByProgram = {};
+        var seen = {};
+        // Combine both sources; pipes has all created opps, revs has won opps
+        var combined = (pipes || []).concat(revs || []);
+        combined.forEach(function(r) {
+            if (!r.opportunityId) return;
+            var key = r.opportunityId;
+            if (seen[key]) return;
+            seen[key] = true;
+            var prog = r.programName || '(unknown)';
+            if (!oppByProgram[prog]) oppByProgram[prog] = [];
+            oppByProgram[prog].push({ id: key, stage: r.stage || '(none)', amount: r.amountUSD });
+        });
+    }
+
+    function showSfTooltip(x, y, opps, title) {
+        clearTimeout(sfHideTimer);
+        var el = document.getElementById('sfOppTooltip');
+        if (!el || !opps.length) return;
+        if (!sfLocked && sfCurrentTitle === title && el.style.display === 'block') { _posSfTip(x, y); return; }
+        sfCurrentTitle = title;
+        var lbl = title.length > 36 ? title.slice(0, 36) + '\u2026' : title;
+        var html = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;padding-bottom:7px;margin-bottom:8px;border-bottom:1px solid #eee;">'
+            + lbl + ' <span style="font-weight:400;">' + opps.length + ' opp' + (opps.length !== 1 ? 's' : '') + '</span></div>';
+        var byStage = {};
+        opps.forEach(function(o) { var s = o.stage || '(none)'; if (!byStage[s]) byStage[s] = []; byStage[s].push(o); });
+        var stageOrder = ['Closed Won','Closed Lost','Negotiation','Validate','Develop','Qualify','Create','Implementation','(none)'];
+        var stages = Object.keys(byStage).sort(function(a, b) {
+            var ai = stageOrder.indexOf(a), bi = stageOrder.indexOf(b);
+            if (ai === -1) ai = 99; if (bi === -1) bi = 99;
+            return ai !== bi ? ai - bi : a.localeCompare(b);
+        });
+        var shown = 0;
+        stages.forEach(function(stage) {
+            var group = byStage[stage];
+            html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin:8px 0 4px;">'
+                + stage + ' <span style="font-weight:400;">(' + group.length + ')</span></div>';
+            group.forEach(function(o) {
+                if (shown >= 30) return; shown++;
+                html += '<div style="margin-bottom:4px;">'
+                    + '<a href="https://myansell.lightning.force.com/lightning/r/' + o.id + '/view" target="_blank" rel="noopener" '
+                    + 'style="font-size:11px;color:#0063AC;text-decoration:none;font-family:monospace;">' + o.id + '</a>'
+                    + (o.amount ? '<span style="font-size:10px;color:#555;margin-left:8px;">' + fmtUSD(o.amount) + '</span>' : '')
+                    + '</div>';
+            });
+        });
+        if (opps.length > 30) html += '<div style="font-size:10px;color:#aaa;margin-top:6px;">+ ' + (opps.length - 30) + ' more</div>';
+        el.innerHTML = '<button onclick="sfUnlock()" style="position:absolute;top:7px;right:9px;background:none;border:none;font-size:15px;color:#aaa;cursor:pointer;line-height:1;padding:0;" title="Close">&times;</button>' + html;
+        el.style.display = 'block';
+        el.style.border = sfLocked ? '2px solid #0063AC' : '1px solid #dde0e7';
+        if (!sfLocked) _posSfTip(x, y);
+    }
+
+    function _posSfTip(x, y) {
+        var el = document.getElementById('sfOppTooltip');
+        if (!el || sfLocked) return;
+        var tw = 300, th = el.offsetHeight || 200;
+        var lx = x + 18, ly = y + 8;
+        if (lx + tw > window.innerWidth)  lx = x - tw - 8;
+        if (ly + th > window.innerHeight) ly = y - th - 8;
+        el.style.left = lx + 'px'; el.style.top = ly + 'px';
+    }
+
+    function hideSfTooltipDelayed() {
+        if (sfLocked) return;
+        sfHideTimer = setTimeout(function() {
+            var el = document.getElementById('sfOppTooltip');
+            if (el) el.style.display = 'none';
+        }, 220);
+    }
+
+    function sfUnlock() {
+        sfLocked = false; sfCurrentTitle = null;
+        var el = document.getElementById('sfOppTooltip');
+        if (el) el.style.display = 'none';
+    }
+
+    document.addEventListener('mouseover', function(evt) {
+        if (sfLocked) return;
+        if (evt.target.closest('#sfOppTooltip')) { clearTimeout(sfHideTimer); return; }
+        var cell = evt.target.closest('.opp-cell');
+        if (!cell) return;
+        var row = cell.closest('tr[data-prog]');
+        if (!row) return;
+        var opps = oppByProgram[row.dataset.prog] || [];
+        if (opps.length) showSfTooltip(evt.clientX, evt.clientY, opps, row.dataset.prog);
+    });
+
+    document.addEventListener('mousemove', function(evt) {
+        if (sfLocked) return;
+        if (evt.target.closest('.opp-cell')) _posSfTip(evt.clientX, evt.clientY);
+    });
+
+    document.addEventListener('mouseout', function(evt) {
+        if (sfLocked) return;
+        var fromCell = evt.target.closest && evt.target.closest('.opp-cell');
+        var fromTip  = evt.target.closest && evt.target.closest('#sfOppTooltip');
+        if (!fromCell && !fromTip) return;
+        var toCell = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('.opp-cell');
+        var toTip  = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('#sfOppTooltip');
+        if (!toCell && !toTip) hideSfTooltipDelayed(); else clearTimeout(sfHideTimer);
+    });
+
+    document.addEventListener('click', function(evt) {
+        var cell = evt.target.closest('.opp-cell');
+        if (cell) { sfLocked = true; var el = document.getElementById('sfOppTooltip'); if (el) el.style.border = '2px solid #0063AC'; return; }
+        if (!evt.target.closest('#sfOppTooltip')) sfUnlock();
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    //  INIT
+    // ═══════════════════════════════════════════════════════════
+    window.addEventListener('load', async () => {
+        const dateStr = await detectLatestDate();
+        if (dateStr) {
+            await loadAllFiles(dateStr);
+        } else {
+            showEmpty();
+        }
+    });
+    </script>
+</body>
+</html>

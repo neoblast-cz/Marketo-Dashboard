@@ -188,6 +188,25 @@
                     <div><span class="status-dot" id="dotEvt4"></span><code id="evtFile4">iCapture Revenue Created.xlsx</code></div>
                 </div>
             </a>
+
+            <a href="marketo-analytics.html" class="dash-card teal">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                        <line x1="2" y1="20" x2="22" y2="20"/>
+                    </svg>
+                </div>
+                <h2>Program Analytics Overview</h2>
+                <p>Omnichannel program performance — membership, qualified, pipeline and revenue attribution across all channels.</p>
+                <div class="data-file" style="display:flex;flex-direction:column;gap:4px">
+                    <div><span class="status-dot" id="dotAn1"></span><code id="anFile1">Supermetrics - Membership v2.xlsx</code></div>
+                    <div><span class="status-dot" id="dotAn2"></span><code id="anFile2">Supermetrics - Qualified v3.xlsx</code></div>
+                    <div><span class="status-dot" id="dotAn3"></span><code id="anFile3">Supermetrics Opps Create v8 ex.xlsx</code></div>
+                    <div><span class="status-dot" id="dotAn4"></span><code id="anFile4">Supermetrics Opps Won v10.xlsx</code></div>
+                </div>
+            </a>
         </div>
 
         <!-- Tools -->
@@ -217,6 +236,33 @@
                 </div>
                 <h2>Forms</h2>
                 <p>Live inventory of all Marketo forms via API — status, folder, language, theme, progressive profiling, and last updated.</p>
+                <div class="data-file">
+                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
+                </div>
+            </a>
+
+            <a href="marketo-programs.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M9 3v18M3 9h18M3 15h18"/>
+                    </svg>
+                </div>
+                <h2>Programs</h2>
+                <p>Live inventory of all Marketo programs via API — type, channel, workspace, folder, tags, and last updated.</p>
+                <div class="data-file">
+                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
+                </div>
+            </a>
+
+            <a href="marketo-smartcampaigns.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <h2>Smart Campaigns</h2>
+                <p>Live inventory of all Marketo smart campaigns via API — type (batch/trigger), active status, program, workspace, and last updated.</p>
                 <div class="data-file">
                     <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
                 </div>
@@ -274,6 +320,29 @@
         findLatest('iCapture Users.csv',             'dotEvt2',     'evtFile2');
         findLatest('iCapture Membership.xlsx',       'dotEvt3',     'evtFile3');
         findLatest('iCapture Revenue Created.xlsx',  'dotEvt4',     'evtFile4');
+
+        // Analytics files (omnichannel subfolder)
+        async function findLatestOmni(suffix, dotId, labelId) {
+            const today = new Date();
+            for (let i = 0; i < 90; i++) {
+                const d = new Date(today); d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().slice(0, 10);
+                const path = `Reports/omnichannel/${dateStr} ${suffix}`;
+                try {
+                    const r = await fetch(path, { method: 'HEAD' });
+                    if (r.ok) {
+                        document.getElementById(dotId).classList.add('ok');
+                        document.getElementById(labelId).textContent = `${dateStr} ${suffix}`;
+                        return;
+                    }
+                } catch {}
+            }
+            document.getElementById(dotId).classList.add('missing');
+        }
+        findLatestOmni('Supermetrics - Membership v2.xlsx',  'dotAn1', 'anFile1');
+        findLatestOmni('Supermetrics - Qualified v3.xlsx',   'dotAn2', 'anFile2');
+        findLatestOmni('Supermetrics Opps Create v8 ex.xlsx','dotAn3', 'anFile3');
+        findLatestOmni('Supermetrics Opps Won v10.xlsx',     'dotAn4', 'anFile4');
 
         // ---- FAQ Data ----
         const FAQ = [

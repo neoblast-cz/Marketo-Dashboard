@@ -1081,6 +1081,7 @@
         const filtered = applyFilters();
         updateFilterCount(filtered.length);
         renderAll(filtered);
+        if (activeTab === 'quality') renderQualityTab();
     }
 
     function applyFilters() {
@@ -2132,7 +2133,7 @@
         document.getElementById('tabNav').style.display         = 'flex';
         setTimeout(updateStickyOffsets, 0);
         document.getElementById('exportBtn').style.display      = 'flex';
-        document.getElementById('filterBar').style.display      = activeTab === 'analysis' ? 'flex' : 'none';
+        document.getElementById('filterBar').style.display      = (activeTab === 'analysis' || activeTab === 'quality') ? 'flex' : 'none';
         document.getElementById('footerEl').style.display       = 'block';
         document.getElementById('dashContent').style.display    = activeTab === 'analysis' ? 'block' : 'none';
         document.getElementById('qualityContent').style.display = activeTab === 'quality'  ? 'block' : 'none';
@@ -2171,7 +2172,7 @@
         document.getElementById('tabBtnQuality').classList.toggle('active', tab === 'quality');
         document.getElementById('dashContent').style.display    = tab === 'analysis' ? 'block' : 'none';
         document.getElementById('qualityContent').style.display = tab === 'quality'  ? 'block' : 'none';
-        document.getElementById('filterBar').style.display      = tab === 'analysis' ? 'flex'  : 'none';
+        document.getElementById('filterBar').style.display      = (tab === 'analysis' || tab === 'quality') ? 'flex' : 'none';
         if (tab === 'quality')  renderQualityTab();
     }
 
@@ -2273,6 +2274,16 @@
             picklist: null,
             blanksOnly: true,
             desc: 'Free-text — completeness only; non-standard titles expected, values not analysed'
+        },
+        {
+            field: 'acqProgram',
+            label: 'Acquisition Program',
+            mktoField: 'Acquisition_Program_Name__c',
+            templateId: null,
+            picklist: null,
+            blanksOnly: true,
+            blankOk: false,
+            desc: 'Records without an Acquisition Program cannot be attributed to any marketing source — this is a critical data gap'
         }
     ];
     const RARE_THRESHOLD = 3;
@@ -3413,9 +3424,10 @@
                     if (!(r[f.field] || '').trim()) blankCount++;
                 }
                 const filled = fTotal - blankCount;
-                clean = true;
-                value = pct(filled, fTotal) + ' filled';
-                sub   = 'Values not analysed — completeness only';
+                clean = blankCount === 0 || f.blankOk !== false;
+                value = blankCount === 0 ? '&#10003; Clean' : pct(filled, fTotal) + ' filled';
+                sub   = blankCount === 0 ? 'No blanks found'
+                                         : fmt(blankCount) + ' records missing this field';
             } else {
                 const raw = {};
                 for (const r of fData) {
