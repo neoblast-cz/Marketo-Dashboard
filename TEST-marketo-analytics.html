@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketo | Analytics</title>
+    <title>Marketo | Program Analytics Overview — TEST</title>
     <link rel="stylesheet" href="ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -56,7 +56,7 @@
                 </svg>
             </div>
             <div>
-                <h1>Marketo | <span>Program Analytics Overview</span></h1>
+                <h1>Marketo | <span>Program Analytics Overview <em style="font-size:13px;font-weight:400;color:#f59e0b;letter-spacing:0">TEST</em></span></h1>
                 <div class="header-sub">
                     Omnichannel Program Performance
                     <span class="export-badge" id="exportBadge" style="display:none">
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="header-buttons">
-            <a href="marketo-index.html" class="home-btn">
+            <a href="index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
@@ -179,7 +179,7 @@
     <div id="emptyState" style="padding:80px 30px;text-align:center">
         <svg viewBox="0 0 64 64" width="56" height="56" style="margin-bottom:16px;opacity:.25"><rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="#0063AC" stroke-width="3"/><line x1="20" y1="24" x2="44" y2="24" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="32" x2="44" y2="32" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="34" y2="40" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/></svg>
         <h2 style="margin:0 0 8px;font-size:20px;color:#333">No data found</h2>
-        <p style="color:#888;font-size:14px;margin:0">Place Supermetrics export files in <code>Reports/omnichannel/</code> and reload.</p>
+        <p style="color:#888;font-size:14px;margin:0">Place <code>Manual_imports_file.csv</code> in <code>Reports/omnichannel/</code> and reload.</p>
     </div>
 
     <!-- ═══ DASHBOARD CONTENT ════════════════════════════════════════════ -->
@@ -192,10 +192,23 @@
             <!-- ── Section 1: Performance Trendline ── -->
             <div class="section-label">Performance Trendline</div>
             <div class="chart-card">
-                <div class="chart-title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                    Members, Success &amp; Qualified vs Pipeline/Revenue over time
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                    <div class="chart-title" style="margin:0">Members, Success &amp; Qualified vs Pipeline/Revenue over time</div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <button id="comboExportBtn" onclick="exportComboCSV()" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border:1px solid #d1d5db;border-radius:4px;background:#fff;color:#555;cursor:pointer;line-height:1.4" title="Export to CSV">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v9M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>
+                            Export
+                        </button>
+                        <button id="comboViewToggle" onclick="toggleComboView()" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border:1px solid #d1d5db;border-radius:4px;background:#fff;color:#555;cursor:pointer;line-height:1.4" title="Switch to table view">
+                            <svg id="comboToggleIcon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="14" height="2.5" rx="0.5"/><rect x="1" y="7" width="14" height="2.5" rx="0.5"/><rect x="1" y="11" width="14" height="2.5" rx="0.5"/></svg>
+                            Table
+                        </button>
+                    </div>
                 </div>
-                <div style="position:relative;height:320px"><canvas id="chartCombo"></canvas></div>
+                <div id="comboChartWrap" style="position:relative;height:320px"><canvas id="chartCombo"></canvas></div>
+                <div id="comboTableWrap" style="display:none;overflow-x:auto;max-height:360px;overflow-y:auto">
+                    <table id="comboTable" class="data-table" style="font-size:11px;min-width:100%"></table>
+                </div>
             </div>
 
             <!-- ── Section 2: Pipeline & Revenue Top Programs ── -->
@@ -333,6 +346,9 @@
     var rawOppsCreate  = [];   // from Supermetrics Opps Create v8 ex  (pipeline, use createdDate)
     var rawOppsWon     = [];   // from Supermetrics Opps Won v10        (revenue, use closedDate)
     var exportDateStr  = '';
+    var costMap        = {};   // TEST: programName → { agencyCosts, otherCosts, thirdPartySpend } in USD
+    var comboBucketData = null; // last-rendered trendline buckets — used by table/export
+    var comboViewMode  = 'chart'; // 'chart' | 'table'
     var charts         = {};
     var sortCol        = 'members';
     var sortDir        = -1;
@@ -417,73 +433,163 @@
         return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
     }
 
-    async function detectLatestDate() {
-        const today = new Date();
-        for (let i = 0; i < 90; i++) {
-            const d = new Date(today); d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().slice(0, 10);
-            try {
-                const r = await fetch('Reports/omnichannel/' + dateStr + ' Supermetrics - Membership v2.xlsx', { method: 'HEAD' });
-                if (r.ok) return dateStr;
-            } catch {}
-        }
-        return null;
-    }
+    // ── TEST PAGE: single-file loader ──────────────────────────
+    // Reads Reports/omnichannel/Manual_imports_file.csv.
+    // Also stitches the latest *umt-builder-cost.xlsx by Program Name.
+    // Each row = one program (pre-aggregated).
+    // amountUSD is set to 1 so that the existing formula
+    //   ftCreated × amountUSD  produces the pre-computed CIMP value.
+    async function loadManualFile() {
+        const FILE_PATH = 'Reports/omnichannel/Manual_imports_file.csv';
+        showLoading('Loading manual import file…');
 
-    async function loadAllFiles(dateStr) {
-        showLoading('Loading Supermetrics exports for ' + formatExportDate(dateStr) + '…');
-        const base = 'Reports/omnichannel/' + dateStr + ' Supermetrics';
-        const [mbRaw, qlRaw, pcRaw, pwRaw] = await Promise.all([
-            readFile(base + ' - Membership v2.xlsx').catch(() => []),
-            readFile(base + ' - Qualified v3.xlsx').catch(() => []),
-            readFile(base + ' Opps Create v8 ex.xlsx').catch(() => []),
-            readFile(base + ' Opps Won v10.xlsx').catch(() => [])
+        // EUR → USD: exchange rate stored as 1 USD = 0.917431 EUR
+        // so EUR ÷ 0.917431 = USD
+        const EUR_USD_RATE = 0.917431;
+        function toUSD(amount, currency) {
+            if ((currency || '').toUpperCase().trim() === 'EUR') return amount / EUR_USD_RATE;
+            return amount; // assume USD for all others
+        }
+
+        // Detect latest umt-builder-cost.xlsx (scan up to 60 days back)
+        async function findCostFile() {
+            const today = new Date();
+            for (let i = 0; i < 60; i++) {
+                const dt = new Date(today); dt.setDate(dt.getDate() - i);
+                const p = 'Reports/omnichannel/' + dt.toISOString().slice(0, 10) + ' umt-builder-cost.xlsx';
+                try { const r = await fetch(p, { method: 'HEAD' }); if (r.ok) return p; } catch {}
+            }
+            return null;
+        }
+
+        // Load CSV and detect cost file path in parallel
+        const [csvBuf, costFilePath] = await Promise.all([
+            fetch(FILE_PATH).then(r => { if (!r.ok) throw new Error('CSV HTTP ' + r.status); return r.arrayBuffer(); })
+                .catch(e => { console.error(e); return null; }),
+            findCostFile()
         ]);
 
-        rawMembership = mbRaw.map(r => ({
-            programName:    String(r['Program Name'] || '').trim(),
-            membershipDate: parseDate(r['Membership Date']),
-            gbu:            String(r['GBU'] || '').trim(),
-            region:         String(r['Region'] || '').trim(),
-            emailType:      String(r['Email Type'] || '').trim(),
-            programChannel: String(r['Program Channel'] || '').trim(),
-            members:        parseNum(r['Members']),
-            newNames:       parseNum(r['New Names']),
-            successTotal:   parseNum(r['Success (Total)']),
-            successNewNames:parseNum(r['Success (New Names)'])
-        })).filter(r => r.programName);
+        if (!csvBuf) { showEmpty(); return; }
 
-        rawQualified = qlRaw.map(r => ({
-            programName:    String(r['Program Name'] || '').trim(),
-            membershipDate: parseDate(r['Membership Date']),
-            members:        parseNum(r['Members']),
-            newNames:       parseNum(r['New Names'])
-        })).filter(r => r.programName);
+        const wb = XLSX.read(csvBuf, { type: 'array', cellDates: true });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
 
-        function normaliseOpp(r) {
-            return {
-                opportunityId:  String(r['Opportunity ID 18'] || '').trim(),
-                programName:    String(r['Program Name'] || '').trim(),
-                amountUSD:      parseMoney(r['Amount USD']),
-                stage:          String(r['Opportunity Stage'] || '').trim(),
-                isClosed:       String(r['Opportunity Closed'] || '').trim().toLowerCase() === 'yes',
-                createdDate:    parseDate(r['Opportunity Created Date']),
-                closedDate:     parseDate(r['Opportunity Closed Date']),
-                gbu:            String(r['GBU'] || '').trim(),
-                region:         String(r['Region'] || '').trim(),
-                year:           String(r['Year'] || '').trim(),
-                programChannel: String(r['Program Channel'] || '').trim(),
-                emailType:      String(r['Email Type'] || '').trim(),
-                mtCreated:      parseNum(r['(MT) Opportunities Created']),
-                mtWon:          parseNum(r['(MT) Opportunities Won']),
-                ftCreated:      parseNum(r['(FT) Opportunities Created']),
-                ftWon:          parseNum(r['(FT) Opportunities Won'])
-            };
+        // ── Build cost lookup: programName → { agencyCosts, otherCosts, thirdPartySpend } (USD)
+        costMap = {}; // reset module-level map
+        if (costFilePath) {
+            try {
+                const costBuf = await fetch(costFilePath).then(r => r.arrayBuffer());
+                const cwb = XLSX.read(costBuf, { type: 'array', cellDates: true });
+                const costRows = XLSX.utils.sheet_to_json(cwb.Sheets[cwb.SheetNames[0]], { defval: '', raw: false });
+                costRows.forEach(cr => {
+                    // Join on "Program Name"; fallback to the long generated campaign name column
+                    const prog = String(
+                        cr['Program Name'] ||
+                        cr['Generated Campaign Name - Please copy paste it and place it from the other tabs'] || ''
+                    ).trim();
+                    if (!prog) return;
+                    const ccy = String(cr['Currency'] || '').trim();
+                    const ac  = toUSD(parseMoney(cr['Agency costs']), ccy);
+                    const oc  = toUSD(parseMoney(cr['Other costs']), ccy);
+                    const tp  = toUSD(parseMoney(cr['Spent_3rd_party_publisher']), ccy);
+                    if (!costMap[prog]) costMap[prog] = { agencyCosts: 0, otherCosts: 0, thirdPartySpend: 0 };
+                    costMap[prog].agencyCosts     += ac;
+                    costMap[prog].otherCosts      += oc;
+                    costMap[prog].thirdPartySpend += tp;
+                });
+                console.log('Cost file loaded:', costFilePath, '—', Object.keys(costMap).length, 'programs matched');
+            } catch (e) {
+                console.warn('Cost file failed to load:', e);
+            }
+        } else {
+            console.warn('No umt-builder-cost.xlsx found in Reports/omnichannel/ — costs will use CIMP fields only');
         }
-        rawOppsCreate = pcRaw.map(normaliseOpp).filter(r => r.opportunityId || r.programName);
-        rawOppsWon    = pwRaw.map(normaliseOpp).filter(r => r.opportunityId || r.programName);
 
-        exportDateStr = dateStr;
+        const g = (r, col) => String(r[col] || '').trim();
+        const n = (r, col) => parseNum(r[col]);
+        const m = (r, col) => parseMoney(r[col]);
+        const d = (r, col) => parseDate(r[col]);
+
+        const normalized = rows.map(r => {
+            const importDate = d(r, 'CUSTOM_IMPORTS_DATE');
+            const pipelineFT = m(r, 'T_FT_CIMP_PIPELINE_CREATED');
+            const pipelineMT = m(r, 'T_MT_CIMP_PIPELINE_CREATED');
+            const revenueFT  = m(r, 'T_FT_CIMP_REVENUE_WON');
+            const revenueMT  = m(r, 'T_MT_CIMP_REVENUE_WON');
+            const prog       = g(r, 'PROGRAM_NAME');
+            return {
+                // identifiers
+                programName:      prog,
+                programChannel:   g(r, 'PROGRAM_CHANNEL'),
+                gbu:              g(r, 'GBU'),
+                region:           g(r, 'REGION'),
+                country:          g(r, 'ACCOUNT_COUNTRY'),
+                dataSource:       g(r, 'DATA_SOURCE_NAME'),
+                yearFromFile:     g(r, 'YEAR_FROM_FILE'),
+                stage:            g(r, 'OPPORTUNITY_STAGE'),
+                opportunityId:    g(r, 'OPPORTUNITY_ID_18'),
+                emailType:        '',
+                // CIMP dimensions
+                vertical:         g(r, 'T_VERTICAL_CIMP'),
+                subVertical:      g(r, 'T_SUB_VERTICAL_CIMP'),
+                subRegion:        g(r, 'T_SUB_REGION_CIMP'),
+                fiscalYear:       g(r, 'T_FISCAL_YEAR_CIMP'),
+                cimpCampaignName: g(r, 'T_CIMP_CAMPAIGN_NAME'),
+                brandService:     g(r, 'T_BRAND_SERVICE_CIMP'),
+                landingPageType:  g(r, 'T_LANDING_PAGE_TYPE_CIMP'),
+                channelCIMP:      g(r, 'T_CHANNEL_CIMP'),
+                // dates — CUSTOM_IMPORTS_DATE serves all three
+                membershipDate:   importDate,
+                createdDate:      importDate,
+                closedDate:       importDate,
+                // membership metrics
+                members:          n(r, 'MEMBERS'),
+                newNames:         n(r, 'NEW_NAMES'),
+                successTotal:     n(r, 'SUCCESS_TOTAL'),
+                successNewNames:  n(r, 'SUCCESS_NEW_NAMES'),
+                qualified:        n(r, 'QUALIFIED_MEMBERS'),
+                qualifiedNewNames:n(r, 'QUALIFIED_NEW_NAMES'),
+                workingMembers:   n(r, 'WORKING_MEMBERS'),
+                workingNewNames:  n(r, 'WOKRING_NEW_NAMES'),  // source typo preserved
+                // opp counts
+                ftOppsCreated:    n(r, 'FT_OPPORTUNITIES_CREATED'),
+                ftOppsWon:        n(r, 'FT_OPPORTUNITIES_WON'),
+                mtOppsCreated:    n(r, 'MT_OPPORTUNITIES_CREATED'),
+                mtOppsWon:        n(r, 'MT_OPPORTUNITIES_WON'),
+                // Pre-computed pipeline/revenue — stored directly
+                pipelineFT, pipelineMT, revenueFT, revenueMT,
+                // amountUSD trick: set to 1 so existing formula
+                //   ftCreated × amountUSD  =  pipelineFT × 1  =  pipelineFT
+                amountUSD: 1,
+                ftCreated: pipelineFT,
+                mtCreated: pipelineMT,
+                ftWon:     revenueFT,
+                mtWon:     revenueMT,
+                isClosed:  false
+            };
+        }).filter(r => r.programName);
+
+        // Feed all 4 raw arrays from the same unified rows
+        rawMembership = normalized;
+        rawQualified  = normalized.map(r => ({
+            programName:    r.programName,
+            membershipDate: r.membershipDate,
+            members:        r.qualified,
+            newNames:       r.qualifiedNewNames
+        }));
+        rawOppsCreate = normalized;   // pipeline — uses createdDate + ftCreated/mtCreated
+        rawOppsWon    = normalized;   // revenue  — uses closedDate  + ftWon/mtWon
+
+        // Export date from max date in data
+        const dates = normalized.map(r => r.membershipDate).filter(Boolean);
+        if (dates.length) {
+            let maxTs = -Infinity;
+            dates.forEach(d => { const t = d.getTime(); if (t > maxTs) maxTs = t; });
+            exportDateStr = toDateStr(new Date(maxTs));
+        } else {
+            exportDateStr = 'Manual Import';
+        }
+
         initFilters();
         initButterflyLists();
         renderAll();
@@ -742,6 +848,14 @@
     // ═══════════════════════════════════════════════════════════
     function renderAll(mems, quals, pipes, revs) {
         if (mems === undefined) { var f = applyFilters(); mems = f.mems; quals = f.quals; pipes = f.pipes; revs = f.revs; }
+        // Reset trendline to chart view on re-render
+        if (comboViewMode === 'table') {
+            comboViewMode = 'chart';
+            document.getElementById('comboChartWrap').style.display = '';
+            document.getElementById('comboTableWrap').style.display = 'none';
+            var btn = document.getElementById('comboViewToggle');
+            if (btn) btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="14" height="2.5" rx="0.5"/><rect x="1" y="7" width="14" height="2.5" rx="0.5"/><rect x="1" y="11" width="14" height="2.5" rx="0.5"/></svg> Table';
+        }
         const stats = buildProgramStats(mems, quals, pipes, revs);
         renderKPIs(mems, quals, pipes, revs, stats);
         renderCombo(mems, quals, pipes, revs);
@@ -823,6 +937,19 @@
             return s + (attr || 0) * prob * r.amountUSD;
         }, 0);
 
+        // Costs: sum once per unique program (costMap has totals; mems may have multiple rows per program)
+        let totalAgency = 0, totalOther = 0, total3rdParty = 0;
+        const seenCostProgs = new Set();
+        mems.forEach(r => {
+            if (seenCostProgs.has(r.programName)) return;
+            seenCostProgs.add(r.programName);
+            const c = costMap[r.programName];
+            if (c) { totalAgency += c.agencyCosts || 0; totalOther += c.otherCosts || 0; total3rdParty += c.thirdPartySpend || 0; }
+        });
+        const totalCost     = totalAgency + totalOther + total3rdParty;
+        const costPerMember = totalMembers > 0 ? totalCost / totalMembers : 0;
+        const roi           = totalCost > 0 ? totalRevenue / totalCost : null;
+
         const oppsPipeline = new Set(pipes.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
         const oppsWon      = new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
 
@@ -876,7 +1003,29 @@
                         '<div style="font-size:11px;color:#999;margin-top:4px">weighted by stage</div>' +
                     '</div>' +
                 '</div>' +
-            '</div>';
+            '</div>' +
+
+            (totalCost > 0 ?
+            '<div class="kpi-card" style="border-top:3px solid #e11d48">' +
+                '<div class="kpi-label" style="margin-bottom:10px;color:#e11d48">Investment (USD)</div>' +
+                '<div style="display:flex;gap:0">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:10px">' +
+                        '<div class="kpi-value" style="font-size:21px">' + fmtUSD(totalCost) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Total Spend</div>' +
+                        '<div style="font-size:10px;color:#aaa;margin-top:5px;line-height:1.6">' +
+                            'Agency: ' + fmtUSD(totalAgency) + '<br>' +
+                            'Other: '  + fmtUSD(totalOther)  + '<br>' +
+                            '3rd Party: ' + fmtUSD(total3rdParty) +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:10px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:21px">' + fmtUSD(costPerMember) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Cost / Member</div>' +
+                        (roi !== null ? '<div style="margin-top:10px"><div class="kpi-value" style="font-size:21px;color:#70ad47">' + roi.toFixed(1) + 'x</div><div class="kpi-sub" style="margin-top:3px">Revenue ROI (' + attrLabel + ')</div></div>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+            : '');
 
         // Update attr labels on chart titles
         var pl = document.getElementById('pipeAttrLabel'); if (pl) pl.textContent = attrLabel;
@@ -892,13 +1041,23 @@
         var todayBucket = getBucket(today, timeScale);
         var isFT        = attributionMode === 'ft';
 
-        var memBuckets = {}, sucBuckets = {}, qualBuckets = {}, pipeBuckets = {}, wonBuckets = {}, predBuckets = {};
+        var memBuckets = {}, sucBuckets = {}, qualBuckets = {}, pipeBuckets = {}, wonBuckets = {}, predBuckets = {}, costBuckets = {};
 
+        var costProgSeen = new Set();
         mems.forEach(function(m) {
             var key = getBucket(m.membershipDate, timeScale);
             if (!key) return;
-            memBuckets[key] = (memBuckets[key] || 0) + m.members;
-            sucBuckets[key] = (sucBuckets[key] || 0) + m.successTotal;
+            memBuckets[key]  = (memBuckets[key]  || 0) + m.members;
+            sucBuckets[key]  = (sucBuckets[key]  || 0) + m.successTotal;
+            // Count each program's cost only once, placed in its first-seen date bucket
+            if (!costProgSeen.has(m.programName)) {
+                costProgSeen.add(m.programName);
+                var c = costMap[m.programName];
+                if (c) {
+                    var cost = (c.agencyCosts || 0) + (c.otherCosts || 0) + (c.thirdPartySpend || 0);
+                    if (cost) costBuckets[key] = (costBuckets[key] || 0) + cost;
+                }
+            }
         });
         quals.forEach(function(q) {
             var key = getBucket(q.membershipDate, timeScale);
@@ -924,10 +1083,14 @@
             if (wkey) wonBuckets[wkey] = (wonBuckets[wkey] || 0) + (isFT ? r.ftWon : r.mtWon) * r.amountUSD;
         });
 
+        var hasCost = Object.keys(costBuckets).length > 0;
         var allKeys = Array.from(new Set([].concat(
             Object.keys(memBuckets), Object.keys(pipeBuckets), Object.keys(wonBuckets),
-            Object.keys(predBuckets), [todayBucket]
+            Object.keys(predBuckets), Object.keys(costBuckets), [todayBucket]
         ))).sort();
+
+        // Store for table/export (module-level)
+        comboBucketData = { allKeys: allKeys, memBuckets: memBuckets, sucBuckets: sucBuckets, qualBuckets: qualBuckets, pipeBuckets: pipeBuckets, wonBuckets: wonBuckets, predBuckets: predBuckets, costBuckets: costBuckets, hasCost: hasCost, attrLbl: attrLbl, todayBucket: todayBucket };
         var nowIdx = allKeys.indexOf(todayBucket);
         var labels = allKeys.map(function(k) { return formatBucketLabel(k, timeScale); });
         var attrLbl = attributionMode.toUpperCase();
@@ -962,7 +1125,8 @@
                     { type: 'bar',  label: 'Qualified',             data: allKeys.map(k => qualBuckets[k] || 0), backgroundColor: 'rgba(112,48,160,0.85)', borderRadius: 2, yAxisID: 'yL', order: 3, stack: 'success' },
                     { type: 'line', label: 'Pipeline ' + attrLbl,   data: allKeys.map(k => pipeBuckets[k] || 0), borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 1 },
                     { type: 'line', label: 'Revenue Won ' + attrLbl,data: allKeys.map(k => wonBuckets[k]  || 0), borderColor: '#70AD47', backgroundColor: 'rgba(112,173,71,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2.5, yAxisID: 'yR', order: 2 },
-                    { type: 'line', label: 'Predicted Revenue',     data: allKeys.map(k => k >= todayBucket ? (predBuckets[k] || null) : null), borderColor: 'rgba(112,173,71,0.55)', backgroundColor: 'rgba(112,173,71,0.04)', borderDash: [7,4], fill: true, tension: 0.3, pointRadius: 3, pointStyle: 'triangle', borderWidth: 2, yAxisID: 'yR', order: 1 }
+                    { type: 'line', label: 'Predicted Revenue',     data: allKeys.map(k => k >= todayBucket ? (predBuckets[k] || null) : null), borderColor: 'rgba(112,173,71,0.55)', backgroundColor: 'rgba(112,173,71,0.04)', borderDash: [7,4], fill: true, tension: 0.3, pointRadius: 3, pointStyle: 'triangle', borderWidth: 2, yAxisID: 'yR', order: 1 },
+                    ...(hasCost ? [{ type: 'line', label: 'Total Spend', data: allKeys.map(k => costBuckets[k] || null), borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.06)', fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2, borderDash: [4,3], yAxisID: 'yR', order: 2 }] : [])
                 ]
             },
             options: {
@@ -997,6 +1161,88 @@
             },
             plugins: [nowLinePlugin]
         });
+    }
+
+    // ── Trendline: build table from bucket data ─────────────────
+    function buildComboTable() {
+        var d = comboBucketData;
+        if (!d) return;
+        var cols = [
+            { key: 'period',    label: 'Period',                      fmt: function(v) { return v; } },
+            { key: 'members',   label: 'Members',                     fmt: fmt },
+            { key: 'success',   label: 'Success',                     fmt: fmt },
+            { key: 'qualified', label: 'Qualified',                   fmt: fmt },
+            { key: 'pipeline',  label: 'Pipeline ' + d.attrLbl,      fmt: fmtUSD },
+            { key: 'revenue',   label: 'Revenue Won ' + d.attrLbl,   fmt: fmtUSD },
+            { key: 'predicted', label: 'Predicted Revenue',           fmt: fmtUSD }
+        ];
+        if (d.hasCost) cols.push({ key: 'cost', label: 'Total Spend', fmt: fmtUSD });
+
+        var thead = '<thead><tr>' + cols.map(function(c) {
+            return '<th style="position:sticky;top:0;background:#f8fafc;padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:2px solid #e5e7eb">' + c.label + '</th>';
+        }).join('') + '</tr></thead>';
+        thead = thead.replace('text-align:right', 'text-align:left'); // first col left-align
+
+        var rows = d.allKeys.map(function(k) {
+            var label = formatBucketLabel(k, timeScale);
+            var isFuture = k > d.todayBucket;
+            var bg = isFuture ? 'background:#fffbf0' : '';
+            return '<tr style="' + bg + '">' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;white-space:nowrap;font-weight:500">' + label + (isFuture ? ' <span style="font-size:9px;color:#f59e0b;vertical-align:middle">future</span>' : '') + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + fmt(d.memBuckets[k] || 0) + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + fmt(d.sucBuckets[k] || 0) + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + fmt(d.qualBuckets[k] || 0) + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + fmtUSD(d.pipeBuckets[k] || 0) + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + fmtUSD(d.wonBuckets[k] || 0) + '</td>' +
+                '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + (isFuture && d.predBuckets[k] ? fmtUSD(d.predBuckets[k]) : (d.predBuckets[k] ? fmtUSD(d.predBuckets[k]) : '—')) + '</td>' +
+                (d.hasCost ? '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;text-align:right">' + (d.costBuckets[k] ? fmtUSD(d.costBuckets[k]) : '—') + '</td>' : '') +
+                '</tr>';
+        });
+
+        document.getElementById('comboTable').innerHTML = thead + '<tbody>' + rows.join('') + '</tbody>';
+    }
+
+    function toggleComboView() {
+        comboViewMode = comboViewMode === 'chart' ? 'table' : 'chart';
+        var isTable = comboViewMode === 'table';
+        document.getElementById('comboChartWrap').style.display = isTable ? 'none' : '';
+        document.getElementById('comboTableWrap').style.display = isTable ? '' : 'none';
+        var btn = document.getElementById('comboViewToggle');
+        var icon = document.getElementById('comboToggleIcon');
+        if (isTable) {
+            btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,4 6,8 2,12"/><polyline points="6,4 10,8 6,12"/><line x1="10" y1="4" x2="14" y2="4"/><line x1="10" y1="8" x2="14" y2="8"/><line x1="10" y1="12" x2="14" y2="12"/></svg> Chart';
+            buildComboTable();
+        } else {
+            btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="14" height="2.5" rx="0.5"/><rect x="1" y="7" width="14" height="2.5" rx="0.5"/><rect x="1" y="11" width="14" height="2.5" rx="0.5"/></svg> Table';
+        }
+    }
+
+    function exportComboCSV() {
+        var d = comboBucketData;
+        if (!d) return;
+        var attrLbl = d.attrLbl;
+        var headers = ['Period','Members','Success','Qualified','Pipeline ' + attrLbl,'Revenue Won ' + attrLbl,'Predicted Revenue'];
+        if (d.hasCost) headers.push('Total Spend (USD)');
+        var lines = [headers.join(',')];
+        d.allKeys.forEach(function(k) {
+            var row = [
+                formatBucketLabel(k, timeScale),
+                d.memBuckets[k]  || 0,
+                d.sucBuckets[k]  || 0,
+                d.qualBuckets[k] || 0,
+                (d.pipeBuckets[k]  || 0).toFixed(2),
+                (d.wonBuckets[k]   || 0).toFixed(2),
+                (d.predBuckets[k]  || 0).toFixed(2)
+            ];
+            if (d.hasCost) row.push((d.costBuckets[k] || 0).toFixed(2));
+            lines.push(row.join(','));
+        });
+        var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'trendline-' + (exportDateStr || 'export') + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1623,14 +1869,7 @@
     // ═══════════════════════════════════════════════════════════
     //  INIT
     // ═══════════════════════════════════════════════════════════
-    window.addEventListener('load', async () => {
-        const dateStr = await detectLatestDate();
-        if (dateStr) {
-            await loadAllFiles(dateStr);
-        } else {
-            showEmpty();
-        }
-    });
+    window.addEventListener('load', () => loadManualFile());
     </script>
 </body>
 </html>

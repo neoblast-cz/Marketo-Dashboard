@@ -50,7 +50,7 @@
                 <span class="api-btn-dot"></span>
                 Marketo API
             </button>
-            <a href="marketo-index.html" class="home-btn">
+            <a href="index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
@@ -224,89 +224,180 @@
     <!-- Demand Generation Tab -->
     <div id="demandContent" style="display:none">
         <!-- Demand Filter Bar -->
-        <div class="filter-bar" id="demandFilterBar">
-            <span class="filter-label">Filter:</span>
+        <div class="filter-bar" id="demandFilterBar" style="flex-direction:column;align-items:stretch;gap:0">
 
-            <!-- Organisation -->
-            <div class="ms-wrap" id="dms-org">
-                <button class="ms-btn" onclick="toggleDms('org',event)">
-                    <span id="dms-org-label">Organisation</span>
-                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-                </button>
-                <div class="ms-panel" id="dms-org-panel" onclick="event.stopPropagation()">
-                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('org',this.value)"></div>
-                    <div class="ms-actions">
-                        <button onclick="selectAllDms('org')">Select All</button>
-                        <button onclick="clearDms('org')">Clear</button>
+            <!-- Row 1: Audience filters -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:8px;border-bottom:1px solid #f0f0f0">
+                <span class="filter-label">Filter:</span>
+
+                <!-- Organisation -->
+                <div class="ms-wrap" id="dms-org">
+                    <button class="ms-btn" onclick="toggleDms('org',event)">
+                        <span id="dms-org-label">Organisation</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-org-panel" onclick="event.stopPropagation()">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('org',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('org')">Select All</button>
+                            <button onclick="clearDms('org')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-org-list"></div>
                     </div>
-                    <div class="ms-list" id="dms-org-list"></div>
+                </div>
+
+                <!-- GBU -->
+                <div class="ms-wrap" id="dms-gbu">
+                    <button class="ms-btn" onclick="toggleDms('gbu',event)">
+                        <span id="dms-gbu-label">GBU</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-gbu-panel" onclick="event.stopPropagation()">
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('gbu')">Select All</button>
+                            <button onclick="clearDms('gbu')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-gbu-list"></div>
+                    </div>
+                </div>
+
+                <!-- Deliverability -->
+                <div class="ms-wrap" id="dms-deliv">
+                    <button class="ms-btn" onclick="toggleDms('deliv',event)">
+                        <span id="dms-deliv-label">Deliverability</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-deliv-panel" onclick="event.stopPropagation()">
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('deliv')">Select All</button>
+                            <button onclick="clearDms('deliv')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-deliv-list"></div>
+                    </div>
+                </div>
+
+                <!-- Vertical -->
+                <div class="ms-wrap" id="dms-vertical">
+                    <button class="ms-btn" onclick="toggleDms('vertical',event)">
+                        <span id="dms-vertical-label">Vertical</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-vertical-panel" onclick="event.stopPropagation()">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('vertical',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('vertical')">Select All</button>
+                            <button onclick="clearDms('vertical')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-vertical-list"></div>
+                    </div>
+                </div>
+
+                <!-- Country -->
+                <div class="ms-wrap" id="dms-country">
+                    <button class="ms-btn" onclick="toggleDms('country',event)">
+                        <span id="dms-country-label">Country</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-country-panel" onclick="event.stopPropagation()">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('country',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('country')">Select All</button>
+                            <button onclick="clearDms('country')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-country-list"></div>
+                    </div>
+                </div>
+
+                <button class="filter-reset" onclick="resetDemandFilters()">Reset All</button>
+                <span class="filter-count" id="demandFilterCount"></span>
+            </div>
+
+            <!-- Row 2: Program filters -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:8px">
+                <span class="filter-label">Program:</span>
+
+                <!-- First Touch -->
+                <span style="font-size:10px;font-weight:600;color:#5b9bd5;white-space:nowrap">First Touch</span>
+                <div class="ms-wrap" id="dms-acqProgram">
+                    <button class="ms-btn" onclick="toggleDms('acqProgram',event)">
+                        <span id="dms-acqProgram-label">Acquisition Program</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-acqProgram-panel" onclick="event.stopPropagation()" style="min-width:320px">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('acqProgram',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('acqProgram')">Select All</button>
+                            <button onclick="clearDms('acqProgram')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-acqProgram-list" style="max-height:300px"></div>
+                    </div>
+                </div>
+
+                <!-- Separator -->
+                <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 2px;flex-shrink:0"></span>
+
+                <!-- Last Touch -->
+                <span style="font-size:10px;font-weight:600;color:#5b9bd5;white-space:nowrap">Last Touch</span>
+                <button class="lmp-period-btn active" id="btnLtSuccess"  onclick="setLastTouchMode('success')"  style="font-size:10px">Success</button>
+                <button class="lmp-period-btn"        id="btnLtQualified" onclick="setLastTouchMode('qualified')" style="font-size:10px">Qualified</button>
+
+                <!-- Last Program (Success mode) -->
+                <div class="ms-wrap" id="dms-lastProgram">
+                    <button class="ms-btn" onclick="toggleDms('lastProgram',event)">
+                        <span id="dms-lastProgram-label">Last Program</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-lastProgram-panel" onclick="event.stopPropagation()" style="min-width:320px">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('lastProgram',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('lastProgram')">Select All</button>
+                            <button onclick="clearDms('lastProgram')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-lastProgram-list" style="max-height:300px"></div>
+                    </div>
+                </div>
+
+                <!-- Last Qualified Program (Qualified mode) -->
+                <div class="ms-wrap" id="dms-lastQualProgram" style="display:none">
+                    <button class="ms-btn" onclick="toggleDms('lastQualProgram',event)">
+                        <span id="dms-lastQualProgram-label">Last Qualified Program</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-lastQualProgram-panel" onclick="event.stopPropagation()" style="min-width:320px">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('lastQualProgram',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('lastQualProgram')">Select All</button>
+                            <button onclick="clearDms('lastQualProgram')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-lastQualProgram-list" style="max-height:300px"></div>
+                    </div>
+                </div>
+
+                <!-- Separator -->
+                <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 2px;flex-shrink:0"></span>
+
+                <!-- Multi Touch -->
+                <span style="font-size:10px;font-weight:600;color:#5b9bd5;white-space:nowrap">Multi Touch</span>
+                <button class="lmp-period-btn active" id="btnMtSuccess"   onclick="setMtMode('success')"   style="font-size:10px">Success</button>
+                <button class="lmp-period-btn"        id="btnMtQualified" onclick="setMtMode('qualified')" style="font-size:10px">Qualified</button>
+
+                <!-- MT Program filter (single dropdown, rebuilt on mode switch) -->
+                <div class="ms-wrap" id="dms-mtProgram">
+                    <button class="ms-btn" onclick="toggleDms('mtProgram',event)">
+                        <span id="dms-mtProgram-label">Multi-Touch Program</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-mtProgram-panel" onclick="event.stopPropagation()" style="min-width:320px">
+                        <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('mtProgram',this.value)"></div>
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('mtProgram')">Select All</button>
+                            <button onclick="clearDms('mtProgram')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-mtProgram-list" style="max-height:300px"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- GBU -->
-            <div class="ms-wrap" id="dms-gbu">
-                <button class="ms-btn" onclick="toggleDms('gbu',event)">
-                    <span id="dms-gbu-label">GBU</span>
-                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-                </button>
-                <div class="ms-panel" id="dms-gbu-panel" onclick="event.stopPropagation()">
-                    <div class="ms-actions">
-                        <button onclick="selectAllDms('gbu')">Select All</button>
-                        <button onclick="clearDms('gbu')">Clear</button>
-                    </div>
-                    <div class="ms-list" id="dms-gbu-list"></div>
-                </div>
-            </div>
-
-            <!-- Deliverability -->
-            <div class="ms-wrap" id="dms-deliv">
-                <button class="ms-btn" onclick="toggleDms('deliv',event)">
-                    <span id="dms-deliv-label">Deliverability</span>
-                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-                </button>
-                <div class="ms-panel" id="dms-deliv-panel" onclick="event.stopPropagation()">
-                    <div class="ms-actions">
-                        <button onclick="selectAllDms('deliv')">Select All</button>
-                        <button onclick="clearDms('deliv')">Clear</button>
-                    </div>
-                    <div class="ms-list" id="dms-deliv-list"></div>
-                </div>
-            </div>
-
-            <!-- Vertical -->
-            <div class="ms-wrap" id="dms-vertical">
-                <button class="ms-btn" onclick="toggleDms('vertical',event)">
-                    <span id="dms-vertical-label">Vertical</span>
-                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-                </button>
-                <div class="ms-panel" id="dms-vertical-panel" onclick="event.stopPropagation()">
-                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('vertical',this.value)"></div>
-                    <div class="ms-actions">
-                        <button onclick="selectAllDms('vertical')">Select All</button>
-                        <button onclick="clearDms('vertical')">Clear</button>
-                    </div>
-                    <div class="ms-list" id="dms-vertical-list"></div>
-                </div>
-            </div>
-
-            <!-- Country -->
-            <div class="ms-wrap" id="dms-country">
-                <button class="ms-btn" onclick="toggleDms('country',event)">
-                    <span id="dms-country-label">Country</span>
-                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-                </button>
-                <div class="ms-panel" id="dms-country-panel" onclick="event.stopPropagation()">
-                    <div class="ms-search-wrap"><input class="ms-search" placeholder="Search…" oninput="filterDmsItems('country',this.value)"></div>
-                    <div class="ms-actions">
-                        <button onclick="selectAllDms('country')">Select All</button>
-                        <button onclick="clearDms('country')">Clear</button>
-                    </div>
-                    <div class="ms-list" id="dms-country-list"></div>
-                </div>
-            </div>
-
-            <button class="filter-reset" onclick="resetDemandFilters()">Reset All</button>
-            <span class="filter-count" id="demandFilterCount"></span>
         </div>
 
         <div class="main">
@@ -317,6 +408,14 @@
                     <button class="lmp-period-btn active" id="tPeriod30" onclick="setTransitionPeriod(30)">30 days</button>
                     <button class="lmp-period-btn" id="tPeriod60" onclick="setTransitionPeriod(60)">60 days</button>
                     <button class="lmp-period-btn" id="tPeriod90" onclick="setTransitionPeriod(90)">90 days</button>
+                    <button class="lmp-period-btn" id="tPeriodCustom" onclick="toggleTransitionCustom()">Custom</button>
+                    <span id="tCustomRange" style="display:none;align-items:center;gap:4px;margin-left:4px">
+                        <input type="date" id="tCustomFrom" onchange="applyTransitionCustom()"
+                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
+                        <span style="font-size:10px;color:#888">–</span>
+                        <input type="date" id="tCustomTo" onchange="applyTransitionCustom()"
+                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
+                    </span>
                 </span>
             </div>
             <div class="chart-card">
@@ -361,8 +460,9 @@
                         <div class="lmp-h-arr" id="lmpArrConverted"><span class="lmp-t-badge lmp-t-badge-dash" id="tBadgeConverted">—</span></div>
                         <div class="lmp-stage lmp-converted" id="lmpBoxConverted">
                             <div class="lmp-stage-name">Converted</div>
-                            <div class="lmp-stage-val" id="ffConverted">—</div>
+                            <div class="lmp-stage-val" id="ffConvertedContacts">—</div>
                             <div class="lmp-stage-sub">&#8594; become Contacts</div>
+                            <div class="lmp-stage-sub" id="ffConverted" style="margin-top:3px;font-size:10px;opacity:0.7"></div>
                         </div>
 
                         <!-- Row 2: Branch connector — originates from Working, fans to all three outcomes -->
@@ -417,6 +517,25 @@
                 <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
+            <div class="section-label" style="margin-top:24px">Marketing Funnel
+                <span class="lmp-period-bar">
+                    <span class="lmp-period-label">Entries in last</span>
+                    <button class="lmp-period-btn active" id="fPeriod30" onclick="setFunnelPeriod(30)">30 days</button>
+                    <button class="lmp-period-btn" id="fPeriod60" onclick="setFunnelPeriod(60)">60 days</button>
+                    <button class="lmp-period-btn" id="fPeriod90" onclick="setFunnelPeriod(90)">90 days</button>
+                    <button class="lmp-period-btn" id="fPeriodAll" onclick="setFunnelPeriod(0)">All time</button>
+                    <button class="lmp-period-btn" id="fPeriodCustom" onclick="toggleFunnelCustom()">Custom</button>
+                    <span id="fCustomRange" style="display:none;align-items:center;gap:4px;margin-left:4px">
+                        <input type="date" id="fCustomFrom" onchange="applyFunnelCustom()"
+                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
+                        <span style="font-size:10px;color:#888">–</span>
+                        <input type="date" id="fCustomTo" onchange="applyFunnelCustom()"
+                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
+                    </span>
+                </span>
+            </div>
+            <div class="chart-card" id="simpleFunnelCard" style="padding:20px 28px"></div>
+
             <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
                 <span class="section-label-note">Relative Urgency × Relative Score</span>
             </div>
@@ -452,7 +571,7 @@
                             <div>
                                 <div style="font-size:10px;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">▲ Relative Urgency <span style="font-weight:400;color:var(--ansell-light-gray)">(Behaviour Score)</span></div>
 
-                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Website signals</div>
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Website</div>
                                 <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
                                     <div style="display:flex;align-items:center;gap:6px">
                                         <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+10</span>
@@ -604,26 +723,6 @@
                                     </div>
                                 </div>
 
-                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Negative signals</div>
-                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
-                                    <div style="display:flex;align-items:center;gap:6px">
-                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−20</span>
-                                        <span>Freemail Email Address</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:6px">
-                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
-                                        <span>Invalid Email Address</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:6px">
-                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−40</span>
-                                        <span>Lead Status changed to Nurture</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:6px">
-                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
-                                        <span>Lead Status changed to Unqualified</span>
-                                    </div>
-                                </div>
-
                                 <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Inactivity decay</div>
                                 <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-left:10px;border-left:2px solid #f0f0f0">
                                     <div style="display:flex;align-items:center;gap:6px">
@@ -661,6 +760,25 @@
                                     <div style="display:flex;align-items:center;gap:6px">
                                         <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#27ae60;border-radius:3px;padding:1px 4px;flex-shrink:0">+5</span>
                                         <span>Has Standardized Vertical</span>
+                                    </div>
+                                </div>
+                                <div style="font-weight:600;color:var(--ansell-gray);margin-bottom:4px;font-size:10px">Negative signals</div>
+                                <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px;padding-left:10px;border-left:2px solid #f0f0f0">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−20</span>
+                                        <span>Freemail Email Address</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
+                                        <span>Invalid Email Address</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#e74c3c;border-radius:3px;padding:1px 4px;flex-shrink:0">−40</span>
+                                        <span>Lead Status changed to Nurture</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span style="min-width:24px;text-align:right;font-size:8px;font-weight:700;color:#fff;background:#95a5a6;border-radius:3px;padding:1px 4px;flex-shrink:0">=0</span>
+                                        <span>Lead Status changed to Unqualified</span>
                                     </div>
                                 </div>
                                 <div style="background:#f8f9fa;border-radius:6px;padding:10px;font-size:10px;color:var(--ansell-gray);line-height:1.5">
@@ -1092,6 +1210,22 @@
     // ═══════════════════════════════════════════════════════════
     //  DATA PROCESSING
     // ═══════════════════════════════════════════════════════════
+    // Parse multi-value history fields like:
+    // "Mar 16, 2026, ProgramName*Channel=====Mar 16, 2026, ProgramName2*Channel2====="
+    function parseHistoryField(raw) {
+        if (!raw || !raw.trim()) return [];
+        return raw.split('=====')
+            .map(s => s.trim()).filter(s => s)
+            .map(entry => {
+                // Strip leading date "Mon DD, YYYY, "
+                const m = entry.match(/^[A-Za-z]+ \d{1,2}, \d{4}, (.+)/);
+                const rest = m ? m[1] : entry;
+                const starIdx = rest.lastIndexOf('*');
+                return (starIdx >= 0 ? rest.slice(0, starIdx) : rest).trim();
+            })
+            .filter(s => s);
+    }
+
     function processData(raw) {
         demandFiltersInitialized = false; // force filter rebuild on next demand tab visit
         allData = raw.map(r => ({
@@ -1131,14 +1265,18 @@
             leadRecordType:    (function() { const v = (r['Record Type ID'] || '').trim(); if (!v) return ''; return LEAD_RT_MAP[v] || v; })(),
             phone:             (r['Phone Number'] || '').trim(),
             roleDescription:   (r['Role Description'] || '').trim(),
-            jobTitle:          (r['Job Title'] || '').trim()
+            jobTitle:          (r['Job Title'] || '').trim(),
+            lastProgram:       (r['Last Program Name'] || '').trim(),
+            lastQualProgram:   (r['Last Qualified Program Name'] || '').trim(),
+            histSuccess:       parseHistoryField(r['History Last Successful Program']),
+            histQualified:     parseHistoryField(r['History Program Membership Qualified'])
         }));
 
         // Normalize casing on all free-text fields: group by lowercase, keep most-common casing
         // so "INDUSTRIAL" and "Industrial" are treated as the same value everywhere
         const NORMALIZE_FIELDS = ['org','gbu','country','sfdcType','deliverability',
                                    'language','vertical','subVertical','acqProgram','channel','personStatus',
-                                   'region','roleDescription'];
+                                   'region','roleDescription','lastProgram','lastQualProgram'];
         NORMALIZE_FIELDS.forEach(field => {
             const casings = {};
             allData.forEach(r => {
@@ -2425,10 +2563,17 @@
     // ═══════════════════════════════════════════════════════════
 
     // ── Demand filter state ──────────────────────────────────────
-    const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set() };
-    const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country' };
+    const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set(), acqProgram: new Set(), lastProgram: new Set(), lastQualProgram: new Set(), mtProgram: new Set() };
+    const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country', acqProgram: 'Acquisition Program', lastProgram: 'Last Program', lastQualProgram: 'Last Qualified Program', mtProgram: 'Multi-Touch Program' };
+    let lastTouchMode = 'success'; // 'success' | 'qualified'
+    let mtMode        = 'success'; // 'success' | 'qualified'
     let demandFiltersInitialized = false;
-    let transitionDays = 30;
+    let transitionDays       = 30;
+    let transitionCustomFrom = null; // Date | null
+    let transitionCustomTo   = null; // Date | null
+    let funnelDays           = 30;   // 0 = all time
+    let funnelCustomFrom     = null;
+    let funnelCustomTo       = null;
     let demandStackField    = '';   // '' | 'deliverability' | 'gbu' | 'vertical' | 'channel' | 'org'
     let timelineGranularity    = 'month'; // 'month' | 'quarter' | 'year'
     let nurtureOrgGranularity  = 'month';
@@ -2490,6 +2635,44 @@
         else { label.textContent = `${sel} selected`; btn.classList.add('active'); }
     }
 
+    function setLastTouchMode(mode) {
+        lastTouchMode = mode;
+        document.getElementById('btnLtSuccess').classList.toggle('active', mode === 'success');
+        document.getElementById('btnLtQualified').classList.toggle('active', mode === 'qualified');
+        document.getElementById('dms-lastProgram').style.display    = mode === 'success'   ? '' : 'none';
+        document.getElementById('dms-lastQualProgram').style.display = mode === 'qualified' ? '' : 'none';
+        // clear the hidden filter so it doesn't silently affect results
+        const hiddenId = mode === 'success' ? 'lastQualProgram' : 'lastProgram';
+        dmsState[hiddenId].clear();
+        document.querySelectorAll(`#dms-${hiddenId}-list input`).forEach(cb => cb.checked = false);
+        updateDmsBtn(hiddenId);
+        renderDemandTab();
+    }
+
+    function buildMtProgramList() {
+        const leads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType);
+        const field  = mtMode === 'success' ? 'histSuccess' : 'histQualified';
+        const counts = {};
+        leads.forEach(r => {
+            // Count each program once per lead (not per occurrence)
+            new Set(r[field] || []).forEach(p => { if (p) counts[p] = (counts[p] || 0) + 1; });
+        });
+        const opts = Object.entries(counts).sort(([,a],[,b]) => b - a);
+        buildDmsListWithCounts('mtProgram', opts);
+    }
+
+    function setMtMode(mode) {
+        mtMode = mode;
+        document.getElementById('btnMtSuccess').classList.toggle('active',   mode === 'success');
+        document.getElementById('btnMtQualified').classList.toggle('active', mode === 'qualified');
+        // Clear existing MT selection since the field is changing
+        dmsState.mtProgram.clear();
+        document.querySelectorAll('#dms-mtProgram-list input').forEach(cb => cb.checked = false);
+        updateDmsBtn('mtProgram');
+        buildMtProgramList();
+        renderDemandTab();
+    }
+
     function resetDemandFilters() {
         for (const id of Object.keys(dmsState)) {
             dmsState[id].clear();
@@ -2513,6 +2696,23 @@
         ).join('');
     }
 
+    function buildDmsListWithCounts(id, opts) {
+        // opts: [[value, count], ...] sorted by count desc
+        const list = document.getElementById(`dms-${id}-list`);
+        if (!list) return;
+        list.innerHTML = opts.map(([val, cnt]) =>
+            `<label class="ms-item" style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:8px;min-width:0">
+                    <input type="checkbox" value="${val.replace(/"/g,'&quot;')}"
+                        onchange="toggleDmsOpt('${id}', this.value, this.checked)"
+                        style="width:13px;height:13px;accent-color:var(--ansell-blue);cursor:pointer;flex-shrink:0">
+                    <span style="white-space:normal;line-height:1.3">${val}</span>
+                </span>
+                <span style="font-size:10px;color:#999;margin-left:8px;flex-shrink:0;font-variant-numeric:tabular-nums">${cnt.toLocaleString()}</span>
+            </label>`
+        ).join('');
+    }
+
     function buildDemandFilters() {
         // Base population: all leads (before demand filters, but using same allData)
         const leads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType);
@@ -2521,29 +2721,65 @@
         buildDmsList('deliv',    [...new Set(leads.map(r => r.deliverability))].filter(v => v).sort());
         buildDmsList('vertical', [...new Set(leads.map(r => r.vertical))].filter(v => v).sort());
         buildDmsList('country',  [...new Set(leads.map(r => r.country))].filter(v => v).sort());
+        // Program filters — sorted by count descending so biggest campaigns appear first
+        function buildProgList(id, field) {
+            const counts = {};
+            leads.forEach(r => { const v = r[field] || '(blank)'; counts[v] = (counts[v] || 0) + 1; });
+            const opts = Object.entries(counts).filter(([v]) => v && v !== '(blank)').sort(([,a],[,b]) => b - a);
+            if (counts['(blank)']) opts.push(['(blank)', counts['(blank)']]);
+            buildDmsListWithCounts(id, opts);
+        }
+        buildProgList('acqProgram',     'acqProgram');
+        buildProgList('lastProgram',     'lastProgram');
+        buildProgList('lastQualProgram', 'lastQualProgram');
+        buildMtProgramList();
         demandFiltersInitialized = true;
     }
 
     function applyDemandFilters() {
         return allData.filter(r => {
             if (r.sfdcType !== 'Lead' && r.sfdcType !== '') return false;
-            if (dmsState.org.size      && !dmsState.org.has(r.org               || '(blank)')) return false;
-            if (dmsState.gbu.size      && !dmsState.gbu.has(r.gbu               || '(blank)')) return false;
-            if (dmsState.deliv.size    && !dmsState.deliv.has(r.deliverability   || '(blank)')) return false;
-            if (dmsState.vertical.size && !dmsState.vertical.has(r.vertical      || '(blank)')) return false;
-            if (dmsState.country.size  && !dmsState.country.has(r.country        || '(blank)')) return false;
+            if (dmsState.org.size             && !dmsState.org.has(r.org                  || '(blank)')) return false;
+            if (dmsState.gbu.size             && !dmsState.gbu.has(r.gbu                  || '(blank)')) return false;
+            if (dmsState.deliv.size           && !dmsState.deliv.has(r.deliverability      || '(blank)')) return false;
+            if (dmsState.vertical.size        && !dmsState.vertical.has(r.vertical         || '(blank)')) return false;
+            if (dmsState.country.size         && !dmsState.country.has(r.country           || '(blank)')) return false;
+            if (dmsState.acqProgram.size      && !dmsState.acqProgram.has(r.acqProgram     || '(blank)')) return false;
+            if (dmsState.lastProgram.size     && !dmsState.lastProgram.has(r.lastProgram    || '(blank)')) return false;
+            if (dmsState.lastQualProgram.size && !dmsState.lastQualProgram.has(r.lastQualProgram || '(blank)')) return false;
+            if (dmsState.mtProgram.size) {
+                const hist = mtMode === 'success' ? (r.histSuccess || []) : (r.histQualified || []);
+                if (!hist.some(p => dmsState.mtProgram.has(p))) return false;
+            }
             return true;
         });
     }
 
-    function updateDemandFilterCount(filtered, total) {
+    function applyDemandFiltersContacts() {
+        return allData.filter(r => {
+            if (r.sfdcType !== 'Contact' || !r.convertedDate) return false;
+            if (dmsState.org.size             && !dmsState.org.has(r.org                  || '(blank)')) return false;
+            if (dmsState.gbu.size             && !dmsState.gbu.has(r.gbu                  || '(blank)')) return false;
+            if (dmsState.deliv.size           && !dmsState.deliv.has(r.deliverability      || '(blank)')) return false;
+            if (dmsState.vertical.size        && !dmsState.vertical.has(r.vertical         || '(blank)')) return false;
+            if (dmsState.country.size         && !dmsState.country.has(r.country           || '(blank)')) return false;
+            if (dmsState.acqProgram.size      && !dmsState.acqProgram.has(r.acqProgram     || '(blank)')) return false;
+            if (dmsState.lastProgram.size     && !dmsState.lastProgram.has(r.lastProgram    || '(blank)')) return false;
+            if (dmsState.lastQualProgram.size && !dmsState.lastQualProgram.has(r.lastQualProgram || '(blank)')) return false;
+            if (dmsState.mtProgram.size) {
+                const hist = mtMode === 'success' ? (r.histSuccess || []) : (r.histQualified || []);
+                if (!hist.some(p => dmsState.mtProgram.has(p))) return false;
+            }
+            return true;
+        });
+    }
+
+    function updateDemandFilterCount(filtered, total, filteredContacts, totalContacts) {
         const el = document.getElementById('demandFilterCount');
         if (!el) return;
-        if (filtered === total) {
-            el.innerHTML = `<strong>${fmt(filtered)}</strong> leads`;
-        } else {
-            el.innerHTML = `Showing <strong>${fmt(filtered)}</strong> of ${fmt(total)} leads`;
-        }
+        const leadsStr    = `<strong>${fmt(filtered)}</strong> of ${fmt(total)} leads`;
+        const contactsStr = `<strong>${fmt(filteredContacts)}</strong> of ${fmt(totalContacts)} contacts`;
+        el.innerHTML = `Showing ${leadsStr} and ${contactsStr}`;
     }
 
     // ── Scoring matrix status filter ─────────────────────────
@@ -2577,20 +2813,251 @@
 
     // ── Transition period controls ────────────────────────────
     function setTransitionPeriod(days) {
-        transitionDays = days;
+        transitionDays       = days;
+        transitionCustomFrom = null;
+        transitionCustomTo   = null;
         [30, 60, 90].forEach(d => {
             const btn = document.getElementById('tPeriod' + d);
             if (btn) btn.classList.toggle('active', d === days);
         });
+        const customBtn = document.getElementById('tPeriodCustom');
+        if (customBtn) customBtn.classList.remove('active');
+        const rangeEl = document.getElementById('tCustomRange');
+        if (rangeEl) rangeEl.style.display = 'none';
         renderTransitionCounts();
+    }
+
+    function toggleTransitionCustom() {
+        const rangeEl  = document.getElementById('tCustomRange');
+        const customBtn = document.getElementById('tPeriodCustom');
+        const isOpen = rangeEl && rangeEl.style.display !== 'none';
+        if (isOpen) {
+            // collapse — revert to previous preset
+            rangeEl.style.display = 'none';
+            customBtn.classList.remove('active');
+            transitionCustomFrom = null;
+            transitionCustomTo   = null;
+            setTransitionPeriod(transitionDays);
+        } else {
+            // deactivate presets, show inputs
+            [30, 60, 90].forEach(d => {
+                const btn = document.getElementById('tPeriod' + d);
+                if (btn) btn.classList.remove('active');
+            });
+            customBtn.classList.add('active');
+            if (rangeEl) rangeEl.style.display = 'flex';
+            // pre-fill with the current preset window as a sensible default
+            const today = new Date();
+            const from  = new Date(today); from.setDate(from.getDate() - transitionDays);
+            document.getElementById('tCustomFrom').value = from.toISOString().slice(0, 10);
+            document.getElementById('tCustomTo').value   = today.toISOString().slice(0, 10);
+            applyTransitionCustom();
+        }
+    }
+
+    function applyTransitionCustom() {
+        const fromVal = document.getElementById('tCustomFrom').value;
+        const toVal   = document.getElementById('tCustomTo').value;
+        if (!fromVal || !toVal) return;
+        transitionCustomFrom = new Date(fromVal + 'T00:00:00');
+        transitionCustomTo   = new Date(toVal   + 'T23:59:59');
+        renderTransitionCounts();
+    }
+
+    function setFunnelPeriod(days) {
+        funnelDays       = days;
+        funnelCustomFrom = null;
+        funnelCustomTo   = null;
+        [30, 60, 90, 0].forEach(d => {
+            const btn = document.getElementById('fPeriod' + (d === 0 ? 'All' : d));
+            if (btn) btn.classList.toggle('active', d === days);
+        });
+        const customBtn = document.getElementById('fPeriodCustom');
+        if (customBtn) customBtn.classList.remove('active');
+        const rangeEl = document.getElementById('fCustomRange');
+        if (rangeEl) rangeEl.style.display = 'none';
+        renderDemandTab();
+    }
+
+    function toggleFunnelCustom() {
+        const rangeEl   = document.getElementById('fCustomRange');
+        const customBtn = document.getElementById('fPeriodCustom');
+        const isOpen    = rangeEl && rangeEl.style.display !== 'none';
+        if (isOpen) {
+            rangeEl.style.display = 'none';
+            customBtn.classList.remove('active');
+            funnelCustomFrom = null;
+            funnelCustomTo   = null;
+            setFunnelPeriod(funnelDays);
+        } else {
+            [30, 60, 90, 0].forEach(d => {
+                const btn = document.getElementById('fPeriod' + (d === 0 ? 'All' : d));
+                if (btn) btn.classList.remove('active');
+            });
+            customBtn.classList.add('active');
+            if (rangeEl) rangeEl.style.display = 'flex';
+            const today = new Date();
+            const from  = new Date(today); from.setDate(from.getDate() - funnelDays || 30);
+            document.getElementById('fCustomFrom').value = from.toISOString().slice(0, 10);
+            document.getElementById('fCustomTo').value   = today.toISOString().slice(0, 10);
+            applyFunnelCustom();
+        }
+    }
+
+    function applyFunnelCustom() {
+        const fromVal = document.getElementById('fCustomFrom').value;
+        const toVal   = document.getElementById('fCustomTo').value;
+        if (!fromVal || !toVal) return;
+        funnelCustomFrom = new Date(fromVal + 'T00:00:00');
+        funnelCustomTo   = new Date(toVal   + 'T23:59:59');
+        renderDemandTab();
+    }
+
+    function renderSimpleFunnel(leads, convertedContacts) {
+        const el = document.getElementById('simpleFunnelCard');
+        if (!el) return;
+
+        // ── Resolve active date window ────────────────────────────
+        let fFrom = null, fTo = null;
+        if (funnelCustomFrom && funnelCustomTo) {
+            fFrom = funnelCustomFrom; fTo = funnelCustomTo;
+        } else if (funnelDays > 0) {
+            fTo   = new Date();
+            fFrom = new Date(fTo); fFrom.setDate(fFrom.getDate() - funnelDays);
+        }
+        function inWindow(dateStr) {
+            if (!fFrom) return true; // all time
+            const d = parseDate(dateStr);
+            return d && d >= fFrom && d <= fTo;
+        }
+
+        // ── Stage populations filtered by entry date ──────────────
+        const prospectLeads = fFrom ? leads.filter(r => inWindow(r.createdDate))  : leads;
+        const mqlLeads      = leads.filter(r => r.mqlDate      && inWindow(r.mqlDate));
+        const sqlLeads      = leads.filter(r => r.workingDate  && inWindow(r.workingDate));
+        const convLeads     = leads.filter(r => r.personStatus === 'Converted' && inWindow(r.convertedDate));
+        const convContacts  = fFrom ? convertedContacts.filter(r => inWindow(r.convertedDate)) : convertedContacts;
+        const convTotal     = convLeads.length + convContacts.length;
+
+        const total = prospectLeads.length;
+        if (total === 0) { el.innerHTML = '<div style="text-align:center;color:var(--ansell-light-gray);padding:24px">No data</div>'; return; }
+
+        // NSQ — leads that exited the main path in the window
+        const nurtureN  = leads.filter(r => r.personStatus === 'Nurture'     && inWindow(r.nurtureDate)).length;
+        const unqualN   = leads.filter(r => r.personStatus === 'Unqualified' && inWindow(r.unqualifiedDate)).length;
+        const referralN = leads.filter(r => r.personStatus === 'Referral'    && inWindow(r.referralDate)).length;
+        const nsqTotal  = nurtureN + unqualN + referralN;
+
+        // ── Conversion rates ──────────────────────────────────────
+        const pctMQL  = total       > 0 ? mqlLeads.length / total       : 0;
+        const pctSQL  = mqlLeads.length > 0 ? sqlLeads.length / mqlLeads.length : 0;
+        const pctConv = sqlLeads.length > 0 ? convTotal      / sqlLeads.length : 0;
+
+        // ── Velocity (avg days between milestones) ────────────────
+        function avgDays(arr, f1, f2) {
+            let sum = 0, cnt = 0;
+            arr.forEach(r => {
+                const a = parseDate(r[f1]), b = parseDate(r[f2]);
+                if (a && b && b >= a) { sum += (b - a) / 86400000; cnt++; }
+            });
+            return cnt > 0 ? Math.round(sum / cnt) : null;
+        }
+        const velToMQL  = avgDays(mqlLeads,  'createdDate', 'mqlDate');
+        const velToSQL  = avgDays(sqlLeads.filter(r => r.mqlDate), 'mqlDate', 'workingDate');
+        const velToConv = avgDays(convLeads.filter(r => r.workingDate && r.convertedDate), 'workingDate', 'convertedDate');
+
+        // ── Helpers ───────────────────────────────────────────────
+        const maxN = total;
+        function barWidth(n) { return Math.max(8, Math.round(n / maxN * 100)); }
+        function fmtDays(d) { return d === null ? '—' : d === 0 ? '< 1d' : d + 'd'; }
+        function fmtPct(r)  { return r === 0 ? '0%' : (r * 100).toFixed(1) + '%'; }
+
+        const STAGE_COLOR   = '#0063AC';
+        const NSQ_COLOR     = '#e67e22';
+        const CONV_COLOR    = '#1a7a4a';
+        const CONN_COLOR    = '#c8d8e8';
+
+        function stageRow(label, n, color, sublabel) {
+            const w = barWidth(n);
+            const pctOfTotal = total > 0 ? (n / total * 100).toFixed(1) + '%' : '—';
+            const isProspect = n === total;
+            return `
+            <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:110px;text-align:right;flex-shrink:0">
+                    <div style="font-size:11px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.4px">${label}</div>
+                    ${sublabel ? `<div style="font-size:9px;color:var(--ansell-light-gray);margin-top:1px">${sublabel}</div>` : ''}
+                </div>
+                <div style="flex:1;position:relative;height:36px;display:flex;align-items:center">
+                    <div style="width:${w}%;height:100%;background:${color};border-radius:4px;transition:width .4s;min-width:4px"></div>
+                </div>
+                <div style="width:130px;flex-shrink:0">
+                    <span style="font-size:18px;font-weight:800;color:#222">${fmt(n)}</span>
+                    ${!isProspect ? `<span style="font-size:10px;color:var(--ansell-light-gray);margin-left:5px">${pctOfTotal} of prospect</span>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function connRow(convRate, velDays, nsqHtml) {
+            return `
+            <div style="display:flex;align-items:stretch;gap:14px;min-height:36px">
+                <div style="width:110px;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;align-items:center;gap:0;position:relative">
+                    <div style="width:2px;background:${CONN_COLOR};align-self:stretch;margin-left:18px;flex-shrink:0"></div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-left:16px;flex-wrap:wrap">
+                        <span style="font-size:10px;font-weight:700;color:${STAGE_COLOR}">↓ ${fmtPct(convRate)}</span>
+                        <span style="font-size:9px;color:var(--ansell-light-gray)">conversion</span>
+                        ${velDays !== null ? `<span style="font-size:9px;color:#888;border-left:1px solid #e0e0e0;padding-left:10px">avg ${fmtDays(velDays)} in stage</span>` : ''}
+                    </div>
+                </div>
+                <div style="width:130px;flex-shrink:0;display:flex;align-items:center">
+                    ${nsqHtml || ''}
+                </div>
+            </div>`;
+        }
+
+        const nsqCallout = nsqTotal > 0 ? `
+            <div style="background:#fff8f0;border:1px solid #f0d9b5;border-radius:6px;padding:8px 10px;font-size:10px;max-width:200px">
+                <div style="font-weight:700;color:${NSQ_COLOR};margin-bottom:4px;font-size:9px;text-transform:uppercase;letter-spacing:.4px">Not Sales Qualified  ${fmt(nsqTotal)}</div>
+                <div style="display:flex;flex-direction:column;gap:2px;color:#666">
+                    <div>Nurture <strong style="float:right;margin-left:12px">${fmt(nurtureN)}</strong></div>
+                    <div>Unqualified <strong style="float:right;margin-left:12px">${fmt(unqualN)}</strong></div>
+                    <div>Referral <strong style="float:right;margin-left:12px">${fmt(referralN)}</strong></div>
+                </div>
+            </div>` : '';
+
+        const periodLabel = fFrom
+            ? (funnelCustomFrom ? 'custom range' : `last ${funnelDays} days`)
+            : 'all time';
+
+        el.innerHTML = `
+            <div style="max-width:760px">
+                ${stageRow('Prospect', total, STAGE_COLOR, 'created · ' + periodLabel)}
+                ${connRow(pctMQL, velToMQL, '')}
+                ${stageRow('MQL', mqlLeads.length, STAGE_COLOR, 'MQL date · ' + periodLabel)}
+                ${connRow(pctSQL, velToSQL, nsqCallout)}
+                ${stageRow('SQL', sqlLeads.length, STAGE_COLOR, 'working date · ' + periodLabel)}
+                ${connRow(pctConv, velToConv, '')}
+                ${stageRow('Converted', convTotal, CONV_COLOR, 'converted · ' + periodLabel)}
+            </div>`;
     }
 
     function renderTransitionCounts() {
         const leads = applyDemandFilters();
         const now   = new Date();
 
-        const currFrom = new Date(now); currFrom.setDate(currFrom.getDate() - transitionDays);
-        const prevFrom = new Date(now); prevFrom.setDate(prevFrom.getDate() - transitionDays * 2);
+        let currFrom, currTo, prevFrom, prevTo;
+        if (transitionCustomFrom && transitionCustomTo) {
+            currFrom = transitionCustomFrom;
+            currTo   = transitionCustomTo;
+            const spanMs = currTo - currFrom;
+            prevFrom = new Date(currFrom.getTime() - spanMs);
+            prevTo   = currFrom;
+        } else {
+            currTo   = now;
+            currFrom = new Date(now); currFrom.setDate(currFrom.getDate() - transitionDays);
+            prevTo   = currFrom;
+            prevFrom = new Date(now); prevFrom.setDate(prevFrom.getDate() - transitionDays * 2);
+        }
 
         function countPeriod(dateField, from, to) {
             return leads.filter(r => {
@@ -2623,13 +3090,13 @@
         }
 
         // Arrows with date data — compare current vs previous period
-        setBadge('tBadgeCreated',  countPeriod('createdDate',  currFrom, now), countPeriod('createdDate',  prevFrom, currFrom));
-        setBadge('tBadgeAssigned', countPeriod('mqlDate',      currFrom, now), countPeriod('mqlDate',      prevFrom, currFrom));
-        setBadge('tBadgeWorking',  countPeriod('workingDate',  currFrom, now), countPeriod('workingDate',  prevFrom, currFrom));
-        setBadge('tBadgeReferral', countPeriod('referralDate', currFrom, now), countPeriod('referralDate', prevFrom, currFrom));
+        setBadge('tBadgeCreated',  countPeriod('createdDate',  currFrom, currTo), countPeriod('createdDate',  prevFrom, prevTo));
+        setBadge('tBadgeAssigned', countPeriod('mqlDate',      currFrom, currTo), countPeriod('mqlDate',      prevFrom, prevTo));
+        setBadge('tBadgeWorking',  countPeriod('workingDate',  currFrom, currTo), countPeriod('workingDate',  prevFrom, prevTo));
+        setBadge('tBadgeReferral', countPeriod('referralDate', currFrom, currTo), countPeriod('referralDate', prevFrom, prevTo));
 
-        setBadge('tBadgeNurture',     countPeriod('nurtureDate',     currFrom, now), countPeriod('nurtureDate',     prevFrom, currFrom));
-        setBadge('tBadgeUnqualified', countPeriod('unqualifiedDate', currFrom, now), countPeriod('unqualifiedDate', prevFrom, currFrom));
+        setBadge('tBadgeNurture',     countPeriod('nurtureDate',     currFrom, currTo), countPeriod('nurtureDate',     prevFrom, prevTo));
+        setBadge('tBadgeUnqualified', countPeriod('unqualifiedDate', currFrom, currTo), countPeriod('unqualifiedDate', prevFrom, prevTo));
         function countConverted(from, to) {
             return allData.filter(r => {
                 if (r.sfdcType !== 'Contact' || !r.convertedDate) return false;
@@ -2642,7 +3109,7 @@
                 return dt && dt >= from && dt < to;
             }).length;
         }
-        setBadge('tBadgeConverted', countConverted(currFrom, now), countConverted(prevFrom, currFrom));
+        setBadge('tBadgeConverted', countConverted(currFrom, currTo), countConverted(prevFrom, prevTo));
     }
 
     // Funnel stage definitions — blank personStatus = Demand Generation pool
@@ -2657,8 +3124,12 @@
         // Filtered leads
         const leads = applyDemandFilters();
 
+        // Contacts with convertedDate (before and after filters)
+        const totalContacts    = allData.filter(r => r.sfdcType === 'Contact' && r.convertedDate).length;
+        const convertedContacts = applyDemandFiltersContacts();
+
         // Update count badges
-        updateDemandFilterCount(leads.length, totalLeads);
+        updateDemandFilterCount(leads.length, totalLeads, convertedContacts.length, totalContacts);
         const countEl = document.getElementById('demandLeadCount');
         if (countEl) countEl.textContent = fmt(leads.length) + ' leads';
 
@@ -2684,7 +3155,11 @@
         setFF('ffAssigned',    'ffAssignedPct',    stageCounts.assigned);
         setFF('ffProspect',    'ffProspectPct',    stageCounts.prospect);
         setFF('ffWorking',     'ffWorkingPct',     stageCounts.working);
-        setFF('ffConverted',   null,               stageCounts.converted);
+        // Converted box: contacts are the main number, leads shown as footnote
+        const ccEl = document.getElementById('ffConvertedContacts');
+        if (ccEl) ccEl.textContent = fmt(convertedContacts.length);
+        const cvEl = document.getElementById('ffConverted');
+        if (cvEl) cvEl.textContent = stageCounts.converted > 0 ? `+ ${fmt(stageCounts.converted)} leads` : '';
         setFF('ffNurture',     'ffNurturePct',     stageCounts.nurture);
         setFF('ffReferral',    'ffReferralPct',    stageCounts.referral);
         setFF('ffUnqualified', 'ffUnqualifiedPct', stageCounts.unqualified);
@@ -2820,6 +3295,9 @@
             else if (s === 'assigned')    renderAssignedDetail();
             else if (s === 'working')     renderWorkingDetail();
         }
+
+        // Marketing funnel
+        renderSimpleFunnel(leads, convertedContacts);
 
         // Update transition count badges on LMP arrows
         renderTransitionCounts();
