@@ -445,7 +445,7 @@
                                 <div class="lmp-stage-explore" id="lmpExploreAssigned"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                             </div>
                             <div class="lmp-stage lmp-prospect" id="lmpBoxProspect">
-                                <div class="lmp-stage-name">Prospect</div>
+                                <div class="lmp-stage-name">People</div>
                                 <div class="lmp-stage-val" id="ffProspect">—</div>
                                 <div class="lmp-stage-pct" id="ffProspectPct"></div>
                             </div>
@@ -1028,22 +1028,38 @@
             'record created in linkedin sales navigator':     'LinkedIn Sales Navigator',
             'record created in myansell':                     'Other',
             'record created in salesforce':                   'Sales',
+            'record created in webstore':                     'Webstore',
+            'acquired prior to 2016':                         'Legacy',
+            'created via list import':                        'Operational',
+            'created via api connection':                     'Operational',
+            'na.ind li 2016-09-16 initial siebel db upload - deleted (1716)': 'Operational',
         };
         if (EXCEPTIONS[nl]) return EXCEPTIONS[nl];
 
-        // Picklist prefix matching â€" longest first to avoid partial collisions
+        // Picklist — specific entries first to avoid partial collisions
         const PICKLIST = [
             'Organic-social-WCH','Organic-social-LN','Organic-social-FB','Organic-social-other',
             'Paid-social-LN','Paid-social-FB','Paid-social-other',
             'Paid-display','Paid-search','Paid-video','Paid-list','Paid-msg','Paid-mix',
-            'Web-form-AI','Web-form-ORG','Web-form-DIR',
+            'Web-form-AI','Web-form-ORG','Web-form-DIR','Web Form','Web-form',
             'Referral-INT',
-            'Chatbot','DandB','Email','Events','Highspot',
-            'Offline','Operational','Sales','Telemarketing','Third-party','Webinar',
+            'Chatbot','DandB','Drift','Email','Events','Highspot','Online',
+            'Offline','Operational','Sales','Telemarketing','Third-party','Webinar','Webstore',
         ];
         for (const p of PICKLIST) {
-            if (nl.startsWith(p.toLowerCase())) return p;
+            if (nl.includes(p.toLowerCase())) return p;
         }
+        // Old abbreviation patterns (space-bounded, pre-2019 naming convention)
+        if (nl.includes(' wf '))  return 'Web Form';
+        if (nl.includes(' eb '))  return 'Email';
+        if (nl.includes(' ed '))  return 'Email';
+        if (nl.includes(' nl '))  return 'Email';
+        if (nl.includes(' ts '))  return 'Telemarketing';
+        if (nl.includes(' li '))  return 'Paid-social-LN';
+        if (nl.includes(' wb '))  return 'Webinar';
+        if (nl.includes(' oa '))  return 'Paid-display';
+        // Singular 'Event' (not caught by 'Events' includes)
+        if (nl.includes('-event-') || nl.includes('_event_')) return 'Events';
         return 'Other';
     }
 
@@ -2987,12 +3003,12 @@
                     <div style="font-size:11px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.4px">${label}</div>
                     ${sublabel ? `<div style="font-size:9px;color:var(--ansell-light-gray);margin-top:1px">${sublabel}</div>` : ''}
                 </div>
-                <div style="flex:1;position:relative;height:36px;display:flex;align-items:center">
+                <div style="flex:1;position:relative;height:36px;display:flex;align-items:center;justify-content:center">
                     <div style="width:${w}%;height:100%;background:${color};border-radius:4px;transition:width .4s;min-width:4px"></div>
                 </div>
                 <div style="width:130px;flex-shrink:0">
                     <span style="font-size:18px;font-weight:800;color:#222">${fmt(n)}</span>
-                    ${!isProspect ? `<span style="font-size:10px;color:var(--ansell-light-gray);margin-left:5px">${pctOfTotal} of prospect</span>` : ''}
+                    ${!isProspect ? `<span style="font-size:10px;color:var(--ansell-light-gray);margin-left:5px">${pctOfTotal} of people</span>` : ''}
                 </div>
             </div>`;
         }
@@ -3001,9 +3017,9 @@
             return `
             <div style="display:flex;align-items:stretch;gap:14px;min-height:36px">
                 <div style="width:110px;flex-shrink:0"></div>
-                <div style="flex:1;display:flex;align-items:center;gap:0;position:relative">
-                    <div style="width:2px;background:${CONN_COLOR};align-self:stretch;margin-left:18px;flex-shrink:0"></div>
-                    <div style="display:flex;align-items:center;gap:10px;margin-left:16px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;position:relative">
+                    <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:${CONN_COLOR};transform:translateX(-50%)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-left:calc(50% + 10px);flex-wrap:wrap">
                         <span style="font-size:10px;font-weight:700;color:${STAGE_COLOR}">↓ ${fmtPct(convRate)}</span>
                         <span style="font-size:9px;color:var(--ansell-light-gray)">conversion</span>
                         ${velDays !== null ? `<span style="font-size:9px;color:#888;border-left:1px solid #e0e0e0;padding-left:10px">avg ${fmtDays(velDays)} in stage</span>` : ''}
@@ -3031,7 +3047,7 @@
 
         el.innerHTML = `
             <div style="max-width:760px">
-                ${stageRow('Prospect', total, STAGE_COLOR, 'created · ' + periodLabel)}
+                ${stageRow('People', total, STAGE_COLOR, 'created · ' + periodLabel)}
                 ${connRow(pctMQL, velToMQL, '')}
                 ${stageRow('MQL', mqlLeads.length, STAGE_COLOR, 'MQL date · ' + periodLabel)}
                 ${connRow(pctSQL, velToSQL, nsqCallout)}

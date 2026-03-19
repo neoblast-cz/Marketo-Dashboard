@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketo Database Analysis | Ansell</title>
+    <title>Data Analysis | Marketo Database</title>
     <link rel="stylesheet" href="ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        #btnPeopleOnly.active, #btnLeadsOnly.active, #btnContactsOnly.active {
+            background: var(--ansell-blue) !important;
+            border-color: var(--ansell-blue) !important;
+            color: #fff !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -26,7 +33,7 @@
                 </svg>
             </div>
             <div>
-                <h1>Marketo | <span>Database Analysis</span></h1>
+                <h1>Marketo | <span>Data Analysis</span></h1>
                 <div class="header-sub">
                     Ansell Global Database
                     <span class="export-badge" id="exportBadge" style="display:none">
@@ -46,68 +53,12 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Export
             </button>
-            <button class="api-btn" id="apiBtn" onclick="toggleApiPanel()" title="Marketo API Settings">
-                <span class="api-btn-dot"></span>
-                Marketo API
-            </button>
             <a href="index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
         </div>
     </header>
-
-    <!-- Marketo API Settings Bar -->
-    <div class="mkto-settings-bar" id="mktoSettingsBar">
-        <div class="mkto-settings-inner">
-            <div class="mkto-field">
-                <label for="mktoMunchkin">Munchkin ID</label>
-                <input type="text" id="mktoMunchkin" placeholder="xxx-XXX-xxx" autocomplete="off">
-            </div>
-            <div class="mkto-field">
-                <label for="mktoClientId">Client ID</label>
-                <input type="text" id="mktoClientId" placeholder="xxxxxxxx-…" autocomplete="off">
-            </div>
-            <div class="mkto-field">
-                <label for="mktoClientSecret">Client Secret</label>
-                <input type="password" id="mktoClientSecret" placeholder="••••••••" autocomplete="new-password">
-            </div>
-            <div class="mkto-field mkto-field-narrow">
-                <label for="mktoAdobeOrg">Adobe Org</label>
-                <input type="text" id="mktoAdobeOrg" placeholder="ansell" autocomplete="off">
-            </div>
-            <div class="mkto-actions">
-                <button class="mkto-save-btn" onclick="saveMktoConfig()">Save</button>
-                <button class="mkto-test-btn" onclick="testMktoConnection()">Test</button>
-                <span class="mkto-status" id="mktoStatus"></span>
-            </div>
-            <div class="mkto-proxy-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Requires local proxy for browser CORS — run once:
-                <code>powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1</code>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="tab-nav" id="tabNav" style="display:none">
-        <button class="tab-btn active" id="tabBtnAnalysis" onclick="switchTab('analysis')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            Database Analysis
-        </button>
-
-        <button class="tab-btn" id="tabBtnQuality" onclick="switchTab('quality')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Data Quality
-        </button>
-
-        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 8px">
-            <span class="filter-label">Quick filters:</span>
-            <button class="quick-filter-btn" id="btnLeadsOnly" onclick="toggleLeadsOnly()" style="margin:0" title="Filter entire dashboard to SFDC Leads only">Leads only</button>
-            <button class="quick-filter-btn" id="btnContactsOnly" onclick="toggleContactsOnly()" style="margin:0" title="Filter entire dashboard to SFDC Contacts only">Contacts only</button>
-            <button class="quick-filter-btn" id="btnPeopleOnly" onclick="togglePeopleOnly()" style="margin:0" title="Filter entire dashboard to People (Marketo-only, no SFDC sync)">People only</button>
-        </div>
-    </div>
 
     <!-- Filter Bar -->
     <div class="filter-bar" id="filterBar" style="display:none">
@@ -144,21 +95,6 @@
             </div>
         </div>
 
-        <!-- SFDC Type -->
-        <div class="ms-wrap" id="ms-f-sfdc">
-            <button class="ms-btn" onclick="toggleMs('f-sfdc',event)">
-                <span id="ms-f-sfdc-label">SFDC Type</span>
-                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-            </button>
-            <div class="ms-panel" id="ms-f-sfdc-panel" onclick="event.stopPropagation()">
-                <div class="ms-actions">
-                    <button onclick="selectAllMs('f-sfdc')">Select All</button>
-                    <button onclick="clearMs('f-sfdc')">Clear</button>
-                </div>
-                <div class="ms-list" id="ms-f-sfdc-list"></div>
-            </div>
-        </div>
-
         <!-- Deliverability -->
         <div class="ms-wrap" id="ms-f-deliv">
             <button class="ms-btn" onclick="toggleMs('f-deliv',event)">
@@ -190,6 +126,11 @@
             </div>
         </div>
 
+        <span style="margin-left:8px;padding-left:12px;border-left:1px solid var(--ansell-light-gray);display:flex;gap:4px">
+            <button id="btnPeopleOnly"   onclick="togglePeopleOnly()"   style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">People</button>
+            <button id="btnLeadsOnly"    onclick="toggleLeadsOnly()"    style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">Leads</button>
+            <button id="btnContactsOnly" onclick="toggleContactsOnly()" style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">Contacts</button>
+        </span>
         <button class="filter-reset" onclick="resetFilters()">Reset All</button>
         <span class="filter-count" id="filterCount"></span>
 
@@ -465,18 +406,7 @@
     </div>
 
 
-    <!-- Data Quality Tab -->
-    <div id="qualityContent" style="display:none">
-        <div class="main">
-            <div class="section-label">Data Quality Overview</div>
-            <div class="dq-summary-grid" id="dqSummary"></div>
-            <div id="dqClouds" class="hide-clean"></div>
-            <div id="dqMismatch"></div>
-            <div id="dqOrgMismatch"></div>
-        </div>
-    </div>
-
-    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Database Analysis</div>
+    <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Data Analysis</div>
 
     <script>
     // ═══════════════════════════════════════════════════════════
@@ -707,22 +637,38 @@
             'record created in linkedin sales navigator':     'LinkedIn Sales Navigator',
             'record created in myansell':                     'Other',
             'record created in salesforce':                   'Sales',
+            'record created in webstore':                     'Webstore',
+            'acquired prior to 2016':                         'Legacy',
+            'created via list import':                        'Operational',
+            'created via api connection':                     'Operational',
+            'na.ind li 2016-09-16 initial siebel db upload - deleted (1716)': 'Operational',
         };
         if (EXCEPTIONS[nl]) return EXCEPTIONS[nl];
 
-        // Picklist prefix matching â€" longest first to avoid partial collisions
+        // Picklist — specific entries first to avoid partial collisions
         const PICKLIST = [
             'Organic-social-WCH','Organic-social-LN','Organic-social-FB','Organic-social-other',
             'Paid-social-LN','Paid-social-FB','Paid-social-other',
             'Paid-display','Paid-search','Paid-video','Paid-list','Paid-msg','Paid-mix',
-            'Web-form-AI','Web-form-ORG','Web-form-DIR',
+            'Web-form-AI','Web-form-ORG','Web-form-DIR','Web Form','Web-form',
             'Referral-INT',
-            'Chatbot','DandB','Email','Events','Highspot',
-            'Offline','Operational','Sales','Telemarketing','Third-party','Webinar',
+            'Chatbot','DandB','Drift','Email','Events','Highspot','Online',
+            'Offline','Operational','Sales','Telemarketing','Third-party','Webinar','Webstore',
         ];
         for (const p of PICKLIST) {
-            if (nl.startsWith(p.toLowerCase())) return p;
+            if (nl.includes(p.toLowerCase())) return p;
         }
+        // Old abbreviation patterns (space-bounded, pre-2019 naming convention)
+        if (nl.includes(' wf '))  return 'Web Form';
+        if (nl.includes(' eb '))  return 'Email';
+        if (nl.includes(' ed '))  return 'Email';
+        if (nl.includes(' nl '))  return 'Email';
+        if (nl.includes(' ts '))  return 'Telemarketing';
+        if (nl.includes(' li '))  return 'Paid-social-LN';
+        if (nl.includes(' wb '))  return 'Webinar';
+        if (nl.includes(' oa '))  return 'Paid-display';
+        // Singular 'Event' (not caught by 'Events' includes)
+        if (nl.includes('-event-') || nl.includes('_event_')) return 'Events';
         return 'Other';
     }
 
@@ -825,14 +771,10 @@
         const rmAll = sel => clone.querySelectorAll(sel).forEach(el => el.remove());
 
         rm('#exportBtn');        // don't include the export button itself
-        rm('#apiBtn');           // Marketo API button
-        rm('#mktoSettingsBar');  // settings panel
-        rm('#dqFixPanel');       // DQ Fix floating panel
         rm('.load-btn');         // Load Data button
         rm('#fileInput');        // file input
         rm('.home-btn');         // Hub link (relative path breaks when shared)
         rm('#filterBar');        // filter bar needs JS to function
-        rm('#tabNav');           // tab nav needs JS to function
 
         // ── Replace canvases with frozen PNG images ──
         clone.querySelectorAll('canvas[id]').forEach(cloneCanvas => {
@@ -890,7 +832,7 @@
     //  DATA PROCESSING
     // ═══════════════════════════════════════════════════════════
     function processData(raw) {
-        demandFiltersInitialized = false; // force filter rebuild on next demand tab visit
+        demandFiltersInitialized = false;
         allData = raw.map(r => ({
             createdYear:  parseYear(r['Created At']),
             createdMonth: parseMonth(r['Created At']),
@@ -1081,7 +1023,6 @@
         const filtered = applyFilters();
         updateFilterCount(filtered.length);
         renderAll(filtered);
-        if (activeTab === 'quality') renderQualityTab();
     }
 
     function applyFilters() {
@@ -1152,7 +1093,6 @@
         const filtered = applyFilters();
         updateFilterCount(filtered.length);
         renderAll(filtered);
-        if (activeTab === 'quality') renderQualityTab();
         if (activeTab === 'demand') renderDemandTab();
     }
     function toggleLeadsOnly() {
@@ -1175,16 +1115,6 @@
         const btn = document.getElementById('btnPeopleOnly');
         if (btn) btn.classList.toggle('active', globalPeopleOnly);
         _applyAndRender();
-    }
-
-    function updateStickyOffsets() {
-        const header    = document.querySelector('.header');
-        const tabNavEl  = document.getElementById('tabNav');
-        const filterBar = document.getElementById('filterBar');
-        if (!header || !tabNavEl) return;
-        const headerH = header.offsetHeight;
-        tabNavEl.style.top = headerH + 'px';
-        if (filterBar) filterBar.style.top = (headerH + tabNavEl.offsetHeight) + 'px';
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1601,10 +1531,13 @@
                         if (!subs || !subs.length) return [];
                         var hint = expandedHcVerts.has(lbl) ? '(click to collapse)' : '(click to expand)';
                         var blankCount = blankSubMap[lbl] || 0;
-                        var fullTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0) + blankCount;
+                        var barTotal = values[i];
+                        var shownTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0);
+                        var remaining = barTotal - shownTotal - blankCount;
                         var lines = ['', hint, '', 'Sub-verticals:'];
-                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], fullTotal) + ')'); });
-                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, fullTotal) + ')');
+                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], barTotal) + ')'); });
+                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, barTotal) + ')');
+                        if (remaining > 0) lines.push('  \u2022 (+' + fmt(remaining) + ' across other sub-verticals)');
                         return lines;
                     }
                 }}
@@ -1695,10 +1628,13 @@
                         if (!subs || !subs.length) return [];
                         var hint = expandedIndVerts.has(lbl) ? '(click to collapse)' : '(click to expand)';
                         var blankCount = blankSubMap[lbl] || 0;
-                        var fullTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0) + blankCount;
+                        var barTotal = values[i];
+                        var shownTotal = subs.reduce(function(s, p) { return s + p[1]; }, 0);
+                        var remaining = barTotal - shownTotal - blankCount;
                         var lines = ['', hint, '', 'Sub-verticals:'];
-                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], fullTotal) + ')'); });
-                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, fullTotal) + ')');
+                        subs.slice(0, 8).forEach(function(p) { lines.push('  \u2022 ' + p[0] + ': ' + fmt(p[1]) + ' (' + pct(p[1], barTotal) + ')'); });
+                        if (blankCount) lines.push('  \u2022 (blank): ' + fmt(blankCount) + ' (' + pct(blankCount, barTotal) + ')');
+                        if (remaining > 0) lines.push('  \u2022 (+' + fmt(remaining) + ' across other sub-verticals)');
                         return lines;
                     }
                 }}
@@ -1819,9 +1755,11 @@
             .filter(([k]) => k !== '(blank)')
             .sort((a, b) => b[1] - a[1]);
 
+        if (blankCount > 0) sorted.push(['(blank)', blankCount]);
+
         const labels = sorted.map(e => e[0]);
         const values = sorted.map(e => e[1]);
-        const colors = labels.map(l => ACQ_CHANNEL_COLORS[l] || '#90a4ae');
+        const colors = labels.map(l => l === '(blank)' ? '#cfd8dc' : (ACQ_CHANNEL_COLORS[l] || '#90a4ae'));
 
         makeDonut('chartChannel', labels, values, colors, {
             plugins: {
@@ -1830,20 +1768,22 @@
             },
             onClick: (e, els) => {
                 if (!els.length) return;
-                setDrillFilter('channel', labels[els[0].index], 'Acquisition Program');
+                if (labels[els[0].index] !== '(blank)') setDrillFilter('channel', labels[els[0].index], 'Acquisition Program');
             }
         });
 
         const legendEl = document.getElementById('acqLegend');
         if (legendEl) {
-            legendEl.innerHTML = sorted.map(([l, c]) =>
-                `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;border-radius:3px" onclick="setDrillFilter('channel','${l.replace(/'/g,"\\'")}','Acquisition Program')" title="Click to drill into ${l}">
-                    <span style="flex:0 0 10px;width:10px;height:10px;border-radius:2px;background:${ACQ_CHANNEL_COLORS[l] || '#90a4ae'};flex-shrink:0"></span>
-                    <span style="flex:1;font-size:11px;color:var(--ansell-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l}</span>
+            legendEl.innerHTML = sorted.map(([l, c]) => {
+                const color = l === '(blank)' ? '#cfd8dc' : (ACQ_CHANNEL_COLORS[l] || '#90a4ae');
+                const clickable = l !== '(blank)';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;${clickable ? 'cursor:pointer;' : ''}border-radius:3px" ${clickable ? `onclick="setDrillFilter('channel','${l.replace(/'/g,"\\'")}','Acquisition Program')" title="Click to drill into ${l}"` : ''}>
+                    <span style="flex:0 0 10px;width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></span>
+                    <span style="flex:1;font-size:11px;color:${l === '(blank)' ? 'var(--ansell-light-gray)' : 'var(--ansell-dark)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:${l === '(blank)' ? 'italic' : 'normal'}">${l}</span>
                     <span style="font-size:11px;font-weight:600;color:var(--ansell-dark);white-space:nowrap">${fmt(c)}</span>
                     <span style="font-size:10px;color:var(--ansell-light-gray);width:38px;text-align:right;flex-shrink:0">${pct(c, totalAll)}</span>
-                </div>`
-            ).join('');
+                </div>`;
+            }).join('');
         }
 
         updateBlankBadge('blankBadge_channel', blankCount, totalAll);
@@ -2109,9 +2049,7 @@
     function showLoading(msg) {
         document.getElementById('emptyState').style.display    = 'none';
         document.getElementById('dashContent').style.display   = 'none';
-        document.getElementById('qualityContent').style.display = 'none';
         document.getElementById('filterBar').style.display     = 'none';
-        document.getElementById('tabNav').style.display        = 'none';
         document.getElementById('footerEl').style.display      = 'none';
         document.getElementById('loadingState').style.display  = 'block';
         document.getElementById('loadingMsg').textContent      = msg || 'Loading…';
@@ -2120,9 +2058,7 @@
     function showEmpty() {
         document.getElementById('loadingState').style.display   = 'none';
         document.getElementById('dashContent').style.display    = 'none';
-        document.getElementById('qualityContent').style.display = 'none';
         document.getElementById('filterBar').style.display      = 'none';
-        document.getElementById('tabNav').style.display         = 'none';
         document.getElementById('footerEl').style.display       = 'none';
         document.getElementById('emptyState').style.display     = 'block';
     }
@@ -2130,19 +2066,15 @@
     function showDash() {
         document.getElementById('loadingState').style.display   = 'none';
         document.getElementById('emptyState').style.display     = 'none';
-        document.getElementById('tabNav').style.display         = 'flex';
-        setTimeout(updateStickyOffsets, 0);
         document.getElementById('exportBtn').style.display      = 'flex';
-        document.getElementById('filterBar').style.display      = (activeTab === 'analysis' || activeTab === 'quality') ? 'flex' : 'none';
+        document.getElementById('filterBar').style.display      = 'flex';
         document.getElementById('footerEl').style.display       = 'block';
-        document.getElementById('dashContent').style.display    = activeTab === 'analysis' ? 'block' : 'none';
-        document.getElementById('qualityContent').style.display = activeTab === 'quality'  ? 'block' : 'none';
+        document.getElementById('dashContent').style.display    = 'block';
 
         // Export date badge
         if (exportDateStr) {
             const sel = document.getElementById('exportDateSelect');
             if (sel && sel.options.length === 0) {
-                // fallback: no picklist yet (e.g. manual file load) â€" add single option
                 sel.innerHTML = '';
                 const opt = document.createElement('option');
                 opt.value = exportDateStr;
@@ -2159,143 +2091,12 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    //  TAB NAVIGATION
+    //  QUICK FILTERS STATE
     // ═══════════════════════════════════════════════════════════
     let activeTab = 'analysis';
     let globalLeadsOnly    = false;
     let globalContactsOnly = false;
     let globalPeopleOnly   = false;
-
-    function switchTab(tab) {
-        activeTab = tab;
-        document.getElementById('tabBtnAnalysis').classList.toggle('active', tab === 'analysis');
-        document.getElementById('tabBtnQuality').classList.toggle('active', tab === 'quality');
-        document.getElementById('dashContent').style.display    = tab === 'analysis' ? 'block' : 'none';
-        document.getElementById('qualityContent').style.display = tab === 'quality'  ? 'block' : 'none';
-        document.getElementById('filterBar').style.display      = (tab === 'analysis' || tab === 'quality') ? 'flex' : 'none';
-        if (tab === 'quality')  renderQualityTab();
-    }
-
-    function toggleCleanTags() {
-        const clouds = document.getElementById('dqClouds');
-        const btn    = document.getElementById('btnToggleClean');
-        const isNowHidden = clouds.classList.toggle('hide-clean');
-        if (btn) btn.textContent = isNowHidden ? 'Show standard values' : 'Hide standard values';
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  DATA QUALITY
-    // ═══════════════════════════════════════════════════════════
-    const DQ_FIELDS = [
-        {
-            field: 'org',
-            label: 'Organisation',
-            mktoField: 'Organisation__c',
-            templateId: 71484,
-            picklist: ['Americas Healthcare','Americas Industrial','EMEA Healthcare','EMEA Industrial','APAC Healthcare','APAC Industrial'],
-            desc: 'Should match one of 7 official organisation values'
-        },
-        {
-            field: 'gbu',
-            label: 'GBU',
-            mktoField: 'GBU__c',
-            templateId: 71483,
-            picklist: ['Healthcare','Industrial'],
-            desc: 'Should be Healthcare or Industrial only'
-        },
-        {
-            field: 'personStatus',
-            label: 'Person Status',
-            mktoField: 'Person_Status__c',
-            templateId: 71508,
-            picklist: ['Prospect','Assigned','Working','Nurture','Referral','Unqualified','Converted'],
-            blankOk: true,
-            blankLabel: 'Demand Gen',
-            blankDesc: 'No Person Status = Demand Generation pool (SFDC Type = Lead or empty)',
-            filterFn: r => r.sfdcType === 'Lead' || !r.sfdcType,
-            desc: 'SFDC Leads only — blank = Demand Generation pool (valid); non-standard values should be corrected'
-        },
-        {
-            field: 'vertical',
-            label: 'Vertical',
-            mktoField: 'Vertical__c',
-            templateId: 71480,
-            picklist: null,
-            desc: 'Free-text field — values appearing 3 or fewer times may indicate misspellings or non-standard entries'
-        },
-        {
-            field: 'subVertical',
-            label: 'Sub Vertical',
-            mktoField: 'Sub_Vertical__c',
-            templateId: 71481,
-            picklist: null,
-            desc: 'Free-text field — rare values may indicate inconsistency or misspellings compared to common sub-verticals'
-        },
-        {
-            field: 'country',
-            label: 'Country',
-            mktoField: 'country',
-            templateId: 71485,
-            picklist: null,
-            desc: 'Free-text field — variant spellings or abbreviations can fragment country-level reporting'
-        },
-        {
-            field: 'leadRecordType',
-            label: 'Lead Record Type',
-            mktoField: '',
-            templateId: null,
-            picklist: ['Healthcare', 'Industrial', 'Prospect'],
-            blankOk: true,
-            blankLabel: 'not set',
-            desc: 'Should be Healthcare, Industrial, or Prospect. Any other value indicates a record type DQ issue.'
-        },
-        {
-            field: 'roleDescription',
-            label: 'Role Description',
-            mktoField: '',
-            templateId: null,
-            picklist: null,
-            desc: 'Picklist field — rare or non-standard values may indicate inconsistent data entry'
-        },
-        {
-            field: 'phone',
-            label: 'Phone',
-            mktoField: 'Phone',
-            templateId: null,
-            picklist: null,
-            blanksOnly: true,
-            desc: 'Free-text — completeness only; non-standard formats expected, values not analysed'
-        },
-        {
-            field: 'jobTitle',
-            label: 'Job Title',
-            mktoField: 'Title',
-            templateId: null,
-            picklist: null,
-            blanksOnly: true,
-            desc: 'Free-text — completeness only; non-standard titles expected, values not analysed'
-        },
-        {
-            field: 'acqProgram',
-            label: 'Acquisition Program',
-            mktoField: 'Acquisition_Program_Name__c',
-            templateId: null,
-            picklist: null,
-            blanksOnly: true,
-            blankOk: false,
-            desc: 'Records without an Acquisition Program cannot be attributed to any marketing source — this is a critical data gap'
-        }
-    ];
-    const RARE_THRESHOLD = 3;
-
-    function wcFontSize(count, minC, maxC) {
-        if (maxC <= minC) return 15;
-        const logMin = Math.log(Math.max(minC, 1));
-        const logMax = Math.log(maxC);
-        const logC   = Math.log(Math.max(count, 1));
-        const t = logMax > logMin ? (logC - logMin) / (logMax - logMin) : 0.5;
-        return Math.round(11 + t * 31); // 11–42 px
-    }
 
     // ═══════════════════════════════════════════════════════════
     //  DEMAND GENERATION TAB
@@ -3392,812 +3193,6 @@
         return `rgb(${lerp(214,91,intensity)},${lerp(234,155,intensity)},${lerp(248,213,intensity)})`;
     }
 
-    function renderQualityTab() {
-        const summaryEl = document.getElementById('dqSummary');
-        const cloudsEl  = document.getElementById('dqClouds');
-        const baseData = getActiveData();
-        if (!summaryEl || !cloudsEl || !baseData.length) return;
-
-        const total = baseData.length;
-
-        // ── Summary KPI cards (all DQ fields) ──
-        let summaryHtml = '';
-        DQ_FIELDS.forEach(f => {
-            const fData  = f.filterFn ? baseData.filter(f.filterFn) : baseData;
-            const fTotal = fData.length;
-            let value, sub, clean;
-            let blankCount = 0;
-            if (f.picklist) {
-                let dirtyCount = 0;
-                const dirtyValues = new Set();
-                for (const r of fData) {
-                    const v = r[f.field];
-                    if (!v) { blankCount++; if (!f.blankOk) dirtyCount++; }
-                    else if (!f.picklist.some(p => p.toLowerCase() === v.toLowerCase())) { dirtyCount++; dirtyValues.add(v); }
-                }
-                clean = dirtyCount === 0;
-                value = clean ? '&#10003; Clean' : fmt(dirtyCount);
-                sub   = clean ? 'All records match picklist'
-                              : pct(dirtyCount, fTotal) + ' of records · ' + dirtyValues.size + ' non-standard value' + (dirtyValues.size !== 1 ? 's' : '');
-            } else if (f.blanksOnly) {
-                for (const r of fData) {
-                    if (!(r[f.field] || '').trim()) blankCount++;
-                }
-                const filled = fTotal - blankCount;
-                clean = blankCount === 0 || f.blankOk !== false;
-                value = blankCount === 0 ? '&#10003; Clean' : pct(filled, fTotal) + ' filled';
-                sub   = blankCount === 0 ? 'No blanks found'
-                                         : fmt(blankCount) + ' records missing this field';
-            } else {
-                const raw = {};
-                for (const r of fData) {
-                    const v = (r[f.field] || '').trim();
-                    if (!v) { blankCount++; continue; }
-                    const key = v.toLowerCase();
-                    if (!raw[key]) raw[key] = {};
-                    raw[key][v] = (raw[key][v] || 0) + 1;
-                }
-                const normalizedCounts = Object.values(raw).map(variants =>
-                    Object.values(variants).reduce((s, c) => s + c, 0)
-                );
-                const rareEntries     = normalizedCounts.filter(c => c <= RARE_THRESHOLD);
-                const rareCount       = rareEntries.length;
-                const rareRecordCount = rareEntries.reduce((s, c) => s + c, 0);
-                clean = rareCount === 0;
-                value = clean ? '&#10003; Clean' : fmt(rareCount);
-                sub   = clean ? 'No rare values detected'
-                              : pct(rareRecordCount, fTotal) + ' of records · ' + rareCount + ' rare value' + (rareCount !== 1 ? 's' : '');
-            }
-            const blankPct  = fTotal > 0 ? Math.round(blankCount / fTotal * 100) : 0;
-            const blankText = blankCount === 0
-                ? (f.blankOk ? 'No blanks' : 'No blanks')
-                : (f.blankLabel
-                    ? blankPct + '% ' + f.blankLabel + ' (' + fmt(blankCount) + ')'
-                    : blankPct + '% blank (' + fmt(blankCount) + ')');
-            summaryHtml += `
-            <div class="dq-kpi${clean ? ' all-clean' : ''}">
-                <div class="dq-kpi-label">${f.label}${f.filterFn ? '<span style="font-size:8px;opacity:.55;margin-left:4px">leads only</span>' : ''}</div>
-                <div class="dq-kpi-value">${value}</div>
-                <div class="dq-kpi-sub">${sub}</div>
-                <div class="dq-kpi-blank${blankCount > 0 && !f.blankOk ? ' has-blanks' : ''}">${blankText}</div>
-            </div>`;
-        });
-        summaryEl.innerHTML = summaryHtml;
-
-
-        // ── Word cloud sections ──
-        const picklistFields  = DQ_FIELDS.filter(f => f.picklist);
-        const freeTextFields  = DQ_FIELDS.filter(f => !f.picklist && !f.blanksOnly);
-
-        const cleanHidden = cloudsEl.classList.contains('hide-clean');
-        let cloudsHtml = `<div style="margin-top:28px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
-            <div class="section-label" style="margin:0">Picklist Fields — Spot Non-Standard Values</div>
-            <button class="dq-toggle-clean" id="btnToggleClean" onclick="toggleCleanTags()">${cleanHidden ? 'Show standard values' : 'Hide standard values'}</button>
-        </div>
-        <div class="dq-section-grid">`;
-        picklistFields.forEach(f => {
-            const d = f.filterFn ? allData.filter(f.filterFn) : allData;
-            cloudsHtml += buildWordCloudCard(f, d, d.length);
-        });
-        cloudsHtml += `</div>
-        <div class="section-label">Free-Text Fields — Value Frequency Map</div>
-        <div class="dq-section-grid">`;
-        freeTextFields.forEach(f => {
-            const d = f.filterFn ? allData.filter(f.filterFn) : allData;
-            cloudsHtml += buildWordCloudCard(f, d, d.length);
-        });
-        cloudsHtml += `</div>`;
-
-        cloudsEl.innerHTML = cloudsHtml;
-
-        // Attach expand/collapse table toggles
-        cloudsEl.querySelectorAll('.wc-table-toggle').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const tableId = this.dataset.table;
-                const table   = document.getElementById(tableId);
-                if (!table) return;
-                const isOpen = table.style.display === 'table';
-                table.style.display = isOpen ? 'none' : 'table';
-                this.classList.toggle('open', !isOpen);
-                this.querySelector('.toggle-label').textContent = isOpen ? 'Show values' : 'Hide values';
-            });
-        });
-
-        // Attach right-click DQ Fix handler (once — guarded by flag)
-        if (!cloudsEl._dqContextMenuSetup) {
-            cloudsEl._dqContextMenuSetup = true;
-            cloudsEl.addEventListener('contextmenu', (e) => {
-                const tag = e.target.closest('.wc-tag.dirty, .wc-tag.rare');
-                if (!tag) return;
-                e.preventDefault();
-                openDqFix(e, tag.dataset.field, tag.dataset.fieldLabel, tag.dataset.value, tag.dataset.mktoField, tag.dataset.templateId);
-            });
-        }
-        renderRegionMismatch();
-        renderOrgMismatch();
-    }
-
-
-
-    function renderRegionMismatch() {
-        const el = document.getElementById('dqMismatch');
-        if (!el || !allData.length) return;
-
-        const pool = getActiveData();
-
-        const candidates = pool.filter(r => r.country && r.region);
-        const total = candidates.length;
-        if (!total) { el.innerHTML = ''; return; }
-
-        const comboCounts = {};
-        for (const r of candidates) {
-            const expected = COUNTRY_REGION_MAP[r.country.toLowerCase()];
-            if (!expected) continue;
-            if (expected.toLowerCase() !== r.region.toLowerCase()) {
-                const key = r.country + '|||' + r.region + '|||' + expected;
-                comboCounts[key] = (comboCounts[key] || 0) + 1;
-            }
-        }
-        const rows = Object.entries(comboCounts)
-            .map(([key, count]) => {
-                const [country, assigned, expected] = key.split('|||');
-                return { country, assigned, expected, count };
-            })
-            .sort((a, b) => b.count - a.count);
-        const mismatchTotal = rows.reduce((s, r) => s + r.count, 0);
-
-
-
-        if (!rows.length) {
-            el.innerHTML = `<div style="margin-top:28px"><div class="section-label" style="margin-bottom:12px">Country / Region Mismatch</div><div class="dq-kpi all-clean" style="max-width:340px"><div class="dq-kpi-label">No mismatches</div><div class="dq-kpi-value">&#10003; Clean</div><div class="dq-kpi-sub">All mapped records match their assigned regions</div></div></div>`;
-            return;
-        }
-
-        // Group by Expected Region
-        const byExpected = {};
-        for (const r of rows) {
-            if (!byExpected[r.expected]) byExpected[r.expected] = [];
-            byExpected[r.expected].push(r);
-        }
-        const sortedExpected = Object.entries(byExpected)
-            .map(([region, items]) => ({ region, items, total: items.reduce((s, i) => s + i.count, 0) }))
-            .sort((a, b) => b.total - a.total);
-
-        let groupHtml = '';
-        sortedExpected.forEach(({ region, items, total: groupTotal }) => {
-            const rowsHtml = items.map(r =>
-                `<tr>
-                    <td style="padding:5px 14px 5px 20px">${r.country}</td>
-                    <td style="padding:5px 14px;color:#e65100;font-weight:600">${r.assigned}</td>
-                    <td style="padding:5px 14px;text-align:right">${fmt(r.count)}</td>
-                </tr>`
-            ).join('');
-            const pctOfMismatch = mismatchTotal > 0 ? (groupTotal / mismatchTotal * 100).toFixed(1) + '%' : '';
-            groupHtml += `
-            <div style="margin-bottom:10px;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden">
-                <div style="background:#f5f7fa;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-                    <div>
-                        <span style="font-weight:700;font-size:13px;color:var(--ansell-blue)">${region}</span>
-                        <span style="font-size:11px;color:var(--ansell-gray);margin-left:8px">${items.length} country combo${items.length !== 1 ? 's' : ''} &middot; ${fmt(groupTotal)} records &middot; ${pctOfMismatch} of mismatches</span>
-                    </div>
-                    <span style="font-size:11px;color:var(--ansell-light-gray)">click to expand &#9660;</span>
-                </div>
-                <div style="display:none">
-                    <div style="padding:8px 14px 4px;font-size:11px;color:var(--ansell-gray);background:#fffdf5;border-bottom:1px solid #f0f0f0">&#9888; Set <strong>Region</strong> to <strong>${region}</strong> in Marketo for the countries below.</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px">
-                        <thead><tr style="border-bottom:1px solid #e8e8e8">
-                            <th style="padding:5px 14px 5px 20px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ansell-gray)">Country</th>
-                            <th style="padding:5px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ansell-gray)">Currently Assigned</th>
-                            <th style="padding:5px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ansell-gray)">Records</th>
-                        </tr></thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                </div>
-            </div>`;
-        });
-
-        el.innerHTML = `
-        <div style="margin-top:28px">
-            <div style="display:flex;align-items:center;margin-bottom:4px;gap:12px">
-                <div class="section-label" style="margin:0">Country / Region Mismatch</div>
-            </div>
-            <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:14px">
-                Countries whose Region field does not match the expected region. Click a group to expand and see fix instructions.
-            </div>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
-                <div class="dq-kpi" style="flex:0 0 auto;min-width:180px">
-                    <div class="dq-kpi-label">Mismatched Records</div>
-                    <div class="dq-kpi-value">${fmt(mismatchTotal)}</div>
-                    <div class="dq-kpi-sub">${pct(mismatchTotal, total)} of records with both fields filled</div>
-                </div>
-                <div class="dq-kpi" style="flex:0 0 auto;min-width:180px">
-                    <div class="dq-kpi-label">Fix Groups</div>
-                    <div class="dq-kpi-value">${fmt(sortedExpected.length)}</div>
-                    <div class="dq-kpi-sub">Target regions with misassigned countries</div>
-                </div>
-                <div class="dq-kpi" style="flex:0 0 auto;min-width:180px">
-                    <div class="dq-kpi-label">Country Combos</div>
-                    <div class="dq-kpi-value">${fmt(rows.length)}</div>
-                    <div class="dq-kpi-sub">Distinct wrong country + region pairings</div>
-                </div>
-            </div>
-            <div style="max-width:760px">${groupHtml}</div>
-        </div>`;
-    }
-
-    // ── Region bucket → Org region (APAC / EMEA / Americas) ─────────────────
-    const REGION_TO_ORG_REGION = (function() {
-        const apac     = ['ANZ','China','Japan','Korea','India','SEA'];
-        const emea     = ['Africa','Benelux','CEE','CIS','France','Germanic','Iberia','Italy','Mediterranean','Middle East','Nordic','UK-Eire'];
-        const americas = ['Brazil','Canada','Colombia','Mexico','OLAC','USA'];
-        const m = {};
-        apac.forEach(r     => { m[r] = 'APAC'; });
-        emea.forEach(r     => { m[r] = 'EMEA'; });
-        americas.forEach(r => { m[r] = 'Americas'; });
-        return m;
-    })();
-
-    function renderOrgMismatch() {
-        const el = document.getElementById('dqOrgMismatch');
-        if (!el || !allData.length) return;
-
-        const pool = getActiveData();
-
-        // Helper: extract GBU component from org name
-        const orgGbu    = org => org.includes('Healthcare') ? 'Healthcare' : org.includes('Industrial') ? 'Industrial' : null;
-        // Helper: extract region component from org name
-        const orgRegion = org => org.startsWith('APAC') ? 'APAC' : org.startsWith('EMEA') ? 'EMEA' : org.startsWith('Americas') ? 'Americas' : null;
-
-        // ── Section 1: GBU vs Organisation mismatch ──────────────────────────
-        const gbuCandidates = pool.filter(r => r.gbu && r.org && orgGbu(r.org));
-        const gbuMismatched = gbuCandidates.filter(r => r.gbu !== orgGbu(r.org));
-
-        // Group by (assigned org, expected org based on correct gbu + correct region component)
-        const gbuCombos = {};
-        gbuMismatched.forEach(r => {
-            const assignedOrg = r.org;
-            const correctOrg  = orgRegion(r.org) ? orgRegion(r.org) + ' ' + r.gbu : r.gbu;
-            const key = assignedOrg + '|||' + correctOrg;
-            gbuCombos[key] = (gbuCombos[key] || 0) + 1;
-        });
-        const gbuRows = Object.entries(gbuCombos)
-            .map(([key, count]) => { const [assigned, correct] = key.split('|||'); return { assigned, correct, count }; })
-            .sort((a, b) => b.count - a.count);
-
-        // Group by correct org
-        const gbuByCorrect = {};
-        gbuRows.forEach(r => {
-            if (!gbuByCorrect[r.correct]) gbuByCorrect[r.correct] = [];
-            gbuByCorrect[r.correct].push(r);
-        });
-        const gbuSorted = Object.entries(gbuByCorrect)
-            .map(([org, items]) => ({ org, items, total: items.reduce((s, i) => s + i.count, 0) }))
-            .sort((a, b) => b.total - a.total);
-        const gbuTotal = gbuMismatched.length;
-
-        // ── Section 2: Country → Org Region mismatch ─────────────────────────
-        const orgRegCandidates = pool.filter(r => r.country && r.org && orgRegion(r.org));
-        const orgRegCombos = {};
-        orgRegCandidates.forEach(r => {
-            const expectedRegion = COUNTRY_REGION_MAP[r.country.toLowerCase()];
-            if (!expectedRegion) return;
-            const expectedOrgRegion = REGION_TO_ORG_REGION[expectedRegion];
-            if (!expectedOrgRegion) return;
-            const assignedOrgRegion = orgRegion(r.org);
-            if (assignedOrgRegion === expectedOrgRegion) return; // match
-            const correctOrg = expectedOrgRegion + ' ' + (orgGbu(r.org) || '?');
-            const key = r.country + '|||' + r.org + '|||' + correctOrg;
-            orgRegCombos[key] = (orgRegCombos[key] || 0) + 1;
-        });
-        const orgRegRows = Object.entries(orgRegCombos)
-            .map(([key, count]) => { const [country, assigned, correct] = key.split('|||'); return { country, assigned, correct, count }; })
-            .sort((a, b) => b.count - a.count);
-
-        // Group by correct org
-        const orgRegByCorrect = {};
-        orgRegRows.forEach(r => {
-            if (!orgRegByCorrect[r.correct]) orgRegByCorrect[r.correct] = [];
-            orgRegByCorrect[r.correct].push(r);
-        });
-        const orgRegSorted = Object.entries(orgRegByCorrect)
-            .map(([org, items]) => ({ org, items, total: items.reduce((s, i) => s + i.count, 0) }))
-            .sort((a, b) => b.total - a.total);
-        const orgRegTotal = orgRegRows.reduce((s, r) => s + r.count, 0);
-
-        // ── Render helper: accordion group ────────────────────────────────────
-        function makeGroup(label, subLabel, items, groupTotal, mismatchTotal, rowFn) {
-            const pctOfMismatch = mismatchTotal > 0 ? (groupTotal / mismatchTotal * 100).toFixed(1) + '%' : '';
-            const rowsHtml = items.map(rowFn).join('');
-            return `<div style="margin-bottom:10px;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden">
-                <div style="background:#f5f7fa;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-                    <div>
-                        <span style="font-weight:700;font-size:13px;color:var(--ansell-blue)">${label}</span>
-                        <span style="font-size:11px;color:var(--ansell-gray);margin-left:8px">${subLabel} &middot; ${fmt(groupTotal)} records &middot; ${pctOfMismatch} of mismatches</span>
-                    </div>
-                    <span style="font-size:11px;color:var(--ansell-light-gray)">click to expand &#9660;</span>
-                </div>
-                <div style="display:none">
-                    <div style="padding:8px 14px 4px;font-size:11px;color:var(--ansell-gray);background:#fffdf5;border-bottom:1px solid #f0f0f0">&#9888; Set <strong>Organisation</strong> to <strong>${label}</strong> in Marketo for the records below.</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px">
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                </div>
-            </div>`;
-        }
-
-        function makeKpi(label, value, sub) {
-            return `<div class="dq-kpi" style="flex:0 0 auto;min-width:180px"><div class="dq-kpi-label">${label}</div><div class="dq-kpi-value">${value}</div><div class="dq-kpi-sub">${sub}</div></div>`;
-        }
-
-        // ── GBU section HTML ──────────────────────────────────────────────────
-        let gbuHtml;
-        if (!gbuTotal) {
-            gbuHtml = `<div class="dq-kpi all-clean" style="max-width:340px"><div class="dq-kpi-label">No mismatches</div><div class="dq-kpi-value">&#10003; Clean</div><div class="dq-kpi-sub">GBU matches Organisation for all records</div></div>`;
-        } else {
-            const groups = gbuSorted.map(({ org, items, total: gt }) =>
-                makeGroup(org, `${items.length} combo${items.length !== 1 ? 's' : ''}`, items, gt, gbuTotal,
-                    r => `<tr>
-                        <td style="padding:5px 14px 5px 20px">${r.assigned}</td>
-                        <td style="padding:5px 14px;color:#e65100;font-weight:600">→ should be ${r.correct}</td>
-                        <td style="padding:5px 14px;text-align:right">${fmt(r.count)}</td>
-                    </tr>`)
-            ).join('');
-            gbuHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-                ${makeKpi('Mismatched Records', fmt(gbuTotal), pct(gbuTotal, gbuCandidates.length) + ' of records with both fields')}
-                ${makeKpi('Fix Groups', fmt(gbuSorted.length), 'Target orgs with wrong GBU')}
-            </div>
-            <div style="max-width:760px">${groups}</div>`;
-        }
-
-        // ── Org Region section HTML ───────────────────────────────────────────
-        let orgRegHtml;
-        if (!orgRegTotal) {
-            orgRegHtml = `<div class="dq-kpi all-clean" style="max-width:340px"><div class="dq-kpi-label">No mismatches</div><div class="dq-kpi-value">&#10003; Clean</div><div class="dq-kpi-sub">Org region matches country for all mapped records</div></div>`;
-        } else {
-            const groups = orgRegSorted.map(({ org, items, total: gt }) =>
-                makeGroup(org, `${items.length} country combo${items.length !== 1 ? 's' : ''}`, items, gt, orgRegTotal,
-                    r => `<tr>
-                        <td style="padding:5px 14px 5px 20px">${r.country}</td>
-                        <td style="padding:5px 14px;color:#e65100;font-weight:600">${r.assigned}</td>
-                        <td style="padding:5px 14px;text-align:right">${fmt(r.count)}</td>
-                    </tr>`)
-            ).join('');
-            orgRegHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-                ${makeKpi('Mismatched Records', fmt(orgRegTotal), pct(orgRegTotal, orgRegCandidates.length) + ' of mapped records')}
-                ${makeKpi('Fix Groups', fmt(orgRegSorted.length), 'Target orgs with wrong region')}
-                ${makeKpi('Country Combos', fmt(orgRegRows.length), 'Distinct wrong country + org pairings')}
-            </div>
-            <div style="max-width:760px">${groups}</div>`;
-        }
-
-        el.innerHTML = `
-        <div style="margin-top:28px">
-            <div style="display:flex;align-items:center;margin-bottom:4px;gap:12px">
-                <div class="section-label" style="margin:0">Organisation Mismatch</div>
-            </div>
-            <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:20px">
-                Two checks: (1) GBU field conflicts with the GBU implied by the assigned Organisation. (2) Country falls in a different region than the Organisation's region prefix.
-            </div>
-
-            <div style="font-weight:700;font-size:13px;color:var(--ansell-dark);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee">
-                GBU vs Organisation
-                <span style="font-weight:400;font-size:11px;color:var(--ansell-gray);margin-left:8px">e.g. GBU = Healthcare but Org = EMEA Industrial</span>
-            </div>
-            ${gbuHtml}
-
-            <div style="font-weight:700;font-size:13px;color:var(--ansell-dark);margin-top:24px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee">
-                Country vs Organisation Region
-                <span style="font-weight:400;font-size:11px;color:var(--ansell-gray);margin-left:8px">e.g. Country = Canada but Org = APAC Healthcare</span>
-            </div>
-            ${orgRegHtml}
-        </div>`;
-    }
-
-    function buildWordCloudCard(fieldDef, data, total) {
-        const { field, label, mktoField, templateId, picklist, desc, blankLabel, blankDesc, blankOk } = fieldDef;
-        const mktoAttr = (mktoField ? ` data-mkto-field="${mktoField}"` : '')
-                       + (templateId ? ` data-template-id="${templateId}"` : '');
-        // Count all raw values (free-text fields: group case-insensitively, keep most common casing)
-        const counts = {};
-        let blankCount = 0;
-        if (picklist) {
-            for (const r of data) {
-                const v = r[field];
-                if (!v || v === '') { blankCount++; continue; }
-                counts[v] = (counts[v] || 0) + 1;
-            }
-        } else {
-            const raw = {};
-            for (const r of data) {
-                const v = (r[field] || '').trim();
-                if (!v) { blankCount++; continue; }
-                const key = v.toLowerCase();
-                if (!raw[key]) raw[key] = {};
-                raw[key][v] = (raw[key][v] || 0) + 1;
-            }
-            for (const variants of Object.values(raw)) {
-                const varTotal = Object.values(variants).reduce((s, c) => s + c, 0);
-                const best     = Object.entries(variants).sort((a, b) => b[1] - a[1])[0][0];
-                counts[best] = varTotal;
-            }
-        }
-
-        const entries  = Object.entries(counts);
-        const maxCount = entries.reduce((m, [, c]) => Math.max(m, c), 1);
-        const minCount = entries.reduce((m, [, c]) => Math.min(m, c), maxCount);
-
-        // Sort by count descending
-        const sorted = [...entries].sort((a, b) => b[1] - a[1]);
-
-        let tagsHtml     = '';
-        let dirtyEntries = [];
-        let dirtyCount   = 0;
-        let cleanCount   = 0;
-
-        if (picklist) {
-            const picklistLower = new Set(picklist.map(p => p.toLowerCase()));
-            const cleanVals = sorted.filter(([k]) =>  picklistLower.has(k.toLowerCase()));
-            const dirtyVals = sorted.filter(([k]) => !picklistLower.has(k.toLowerCase()));
-            cleanCount   = cleanVals.reduce((s, [, c]) => s + c, 0);
-            dirtyEntries = dirtyVals;
-            dirtyCount   = dirtyVals.reduce((s, [, c]) => s + c, 0);
-
-            cleanVals.forEach(([v, c]) => {
-                const fs = wcFontSize(c, minCount, maxCount);
-                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
-                tagsHtml += `<span class="wc-tag clean" style="font-size:${fs}px" title="${v}: ${fmt(c)} records"><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
-            });
-            dirtyVals.forEach(([v, c]) => {
-                const fs = wcFontSize(c, minCount, maxCount);
-                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
-                const esc = v.replace(/"/g, '&quot;');
-                tagsHtml += `<span class="wc-tag dirty" style="font-size:${fs}px" title="${v}: ${fmt(c)} records — not in picklist" data-field="${field}" data-field-label="${label}" data-value="${esc}"${mktoAttr}><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
-            });
-        } else {
-            const MAX_TAGS = 50;
-            sorted.slice(0, MAX_TAGS).forEach(([v, c]) => {
-                const isRare = c <= RARE_THRESHOLD;
-                if (isRare) { dirtyCount += c; dirtyEntries.push([v, c]); }
-                else cleanCount += c;
-                const cls = isRare ? 'rare' : 'clean';
-                const fs  = wcFontSize(c, minCount, maxCount);
-                const lbl = v.length > 38 ? v.slice(0, 35) + '…' : v;
-                const esc = v.replace(/"/g, '&quot;');
-                const dataAttrs = isRare ? ` data-field="${field}" data-field-label="${label}" data-value="${esc}"${mktoAttr}` : '';
-                tagsHtml += `<span class="wc-tag ${cls}" style="font-size:${fs}px" title="${v}: ${fmt(c)} records${isRare ? ' — rare value, possible typo' : ''}"${dataAttrs}><span class="wc-word">${lbl}</span><span class="wc-count">${fmt(c)}</span></span>`;
-            });
-            if (sorted.length > MAX_TAGS) {
-                tagsHtml += `<span class="wc-tag clean" style="font-size:11px;opacity:.55;cursor:default;pointer-events:none">+${sorted.length - MAX_TAGS} more &mdash; use Show values</span>`;
-            }
-        }
-
-        // Blank tag — if blankLabel is set, treat as a named/expected category (clean style)
-        if (blankCount > 0) {
-            const fs      = wcFontSize(blankCount, minCount, maxCount);
-            const tagCls  = blankLabel ? 'clean' : 'blank';
-            const tagText = blankLabel || '(blank)';
-            const tipText = blankLabel
-                ? `${blankLabel}: ${fmt(blankCount)} records — ${blankDesc || 'no value in this field'}`
-                : `(blank): ${fmt(blankCount)} records with no value`;
-            tagsHtml += `<span class="wc-tag ${tagCls}" style="font-size:${fs}px" title="${tipText}"><span class="wc-word">${tagText}</span><span class="wc-count">${fmt(blankCount)}</span></span>`;
-        }
-
-        // Badges
-        let badgesHtml = '';
-        if (picklist) {
-            badgesHtml += dirtyCount > 0
-                ? `<span class="wc-badge dirty">${dirtyEntries.length} non-standard value${dirtyEntries.length !== 1 ? 's' : ''}</span>
-                   <span class="wc-badge dirty">${pct(dirtyCount, total)} affected</span>`
-                : `<span class="wc-badge ok">All clean</span>`;
-        } else {
-            if (dirtyEntries.length > 0)
-                badgesHtml += `<span class="wc-badge dirty">${dirtyEntries.length} rare value${dirtyEntries.length !== 1 ? 's' : ''}</span>`;
-            badgesHtml += `<span class="wc-badge info">${entries.length} unique values</span>`;
-        }
-        if (blankCount > 0)
-            badgesHtml += blankLabel
-                ? `<span class="wc-badge info">${pct(blankCount, total)} ${blankLabel}</span>`
-                : `<span class="wc-badge dirty">${pct(blankCount, total)} blank</span>`;
-
-        // Legend
-        const swatchDirty = picklist
-            ? `<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#fff3e0;border:1px solid #ffcc80"></div> Not in picklist</div>`
-            : `<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#fce4ec;border:1px solid #ef9a9a"></div> Rare (&le;${RARE_THRESHOLD} records)</div>`;
-
-        let legendHtml = `<div class="wc-legend">
-            ${swatchDirty}
-            ${blankCount > 0 && !blankLabel ? '<div class="wc-legend-item"><div class="wc-legend-swatch" style="background:#f5f6f7;border:1px dashed #BBBCBC"></div> Blank / empty</div>' : ''}
-            <div class="wc-legend-item" style="margin-left:auto;font-style:italic;opacity:.6">Font size = frequency</div>
-        </div>`;
-
-        // Expandable dirty-values table
-        let tableHtml = '';
-        const allDirty = [...dirtyEntries];
-        if (blankCount > 0 && !blankLabel) allDirty.push(['(blank)', blankCount]);
-        allDirty.sort((a, b) => b[1] - a[1]);
-
-        if (allDirty.length > 0) {
-            const tableId = `wct-${field}`;
-            const rows = allDirty.map(([v, c]) => {
-                const isBlank = v === '(blank)';
-                const cls     = isBlank ? 'val-blank' : (picklist ? 'val-dirty' : 'val-rare');
-                const barW    = Math.max(2, Math.min(80, Math.round((c / total) * 3000)));
-                return `<tr>
-                    <td><span class="${cls}">${isBlank ? '(blank — no value)' : v}</span></td>
-                    <td>${fmt(c)}</td>
-                    <td>${pct(c, total)}<span class="mini-bar" style="width:${barW}px"></span></td>
-                </tr>`;
-            }).join('');
-
-            tableHtml = `<div class="wc-table-wrap">
-                <button class="wc-table-toggle" data-table="${tableId}">
-                    <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1l4 4-4 4"/></svg>
-                    <span class="toggle-label">Show values</span>&nbsp;(${allDirty.length})
-                </button>
-                <table class="wc-table" id="${tableId}">
-                    <thead><tr><th>Value in data</th><th>Count</th><th>% of total</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>`;
-        }
-
-        return `<div class="wc-card">
-            <div class="wc-header">
-                <div class="wc-title">${label}</div>
-                <div class="wc-badges">${badgesHtml}</div>
-            </div>
-            <div class="wc-desc">${desc}</div>
-            <div class="wc-cloud">${tagsHtml || '<span style="font-size:12px;color:var(--ansell-light-gray)">No data</span>'}</div>
-            ${legendHtml}
-            ${tableHtml}
-        </div>`;
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // ═══════════════════════════════════════════════════════════
-    //  MARKETO API — settings, DQ Fix
-    // ═══════════════════════════════════════════════════════════
-
-    const MKTO_SS_KEY = 'mktoApiConfig';
-
-    function getMktoConfig() {
-        try { return JSON.parse(sessionStorage.getItem(MKTO_SS_KEY) || 'null') || {}; }
-        catch { return {}; }
-    }
-
-    function saveMktoConfig() {
-        const cfg = {
-            munchkin:    document.getElementById('mktoMunchkin').value.trim(),
-            clientId:    document.getElementById('mktoClientId').value.trim(),
-            clientSecret:document.getElementById('mktoClientSecret').value.trim(),
-            adobeOrg:    document.getElementById('mktoAdobeOrg').value.trim()
-        };
-        sessionStorage.setItem(MKTO_SS_KEY, JSON.stringify(cfg));
-        updateApiBtn();
-    }
-
-    const MKTO_DEFAULTS = {
-        munchkin:   '615-TNW-071',
-        clientId:   '3ccf3b31-aa0c-4755-94b7-32890b8e324a',
-        adobeOrg:   'ansell'
-    };
-
-    function loadMktoConfig() {
-        const cfg = getMktoConfig();
-        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
-        set('mktoMunchkin',     cfg.munchkin    || MKTO_DEFAULTS.munchkin);
-        set('mktoClientId',     cfg.clientId    || MKTO_DEFAULTS.clientId);
-        set('mktoClientSecret', cfg.clientSecret || ''); // never pre-populated
-        set('mktoAdobeOrg',     cfg.adobeOrg    || MKTO_DEFAULTS.adobeOrg);
-        updateApiBtn();
-    }
-
-    function updateApiBtn() {
-        const cfg = getMktoConfig();
-        const btn = document.getElementById('apiBtn');
-        if (!btn) return;
-        const configured = !!(cfg.munchkin && cfg.clientId && cfg.clientSecret);
-        btn.classList.toggle('configured', configured);
-        btn.title = configured ? 'Marketo API configured (session only)' : 'Marketo API — enter credentials';
-    }
-
-    function toggleApiPanel() {
-        const bar = document.getElementById('mktoSettingsBar');
-        if (!bar) return;
-        const opening = !bar.classList.contains('open');
-        bar.classList.toggle('open', opening);
-        if (opening) loadMktoConfig();
-        // Clear status when closing
-        if (!opening) {
-            const st = document.getElementById('mktoStatus');
-            if (st) { st.className = 'mkto-status'; st.textContent = ''; }
-        }
-    }
-
-    function setMktoStatus(msg, ok) {
-        const el = document.getElementById('mktoStatus');
-        if (!el) return;
-        el.className = 'mkto-status ' + (ok ? 'ok' : 'err');
-        el.textContent = msg;
-    }
-
-    const MKTO_PROXY = 'http://localhost:3791';
-
-    function mktoProxyFetch(targetUrl, options = {}) {
-        const headers = Object.assign({}, options.headers || {}, { 'X-Target-Url': targetUrl });
-        return fetch(MKTO_PROXY, Object.assign({}, options, { headers }))
-            .catch(err => {
-                if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
-                    throw new Error('Proxy not running — open a terminal and run: powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1');
-                }
-                throw err;
-            });
-    }
-
-    async function mktoGetToken(cfg) {
-        const targetUrl = `https://${cfg.munchkin}.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_id=${encodeURIComponent(cfg.clientId)}&client_secret=${encodeURIComponent(cfg.clientSecret)}`;
-        const res = await mktoProxyFetch(targetUrl);
-        if (!res.ok) throw new Error(`Identity endpoint returned HTTP ${res.status}`);
-        const json = await res.json();
-        if (json.error) throw new Error(json.error_description || json.error);
-        return json.access_token;
-    }
-
-    async function testMktoConnection() {
-        const btn = document.querySelector('.mkto-test-btn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Testing…'; }
-        setMktoStatus('', false);
-        try {
-            const cfg = getMktoConfig();
-            if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret)
-                throw new Error('Save your credentials first.');
-            const token = await mktoGetToken(cfg);
-            setMktoStatus('Connected ✓ (token obtained)', true);
-        } catch (err) {
-            setMktoStatus('Error: ' + err.message, false);
-        } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
-        }
-    }
-
-    async function mktoCloneCampaign(token, munchkin, templateId, name, description) {
-        const targetUrl = `https://${munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${templateId}/clone.json`;
-        const body = new URLSearchParams({
-            name,
-            description,
-            folder: JSON.stringify({ id: 13288, type: 'Program' })
-        });
-        const res = await mktoProxyFetch(targetUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: body.toString()
-        });
-        if (!res.ok) throw new Error(`Clone API returned HTTP ${res.status}`);
-        const json = await res.json();
-        if (!json.success) {
-            const errMsg = json.errors && json.errors[0] ? json.errors[0].message : 'Unknown API error';
-            throw new Error(errMsg);
-        }
-        return json.result && json.result[0]; // { id, name, smartListId, ... }
-    }
-
-    // ── DQ Fix panel ──
-
-    let _dqFixField = '', _dqFixFieldLabel = '', _dqFixValue = '', _dqFixMktoField = '', _dqFixTemplateId = null;
-
-    function openDqFix(e, field, fieldLabel, value, mktoField, templateId) {
-        const cfg = getMktoConfig();
-        if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
-            alert('Please configure your Marketo API credentials first (click "Marketo API" in the header).');
-            return;
-        }
-
-        _dqFixField      = field;
-        _dqFixFieldLabel = fieldLabel || field;
-        _dqFixValue      = value;
-        _dqFixMktoField  = mktoField || fieldLabel || field;
-        _dqFixTemplateId = templateId ? parseInt(templateId, 10) : null;
-
-        // Pre-fill form
-        document.getElementById('dqFixName').value     = `DQ Fix - ${_dqFixFieldLabel}: ${value}`;
-        document.getElementById('dqFixFieldLabel').textContent = _dqFixFieldLabel;
-        document.getElementById('dqFixValueChip').textContent  = value;
-        document.getElementById('dqFixNewValueLabel').textContent = `New value for ${_dqFixFieldLabel}`;
-        document.getElementById('dqFixNewValue').value  = '';
-        document.getElementById('dqFixStatus').className = 'dq-fix-status';
-        document.getElementById('dqFixStatus').innerHTML = '';
-        document.getElementById('dqFixSubmit').disabled = false;
-
-        // Position near cursor (keep panel within viewport)
-        const panel = document.getElementById('dqFixPanel');
-        panel.style.display = 'block'; // measure size
-        const W = panel.offsetWidth  || 340;
-        const H = panel.offsetHeight || 380;
-        let x = e.clientX + 8;
-        let y = e.clientY + 8;
-        if (x + W > window.innerWidth  - 12) x = e.clientX - W - 8;
-        if (y + H > window.innerHeight - 12) y = e.clientY - H - 8;
-        panel.style.left = Math.max(8, x) + 'px';
-        panel.style.top  = Math.max(8, y) + 'px';
-        panel.classList.add('open');
-
-        // Close on Escape
-        document.addEventListener('keydown', _dqFixEscHandler);
-    }
-
-    function _dqFixEscHandler(e) {
-        if (e.key === 'Escape') closeDqFix();
-    }
-
-    function closeDqFix() {
-        const panel = document.getElementById('dqFixPanel');
-        if (panel) { panel.classList.remove('open'); panel.style.display = 'none'; }
-        document.removeEventListener('keydown', _dqFixEscHandler);
-    }
-
-    // Note: Marketo REST API does not expose write access to captive smart list filters
-    // or campaign flow steps on this instance. smartListId is read from the creation response.
-
-    async function submitDqFix() {
-        const name     = document.getElementById('dqFixName').value.trim();
-        const newValue = document.getElementById('dqFixNewValue').value.trim();
-        const submitBtn = document.getElementById('dqFixSubmit');
-
-        if (!name) { setDqFixStatus('Please enter a campaign name.', false); return; }
-        if (!_dqFixTemplateId) { setDqFixStatus('No clone template configured for this field.', false); return; }
-
-        const cfg = getMktoConfig();
-        if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
-            setDqFixStatus('Marketo API not configured. Click "Marketo API" in the header.', false);
-            return;
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating…';
-        setDqFixStatus('', false);
-
-        try {
-            const token = await mktoGetToken(cfg);
-
-            const description = newValue
-                ? `Smart List: ${_dqFixFieldLabel} is "${_dqFixValue}" | Flow: Change Data Value ${_dqFixFieldLabel} to "${newValue}"`
-                : `Smart List: ${_dqFixFieldLabel} is "${_dqFixValue}"`;
-
-            const result     = await mktoCloneCampaign(token, cfg.munchkin, _dqFixTemplateId, name, description);
-            const campaignId = result && result.id;
-
-            const adobeOrg = cfg.adobeOrg || MKTO_DEFAULTS.adobeOrg;
-            const mktoUrl  = campaignId
-                ? `https://experience.adobe.com/#/@${adobeOrg}/so:${cfg.munchkin}/marketo-engage/classic/SC${campaignId}ZN16`
-                : null;
-
-            const slLine   = `Smart List: update "${_dqFixValue}" filter value`;
-            const flowLine = newValue ? `Flow: update "Change Data Value" to "${newValue}"` : '';
-
-            setDqFixStatus(
-                `Campaign cloned from ${_dqFixFieldLabel} template (ID ${_dqFixTemplateId}) ✓`
-                + `<br><span style="font-size:10px;line-height:1.6;display:block;margin-top:4px">`
-                + `Update in Marketo:<br>${slLine}${flowLine ? '<br>' + flowLine : ''}</span>`
-                + (mktoUrl ? `<a href="${mktoUrl}" target="_blank" rel="noopener" class="dq-fix-open-btn">Open Campaign in Marketo</a>` : ''),
-                true
-            );
-            submitBtn.textContent = 'Done';
-        } catch (err) {
-            setDqFixStatus('Error: ' + err.message, false);
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Smart Campaign';
-        }
-    }
-
-    function setDqFixStatus(msg, ok) {
-        const el = document.getElementById('dqFixStatus');
-        if (!el) return;
-        el.className = 'dq-fix-status' + (msg ? (' ' + (ok ? 'ok' : 'err')) : '');
-        el.innerHTML = msg;
-    }
 
     //  INIT
     // ═══════════════════════════════════════════════════════════
@@ -4208,7 +3203,6 @@
     });
 
     window.addEventListener('load', async () => {
-        updateApiBtn(); // restore API button state from sessionStorage
         const allExports = await detectAllExports();
         if (allExports.length) {
             const sel = document.getElementById('exportDateSelect');
@@ -4227,35 +3221,6 @@
     });
     </script>
 
-    <!-- DQ Fix Floating Panel -->
-    <div class="dq-fix-panel" id="dqFixPanel">
-        <div class="dq-fix-header">
-            <span class="dq-fix-title">Create Fix Campaign</span>
-            <button class="dq-fix-close" onclick="closeDqFix()" title="Close">&#10005;</button>
-        </div>
-        <div class="dq-fix-body">
-            <div class="dq-fix-row">
-                <span class="dq-fix-label">Campaign Name</span>
-                <input type="text" class="dq-fix-input" id="dqFixName" placeholder="e.g. DQ Fix - Vertical LSCI">
-            </div>
-            <div class="dq-fix-row">
-                <span class="dq-fix-label">Smart List (target)</span>
-                <div class="dq-fix-rule">
-                    <span id="dqFixFieldLabel" class="dq-fix-chip"></span>
-                    <span style="font-size:11px;color:var(--ansell-gray)">is</span>
-                    <span id="dqFixValueChip" class="dq-fix-chip"></span>
-                </div>
-            </div>
-            <div class="dq-fix-row">
-                <span class="dq-fix-label" id="dqFixNewValueLabel">New value</span>
-                <input type="text" class="dq-fix-input" id="dqFixNewValue">
-            </div>
-        </div>
-        <div class="dq-fix-footer">
-            <button class="dq-fix-submit" id="dqFixSubmit" onclick="submitDqFix()">Create Smart Campaign</button>
-            <div class="dq-fix-status" id="dqFixStatus"></div>
-        </div>
-    </div>
 
 </body>
 </html>

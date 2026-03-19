@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketo Analytics Hub | Ansell</title>
+    <title>Marketing Operations Hub | Ansell</title>
     <link rel="stylesheet" href="ansell.digital.css">
     <style>
         /* -- Hub page-specific styles -- */
@@ -53,6 +53,8 @@
         .dash-card.blue   { border-top-color: var(--ansell-blue); }
         .dash-card.teal   { border-top-color: var(--ansell-teal); }
         .dash-card.purple { border-top-color: var(--accent-purple); }
+        .dash-card.orange { border-top-color: #D97706; }
+        .dash-card.green  { border-top-color: #2e7d32; }
         .dash-card.disabled { opacity: 0.55; pointer-events: none; cursor: default; }
 
         .dash-card-icon {
@@ -64,6 +66,8 @@
         .dash-card.blue .dash-card-icon   { background: #e8f1f8; color: var(--ansell-blue); }
         .dash-card.teal .dash-card-icon   { background: #e0f5f2; color: var(--ansell-teal); }
         .dash-card.purple .dash-card-icon { background: #f0e8f7; color: var(--accent-purple); }
+        .dash-card.orange .dash-card-icon { background: #fef3e2; color: #D97706; }
+        .dash-card.green .dash-card-icon  { background: #e8f5e9; color: #2e7d32; }
         .dash-card-icon svg { width: 22px; height: 22px; }
 
         .dash-card h2 { font-size: 18px; font-weight: 700; }
@@ -109,7 +113,7 @@
                 </svg>
             </div>
             <div>
-                <h1>Marketo <span>Analytics Hub</span></h1>
+                <h1>Marketo <span>Operations Hub</span></h1>
                 <p>Ansell Global Database Intelligence Suite</p>
             </div>
         </div>
@@ -117,7 +121,7 @@
 
     <main class="main">
         <!-- Dashboards -->
-        <div class="section-title">Dashboards</div>
+        <div class="section-title">Database</div>
         <div class="dashboard-grid">
             <a href="marketo-db-analysis.html" class="dash-card teal">
                 <div class="dash-card-icon">
@@ -132,6 +136,19 @@
                 <div class="data-file">
                     <span class="status-dot" id="dotDB"></span>
                     <code id="exportFileLabel">Dashboard_Export.csv</code>
+                </div>
+            </a>
+            <a href="marketo-db-quality.html" class="dash-card teal">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <h2>Data Quality</h2>
+                <p>Data quality scoring — field coverage, blank rates, org/country mismatches, and picklist anomalies with live Marketo fix panel.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotDQ"></span>
+                    <code id="dqFileLabel">Dashboard_Export.csv</code>
                 </div>
             </a>
         </div>
@@ -170,7 +187,7 @@
                 </div>
             </a>
 
-            <a href="marketo-analytics-program.html" class="dash-card teal">
+            <a href="marketo-analytics-program.html" class="dash-card blue">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10"/>
@@ -186,6 +203,7 @@
                     <div><span class="status-dot" id="dotAn2"></span><code id="anFile2">Supermetrics - Qualified v3.xlsx</code></div>
                     <div><span class="status-dot" id="dotAn3"></span><code id="anFile3">Supermetrics - Opp Create v8.xlsx</code></div>
                     <div><span class="status-dot" id="dotAn4"></span><code id="anFile4">Supermetrics - Opps Won v10.xlsx</code></div>
+                    <div><span class="status-dot" id="dotAn7"></span><code id="anFile7">umt-builder-cost.xlsx</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                     <div><span class="status-dot" id="dotAn5"></span><code id="anFile5">iCapture Events.csv</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                     <div><span class="status-dot" id="dotAn6"></span><code id="anFile6">iCapture Users.csv</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                 </div>
@@ -195,7 +213,7 @@
         <!-- Tools -->
         <div class="section-title">Tools</div>
         <div class="dashboard-grid">
-            <a href="marketo-tools-landing-pages.html" class="dash-card blue">
+            <a href="marketo-tools-landing-pages.html" class="dash-card orange">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="3" width="20" height="14" rx="2"/>
@@ -210,7 +228,7 @@
                 </div>
             </a>
 
-            <a href="marketo-tools-forms.html" class="dash-card blue">
+            <a href="marketo-tools-forms.html" class="dash-card orange">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -224,7 +242,7 @@
                 </div>
             </a>
 
-            <a href="marketo-tools-programs.html" class="dash-card blue">
+            <a href="marketo-tools-programs.html" class="dash-card orange">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -238,7 +256,8 @@
                 </div>
             </a>
 
-            <a href="marketo-tools-smartcampaigns.html" class="dash-card blue">
+
+            <a href="marketo-tools-smartcampaigns.html" class="dash-card orange">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
@@ -288,7 +307,7 @@
                     const r = await fetch(path, { method: 'HEAD' });
                     if (r.ok) {
                         document.getElementById(dotId).classList.add('ok');
-                        document.getElementById(labelId).textContent = `${dateStr} ${suffix}`;
+                        if (labelId) document.getElementById(labelId).textContent = `${dateStr} ${suffix}`;
                         return;
                     }
                 } catch {}
@@ -298,6 +317,7 @@
 
         findLatest('Audit_Trail_Asset.csv',          'dotActivity', 'auditFileLabel');
         findLatest('Dashboard_Export.csv',           'dotDB',       'exportFileLabel');
+        findLatest('Dashboard_Export.csv',           'dotDQ',       'dqFileLabel');
         findLatest('Dashboard_Export.csv',           'dotLeadGen',  'leadGenFileLabel');
         findLatest('iCapture Events.csv',            'dotEvt1',     'evtFile1');
         findLatest('iCapture Users.csv',             'dotEvt2',     'evtFile2');
@@ -326,6 +346,7 @@
         findLatestOmni('Supermetrics - Qualified v3.xlsx',    'dotAn2', 'anFile2');
         findLatestOmni('Supermetrics - Opp Create v8.xlsx',   'dotAn3', 'anFile3');
         findLatestOmni('Supermetrics - Opps Won v10.xlsx',    'dotAn4', 'anFile4');
+        findLatestOmni('umt-builder-cost.xlsx',               'dotAn7', 'anFile7');
 
         // iCapture files — live in Reports/ (not omnichannel/), share same date prefix
         (async function() {
