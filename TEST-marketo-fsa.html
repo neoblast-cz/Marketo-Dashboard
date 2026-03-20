@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo Operations Hub | Ansell [FSA TEST]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Inlined base from ansell.digital.css ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --ansell-blue:      #0063AC;
+            --ansell-teal:      #00A28F;
+            --ansell-dark:      #2C2A29;
+            --ansell-gray:      #75787B;
+            --ansell-light-gray:#BBBCBC;
+            --accent-purple:    #7030A0;
+            --danger-red:       #c62828;
+            --warning-amber:    #ef6c00;
+        }
+        body { font-family: 'Asap', 'Segoe UI', sans-serif; background: #f5f6f7; color: var(--ansell-dark); }
+        .header { background: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--ansell-blue); }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .ansell-logo svg { height: 36px; width: auto; }
+        .header h1 { font-size: 30px; font-weight: 700; color: var(--ansell-dark); text-transform: uppercase; letter-spacing: 0.5px; }
+        .header h1 span { color: var(--ansell-blue); }
+        .header p { font-size: 12px; color: var(--ansell-gray); }
+        .header-buttons { display: flex; gap: 8px; align-items: center; }
+        .header-buttons button, .header-buttons a { display: flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 5px; cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: inherit; }
+        .header-buttons svg { width: 15px; height: 15px; }
+        .api-btn { background: white; border: 1.5px solid var(--ansell-light-gray); border-radius: 4px; padding: 5px 12px; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--ansell-gray); cursor: pointer; transition: border-color .15s, color .15s; }
+        .api-btn:hover { border-color: var(--ansell-blue); color: var(--ansell-blue); }
+        .api-btn.configured { border-color: var(--ansell-teal); color: var(--ansell-teal); }
+        .api-btn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ansell-light-gray); flex-shrink: 0; transition: background .15s; }
+        .api-btn.configured .api-btn-dot { background: var(--ansell-teal); }
+        .main { max-width: 1100px; margin: 0 auto; padding: 40px 30px; }
+        .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ansell-gray); margin-bottom: 16px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .dash-card { background: white; padding: 28px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-top: 5px solid var(--ansell-gray); text-decoration: none; color: var(--ansell-dark); transition: all 0.2s; display: flex; flex-direction: column; gap: 10px; }
+        .dash-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.13); transform: translateY(-2px); }
+        .dash-card.blue   { border-top-color: var(--ansell-blue); }
+        .dash-card.teal   { border-top-color: var(--ansell-teal); }
+        .dash-card.orange { border-top-color: #D97706; }
+        .dash-card-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .dash-card.blue .dash-card-icon   { background: #e8f1f8; color: var(--ansell-blue); }
+        .dash-card.teal .dash-card-icon   { background: #e0f5f2; color: var(--ansell-teal); }
+        .dash-card.orange .dash-card-icon { background: #fef3e2; color: #D97706; }
+        .dash-card-icon svg { width: 22px; height: 22px; }
+        .dash-card h2 { font-size: 18px; font-weight: 700; }
+        .dash-card p  { font-size: 13px; color: var(--ansell-gray); line-height: 1.5; }
+        .dash-card .data-file { font-size: 11px; color: var(--ansell-light-gray); margin-top: auto; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+        .footer { text-align: center; padding: 30px; color: var(--ansell-light-gray); font-size: 11px; }
+
+        /* ── FSA test panel ── */
+        #fsaPanel {
+            background: white;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+        #fsaPanel h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ansell-gray); margin-bottom: 12px; }
+        #fsaStatus { font-size: 13px; color: var(--ansell-gray); margin-bottom: 10px; }
+        #fsaStatus.ok  { color: var(--ansell-teal); font-weight: 600; }
+        #fsaStatus.err { color: var(--danger-red); }
+        #fsaFileList { font-size: 12px; color: var(--ansell-dark); line-height: 1.8; }
+        #fsaFileList code { background: #f5f6f7; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+        .fsa-note { font-size: 11px; color: var(--ansell-light-gray); margin-top: 10px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <div class="ansell-logo">
+            <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                <g>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                </g>
+            </svg>
+        </div>
+        <div>
+            <h1>Marketo <span>Operations Hub</span></h1>
+            <p>Ansell Global Database Intelligence Suite</p>
+        </div>
+    </div>
+    <div class="header-buttons">
+        <button class="api-btn" id="folderBtn" onclick="pickFolder()">
+            <span class="api-btn-dot" id="folderDot"></span>
+            Reports Folder
+        </button>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- FSA Test Panel -->
+    <div id="fsaPanel">
+        <h3>Reports Folder — Connection Test</h3>
+        <div id="fsaStatus">Not connected. Click "Reports Folder" in the header to select your OneDrive Reports folder.</div>
+        <div id="fsaFileList"></div>
+        <div class="fsa-note">This panel is only visible in the test build. It proves File System Access API works from this hosted URL before we wire it into the dashboards.</div>
+    </div>
+
+    <!-- Dashboards -->
+    <div class="section-title">Database</div>
+    <div class="dashboard-grid">
+        <a href="pages/marketo-db-analysis.html" class="dash-card teal">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+            </div>
+            <h2>Database Analysis</h2>
+            <p>Full database health snapshot: deliverability segments, geographic spread, GBU composition, growth trends, verticals, and acquisition channels.</p>
+        </a>
+        <a href="pages/marketo-db-quality.html" class="dash-card teal">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <h2>Data Quality</h2>
+            <p>Data quality scoring — field coverage, blank rates, org/country mismatches, and picklist anomalies with live Marketo fix panel.</p>
+        </a>
+    </div>
+
+    <div class="section-title">Analytics</div>
+    <div class="dashboard-grid">
+        <a href="pages/marketo-analytics-user-activity.html" class="dash-card blue">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <h2>User Activity</h2>
+            <p>Audit trail analysis: who is working in Marketo, what they're editing, which programs are most active, and when the team is working.</p>
+        </a>
+        <a href="pages/marketo-analytics-lead-generation.html" class="dash-card blue">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+            </div>
+            <h2>Lead Generation</h2>
+            <p>Lead management process flow: stage distribution, transition velocity, scoring matrix, and pipeline health across all lead statuses.</p>
+        </a>
+        <a href="pages/marketo-analytics-program.html" class="dash-card blue">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+                </svg>
+            </div>
+            <h2>Program Analytics</h2>
+            <p>Omnichannel program performance — membership, qualified, pipeline and revenue attribution across all channels.</p>
+        </a>
+    </div>
+
+    <div class="section-title">Tools</div>
+    <div class="dashboard-grid">
+        <a href="pages/marketo-tools-landing-pages.html" class="dash-card orange">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+            </div>
+            <h2>Landing Pages</h2>
+            <p>Live inventory of all Marketo landing pages via API — status, workspace, folder, URL, and last updated.</p>
+        </a>
+        <a href="pages/marketo-tools-forms.html" class="dash-card orange">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M8 12h8M8 8h8M8 16h5"/>
+                </svg>
+            </div>
+            <h2>Forms</h2>
+            <p>Live inventory of all Marketo forms via API — status, folder, language, theme, progressive profiling, and last updated.</p>
+        </a>
+        <a href="pages/marketo-tools-programs.html" class="dash-card orange">
+            <div class="dash-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 3v18M3 9h18M3 15h18"/>
+                </svg>
+            </div>
+            <h2>Programs</h2>
+            <p>Live inventory of all Marketo programs via API — type, channel, workspace, folder, tags, and last updated.</p>
+        </a>
+    </div>
+
+</main>
+
+<div class="footer">Ansell Healthcare &middot; Marketo Analytics Hub &middot; FSA Test Build</div>
+
+<script>
+// ── IndexedDB helpers ────────────────────────────────────────────────────────
+function idbOpen() {
+    return new Promise((res, rej) => {
+        const req = indexedDB.open('mkto-dash', 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+        req.onsuccess  = e => res(e.target.result);
+        req.onerror    = e => rej(e);
+    });
+}
+async function idbGet(key) {
+    const db = await idbOpen();
+    return new Promise(res => {
+        const tx = db.transaction('kv', 'readonly');
+        const r  = tx.objectStore('kv').get(key);
+        r.onsuccess = () => res(r.result);
+        r.onerror   = () => res(null);
+    });
+}
+async function idbSet(key, val) {
+    const db = await idbOpen();
+    return new Promise(res => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(val, key);
+        tx.oncomplete = res;
+    });
+}
+
+// ── FSA state ────────────────────────────────────────────────────────────────
+let _reportsHandle = null;
+
+function setConnected(name) {
+    _reportsHandle && (document.getElementById('folderBtn').classList.add('configured'));
+    document.getElementById('folderDot').style.background = '#00A28F';
+    const s = document.getElementById('fsaStatus');
+    s.className = 'ok';
+    s.textContent = '✓ Connected to folder: ' + name;
+}
+
+function setDisconnected(msg) {
+    document.getElementById('folderDot').style.background = '#BBBCBC';
+    document.getElementById('folderBtn').classList.remove('configured');
+    const s = document.getElementById('fsaStatus');
+    s.className = 'err';
+    s.textContent = msg || 'Not connected.';
+}
+
+async function listFiles(handle) {
+    const files = [];
+    for await (const [name] of handle.entries()) files.push(name);
+    files.sort();
+
+    const csvs  = files.filter(f => f.endsWith('.csv'));
+    const xlsxs = files.filter(f => f.endsWith('.xlsx'));
+    const other = files.filter(f => !f.endsWith('.csv') && !f.endsWith('.xlsx'));
+
+    let html = '';
+    if (csvs.length)  html += '<strong>CSV files (' + csvs.length + '):</strong><br>' + csvs.map(f => '<code>' + f + '</code>').join('  ') + '<br><br>';
+    if (xlsxs.length) html += '<strong>Excel files (' + xlsxs.length + '):</strong><br>' + xlsxs.map(f => '<code>' + f + '</code>').join('  ') + '<br><br>';
+    if (other.length) html += '<strong>Other (' + other.length + '):</strong><br>' + other.map(f => '<code>' + f + '</code>').join('  ');
+    if (!files.length) html = '<em>Folder is empty or no files found.</em>';
+
+    document.getElementById('fsaFileList').innerHTML = html;
+}
+
+async function tryRestoreHandle() {
+    try {
+        const h = await idbGet('reportsFolder');
+        if (!h) return null;
+        const perm = await h.queryPermission({ mode: 'read' });
+        if (perm === 'granted') return h;
+        const req = await h.requestPermission({ mode: 'read' });
+        if (req === 'granted') return h;
+    } catch {}
+    return null;
+}
+
+async function pickFolder() {
+    if (!window.showDirectoryPicker) {
+        setDisconnected('File System Access API is not supported in this browser. Use Edge or Chrome.');
+        return;
+    }
+    try {
+        const handle = await window.showDirectoryPicker({ mode: 'read' });
+        _reportsHandle = handle;
+        await idbSet('reportsFolder', handle);
+        setConnected(handle.name);
+        await listFiles(handle);
+    } catch (e) {
+        if (e.name !== 'AbortError') setDisconnected('Error: ' + e.message);
+    }
+}
+
+// ── On load: try to restore saved handle ────────────────────────────────────
+window.addEventListener('load', async () => {
+    const handle = await tryRestoreHandle();
+    if (handle) {
+        _reportsHandle = handle;
+        setConnected(handle.name);
+        await listFiles(handle);
+    }
+});
+</script>
+</body>
+</html>
