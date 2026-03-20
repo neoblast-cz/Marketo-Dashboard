@@ -235,6 +235,7 @@
         <option value="">All Programs</option>
     </select>
     <span class="lp-count" id="pgCount"></span>
+    <span style="font-size:11px;color:#aaa;white-space:nowrap">API calls: <strong id="apiCallCount">0</strong></span>
     <button class="lp-load-btn" id="pgLoadBtn" onclick="loadCampaigns()">Load Campaigns</button>
 </div>
 
@@ -383,7 +384,11 @@ function setMktoStatus(msg, ok) {
     el.className = 'mkto-status ' + (ok ? 'ok' : 'err');
     el.textContent = msg;
 }
+let apiCallCount = 0;
 function mktoProxyFetch(targetUrl, options = {}) {
+    apiCallCount++;
+    const el = document.getElementById('apiCallCount');
+    if (el) el.textContent = apiCallCount;
     const headers = Object.assign({}, options.headers || {}, { 'X-Target-Url': targetUrl });
     return fetch(MKTO_PROXY, Object.assign({}, options, { headers }))
         .catch(err => {
@@ -640,6 +645,7 @@ async function loadCampaigns() {
         setMktoStatus('Enter and save credentials first.', false);
         return;
     }
+    apiCallCount = 0; document.getElementById('apiCallCount').textContent = '0';
     const btn = document.getElementById('pgLoadBtn');
     btn.disabled = true; btn.textContent = 'Loading…';
     document.getElementById('pgLoading').style.display   = 'block';

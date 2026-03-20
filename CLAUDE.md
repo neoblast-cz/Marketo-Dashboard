@@ -8,6 +8,10 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 
 **Hub:** `index.html` → links to all dashboards
 
+**Design system:** See [`DESIGN.md`](DESIGN.md) for the full visual language — colors, typography, component patterns, grids, and the page skeleton to use when building new pages.
+
+**Data dictionary:** See [`DATA-DICTIONARY.md`](DATA-DICTIONARY.md) for exact column names, types, and notes for every CSV/xlsx source and the Marketo REST API.
+
 ---
 
 ## File Map

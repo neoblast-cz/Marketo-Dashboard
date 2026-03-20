@@ -600,9 +600,11 @@
             },
             {
                 q: 'How is the Acquisition Channel derived?',
-                a: 'The channel is inferred from keywords in the <b>Acquisition Program Name</b>:<br><br>' +
-                   'Web Form / Download, Paid Social, Events, Webinar, Email, Direct Mail, Content / Gated, Operational, SFDC Direct.<br><br>' +
-                   'Programs containing "Record Created in Salesforce" are classified as SFDC Direct. Programs with unknown patterns fall into "Other".',
+                a: 'The channel is inferred from the <b>Acquisition Program Name</b> field using a multi-step matching process:<br><br>' +
+                   '<b>1. Exact name exceptions</b> — specific legacy/system programs mapped directly: "Record Created in Salesforce" → Sales, "Acquired Prior to 2016" → Legacy, "Created via List Import" → Operational, etc.<br><br>' +
+                   '<b>2. Keyword matching</b> — scans for known channel keywords anywhere in the name: <code>Web-form-ORG/AI/DIR</code>, <code>Web Form</code>, <code>Paid-social-LN/FB</code>, <code>Events</code>, <code>Webinar</code>, <code>Email</code>, <code>Chatbot</code>, <code>Drift</code>, <code>Online</code>, <code>Sales</code>, <code>Telemarketing</code>, <code>Third-party</code>, <code>Operational</code>, <code>Webstore</code>, and others.<br><br>' +
+                   '<b>3. Old abbreviation codes</b> (pre-2019 naming convention like <code>REGION.GBU ABBREV YEAR...</code>): <code>WF</code> → Web Form, <code>EB</code> / <code>NL</code> / <code>ED</code> → Email, <code>TS</code> → Telemarketing, <code>LI</code> → Paid-social-LN, <code>WB</code> → Webinar, <code>OA</code> → Paid-display.<br><br>' +
+                   'Programs matching no pattern fall into <b>Other</b>. Blank program names appear as <b>(blank)</b> in the channel chart.',
                 tag: 'method', tagLabel: 'Methodology'
             },
             {
@@ -621,9 +623,9 @@
             },
             {
                 q: 'Can I filter the data?',
-                a: 'Yes. The Database Analysis dashboard has filters for <b>Organisation</b>, <b>GBU</b>, <b>SFDC Type</b>, <b>Deliverability Segment</b>, and <b>Vertical</b>.<br><br>' +
-                   'Select a value from any dropdown and all KPIs and charts update instantly. Use <b>Reset All</b> to clear all filters.<br><br>' +
-                   'A record counter below the header shows how many records match the current filter selection.',
+                a: 'Yes. The Database Analysis dashboard has dropdowns for <b>Organisation</b>, <b>GBU</b>, <b>Deliverability Segment</b>, and <b>Vertical</b>.<br><br>' +
+                   'To filter by SFDC type, use the <b>People / Leads / Contacts</b> quick-filter buttons in the filter bar — People shows Marketo-only records (blank SFDC Type), Leads shows SFDC Leads, Contacts shows SFDC Contacts.<br><br>' +
+                   'All KPIs and charts update instantly. Use <b>Reset All</b> to clear all filters. A record counter shows how many records match the current selection.',
                 tag: 'howto', tagLabel: 'How-To'
             },
             {
@@ -639,7 +641,8 @@
             {
                 q: 'What does the Lead Generation page show?',
                 a: 'The Lead Generation page focuses exclusively on <b>SFDC Leads</b> (including records with a blank SFDC Type, which exist only in Marketo). Contacts are excluded because they are already associated with a Salesforce Account and are managed through a different sales motion.<br><br>' +
-                   'The page contains two sections:<br>' +
+                   'The page contains three main sections:<br>' +
+                   '— <b>Marketing Funnel</b>: a centred bar chart showing People → MQL → SQL → Converted with conversion rates and average velocity between stages<br>' +
                    '— <b>Lead Management Process</b>: a visual flow of how leads move through Person Status stages, with proportional box sizing based on record counts<br>' +
                    '— <b>Lead Scoring Matrix</b>: a heatmap showing how leads are distributed across Relative Urgency (0–3) and Relative Score (0–3) combinations<br><br>' +
                    'It uses the same <code>YYYY-MM-DD Dashboard_Export.csv</code> file as Database Analysis.',
@@ -692,7 +695,18 @@
                 tag: 'method', tagLabel: 'Methodology'
             },
             {
-                q: 'Why is Person Status shown on the Data Quality tab?',
+                q: 'What does the Data Quality page show?',
+                a: 'The Data Quality page scores and visualises field coverage and data completeness across the Marketo database. It uses the same <code>YYYY-MM-DD Dashboard_Export.csv</code> file as Database Analysis.<br><br>' +
+                   'Key sections:<br>' +
+                   '— <b>DQ Summary cards</b>: overall score per field, with blank rates and a coverage percentage<br>' +
+                   '— <b>Word clouds</b>: visualise value distribution for picklist fields (e.g. Country, Vertical) — larger words = more records<br>' +
+                   '— <b>Region / Org mismatches</b>: flags records where the derived region conflicts with the Organisation field<br>' +
+                   '— <b>Picklist anomalies</b>: highlights values that appear rarely and may indicate data entry errors<br><br>' +
+                   'The <b>Marketo Fix Panel</b> (requires API credentials) lets you update a field value directly on a lead record without leaving the page.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'Why is Person Status shown on the Data Quality page?',
                 a: 'Person Status (<code>Person_Status__c</code> in Salesforce, template ID 71508 in Marketo) is a critical lead routing field. Non-standard values — anything outside the seven valid stages — indicate data quality issues that need correcting in Marketo.<br><br>' +
                    'The DQ check is scoped to <b>SFDC Leads and blank SFDC Type only</b>. Contacts are excluded because Person Status is a leads-only concept.<br><br>' +
                    'A <b>blank Person Status is treated as clean</b> — it represents the Demand Generation pool (leads not yet assigned to a sales stage), which is a valid state. Only non-standard values count as dirty.',

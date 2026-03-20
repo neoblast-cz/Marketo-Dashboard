@@ -257,6 +257,7 @@
         <option value="">All Templates</option>
     </select>
     <span class="lp-count" id="lpCount"></span>
+    <span style="font-size:11px;color:#aaa;white-space:nowrap">API calls: <strong id="apiCallCount">0</strong></span>
     <button class="lp-load-btn" id="lpLoadBtn" onclick="loadLandingPages()">Load Landing Pages</button>
 </div>
 
@@ -404,7 +405,11 @@ function setMktoStatus(msg, ok) {
     el.textContent = msg;
 }
 
+let apiCallCount = 0;
 function mktoProxyFetch(targetUrl, options = {}) {
+    apiCallCount++;
+    const el = document.getElementById('apiCallCount');
+    if (el) el.textContent = apiCallCount;
     const headers = Object.assign({}, options.headers || {}, { 'X-Target-Url': targetUrl });
     return fetch(MKTO_PROXY, Object.assign({}, options, { headers }))
         .catch(err => {
@@ -785,6 +790,7 @@ async function loadLandingPages() {
         setMktoStatus('Enter and save credentials first.', false);
         return;
     }
+    apiCallCount = 0; document.getElementById('apiCallCount').textContent = '0';
     const btn = document.getElementById('lpLoadBtn');
     btn.disabled = true; btn.textContent = 'Loading…';
     document.getElementById('lpLoading').style.display = 'block';

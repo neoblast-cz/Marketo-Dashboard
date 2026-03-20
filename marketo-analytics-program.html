@@ -1147,6 +1147,7 @@
 
         const oppsPipeline = new Set(pipes.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
         const oppsWon      = new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
+        const oppsOpen     = new Set(pipes.filter(r => !r.isClosed && (isFT ? r.ftCreated : r.mtCreated)).map(r => r.opportunityId)).size;
 
         document.getElementById('kpiGrid').innerHTML =
             '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
@@ -1191,6 +1192,7 @@
                     '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
                         '<div class="kpi-value" style="font-size:22px">' + fmtUSD(openPipeline) + '</div>' +
                         '<div class="kpi-sub" style="margin-top:3px">Open Pipeline</div>' +
+                        '<div style="font-size:11px;color:#999;margin-top:4px">' + fmt(oppsOpen) + ' opps</div>' +
                     '</div>' +
                     '<div style="flex:1;padding-left:12px;text-align:right">' +
                         '<div class="kpi-value" style="font-size:22px;color:#70ad47">' + fmtUSD(totalPredicted) + '</div>' +
@@ -1607,12 +1609,22 @@
         const GROUP_LABEL  = 'Open Pipeline';
         const OPEN_SHADES  = ['rgba(0,99,172,0.30)','rgba(0,99,172,0.44)','rgba(0,99,172,0.58)','rgba(0,99,172,0.72)','rgba(0,99,172,0.86)','rgba(0,99,172,1.00)'];
 
-        const stageData = {};
+        // Deduplicate by opportunityId so each opp counts once in the chart
+        const _seenChart = new Map();
         pipes.forEach(r => {
+            const key = r.opportunityId || (r.programName + '|' + r.stage + '|' + r.amountUSD);
+            if (!_seenChart.has(key)) _seenChart.set(key, r);
+        });
+        const uniquePipesChart = Array.from(_seenChart.values());
+        stageOppsIndex = {};
+        const stageData = {};
+        uniquePipesChart.forEach(r => {
             if (!r.stage) return;
             if (!stageData[r.stage]) stageData[r.stage] = { count: 0, value: 0 };
             stageData[r.stage].count++;
             stageData[r.stage].value += r.amountUSD;
+            if (!stageOppsIndex[r.stage]) stageOppsIndex[r.stage] = [];
+            stageOppsIndex[r.stage].push({ id: r.opportunityId, stage: r.stage, amount: r.amountUSD });
         });
         let groupCnt = 0;
         const groupBreakdown = [];
@@ -1623,6 +1635,8 @@
                 delete stageData[s];
             }
         });
+        // "Open Pipeline" bar → union of all grouped-stage opps
+        stageOppsIndex[GROUP_LABEL] = GROUP_STAGES.flatMap(s => stageOppsIndex[s] || []);
         const others = sortedTopN(Object.fromEntries(Object.entries(stageData).map(([k, v]) => [k, v.count])), 10);
         const sorted = others.slice();
         if (groupCnt > 0) sorted.push([GROUP_LABEL, groupCnt]);
@@ -1659,6 +1673,7 @@
             data: { labels, datasets },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                onHover: (evt) => { if (evt.native) evt.native.target.style.cursor = 'pointer'; },
                 plugins: {
                     legend: { display: false },
                     tooltip: { mode: 'index', intersect: false, callbacks: {
@@ -1672,27 +1687,68 @@
                 }
             }
         });
-        // Stage summary (Won / Lost / Open)
-        var wonCnt = 0, wonAmt = 0, lostCnt = 0, lostAmt = 0, openCnt = 0, openAmt = 0;
+        // Canvas hover → opp tooltip
+        (function() {
+            var canvas = document.getElementById('chartStage');
+            canvas.addEventListener('mousemove', function(evt) {
+                if (sfLocked) return;
+                var ch = charts['chartStage'];
+                if (!ch) return;
+                var els = ch.getElementsAtEventForMode(evt, 'y', { intersect: false });
+                if (!els.length) { hideSfTooltipDelayed(); return; }
+                clearTimeout(sfHideTimer);
+                var label = ch.data.labels[els[0].index];
+                var opps = stageOppsIndex[label] || [];
+                if (opps.length) showSfTooltip(evt.clientX, evt.clientY, opps, label);
+                else hideSfTooltipDelayed();
+            });
+            canvas.addEventListener('mouseout', function(evt) {
+                if (sfLocked) return;
+                var to = evt.relatedTarget;
+                if (to && to.closest && to.closest('#sfOppTooltip')) return;
+                hideSfTooltipDelayed();
+            });
+            canvas.addEventListener('click', function(evt) {
+                var ch = charts['chartStage'];
+                if (!ch) return;
+                var els = ch.getElementsAtEventForMode(evt, 'y', { intersect: false });
+                if (!els.length) return;
+                evt.stopPropagation();
+                sfLocked = true;
+                var el = document.getElementById('sfOppTooltip');
+                if (el) el.style.border = '2px solid #0063AC';
+            });
+        })();
+        // Stage summary (Won / Lost / Open) — deduplicate by opportunityId first
+        // pipes has one row per program-opp pair; dedup so each opp counts once
+        const seenOpps = new Map();
         pipes.forEach(r => {
+            const key = r.opportunityId || (r.programName + '|' + r.stage + '|' + r.amountUSD);
+            if (!seenOpps.has(key)) seenOpps.set(key, r);
+        });
+        const uniquePipes = Array.from(seenOpps.values());
+        stageOppsBucket = { won: [], lost: [], open: [] };
+        var wonCnt = 0, wonAmt = 0, lostCnt = 0, lostAmt = 0, openCnt = 0, openAmt = 0;
+        uniquePipes.forEach(r => {
             const s = (r.stage || '').toLowerCase();
-            if (s.includes('closed') && s.includes('won'))        { wonCnt++;  wonAmt  += r.amountUSD; }
-            else if (s.includes('closed') && !s.includes('won'))  { lostCnt++; lostAmt += r.amountUSD; }
-            else                                                   { openCnt++; openAmt += r.amountUSD; }
+            const opp = { id: r.opportunityId, stage: r.stage || '(none)', amount: r.amountUSD };
+            if (s.includes('closed') && s.includes('won'))        { wonCnt++;  wonAmt  += r.amountUSD; stageOppsBucket.won.push(opp); }
+            else if (s.includes('closed') && !s.includes('won'))  { lostCnt++; lostAmt += r.amountUSD; stageOppsBucket.lost.push(opp); }
+            else                                                   { openCnt++; openAmt += r.amountUSD; stageOppsBucket.open.push(opp); }
         });
         const summaryEl = document.getElementById('stageSummaryEl');
         if (summaryEl) {
-            function mkStat(label, count, amount, accent) {
-                return '<div style="flex:1;min-width:160px;background:#f8f9fa;border:1px solid #e5e7eb;border-left:3px solid ' + accent + ';border-radius:0 5px 5px 0;padding:10px 14px;">'
+            function mkStat(label, count, amount, accent, stageKey) {
+                return '<div class="stage-hover-cell" data-stage-key="' + stageKey + '" style="cursor:pointer;flex:1;min-width:160px;background:#f8f9fa;border:1px solid #e5e7eb;border-left:3px solid ' + accent + ';border-radius:0 5px 5px 0;padding:10px 14px;" title="Hover to see opportunities">'
                     + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + accent + ';margin-bottom:5px;">' + label + '</div>'
                     + '<div style="display:flex;align-items:baseline;gap:12px;">'
                     + '<span style="font-size:18px;font-weight:700;color:#2C2A29;">' + fmt(count) + ' opps</span>'
                     + '<span style="font-size:13px;font-weight:600;color:#555;">' + fmtUSD(amount) + '</span>'
                     + '</div></div>';
             }
-            summaryEl.innerHTML = mkStat('Won', wonCnt, wonAmt, '#1a7a4a')
-                                + mkStat('Lost', lostCnt, lostAmt, '#c0392b')
-                                + mkStat('Open Pipeline', openCnt, openAmt, '#0063AC');
+            summaryEl.innerHTML = mkStat('Won', wonCnt, wonAmt, '#1a7a4a', 'won')
+                                + mkStat('Lost', lostCnt, lostAmt, '#c0392b', 'lost')
+                                + mkStat('Open Pipeline', openCnt, openAmt, '#0063AC', 'open');
         }
     }
 
@@ -1753,6 +1809,26 @@
                 '</tr>';
         }).join('');
         document.getElementById('tableCount').textContent = fmt(rows.length) + ' programs';
+
+        // Total row
+        var totMembers   = rows.reduce((s,r) => s + (r.members||0),      0);
+        var totSuccess   = rows.reduce((s,r) => s + (r.successTotal||0), 0);
+        var totQualified = rows.reduce((s,r) => s + (r.qualified||0),    0);
+        var totPFT       = rows.reduce((s,r) => s + (r.pipelineFT||0),   0);
+        var totRFT       = rows.reduce((s,r) => s + (r.revenueFT||0),    0);
+        var totPMT       = rows.reduce((s,r) => s + (r.pipelineMT||0),   0);
+        var totRMT       = rows.reduce((s,r) => s + (r.revenueMT||0),    0);
+        tbody.innerHTML += '<tr style="font-weight:700;border-top:2px solid #c8cdd8;background:#f0f2f5;position:sticky;bottom:0">' +
+            '<td class="prog-name" style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Total (' + fmt(rows.length) + ')</td>' +
+            '<td></td><td></td><td></td>' +
+            '<td class="num-cell">' + (totMembers   ? fmt(totMembers)      : '—') + '</td>' +
+            '<td class="num-cell">' + (totSuccess   ? fmt(totSuccess)      : '—') + '</td>' +
+            '<td class="num-cell">' + (totQualified ? fmt(totQualified)    : '—') + '</td>' +
+            '<td class="usd-cell" style="background:#e4ecf9">' + (totPFT ? fmtUSD(totPFT) : '—') + '</td>' +
+            '<td class="usd-cell" style="background:#e4ecf9">' + (totRFT ? fmtUSD(totRFT) : '—') + '</td>' +
+            '<td class="usd-cell" style="background:#ddf3ea">' + (totPMT ? fmtUSD(totPMT) : '—') + '</td>' +
+            '<td class="usd-cell" style="background:#ddf3ea">' + (totRMT ? fmtUSD(totRMT) : '—') + '</td>' +
+            '</tr>';
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2080,7 +2156,7 @@
     // ═══════════════════════════════════════════════════════════
     //  OPPORTUNITY TOOLTIP
     // ═══════════════════════════════════════════════════════════
-    var oppByProgram = {}, sfHideTimer = null, sfLocked = false, sfCurrentTitle = null;
+    var oppByProgram = {}, stageOppsBucket = { won: [], lost: [], open: [] }, stageOppsIndex = {}, sfHideTimer = null, sfLocked = false, sfCurrentTitle = null;
 
     function buildOppIndex(pipes, revs) {
         oppByProgram = {};
@@ -2163,6 +2239,14 @@
     document.addEventListener('mouseover', function(evt) {
         if (sfLocked) return;
         if (evt.target.closest('#sfOppTooltip')) { clearTimeout(sfHideTimer); return; }
+        var stageCell = evt.target.closest('.stage-hover-cell');
+        if (stageCell) {
+            var key  = stageCell.dataset.stageKey;
+            var opps = stageOppsBucket[key] || [];
+            var label = key === 'won' ? 'Won' : key === 'lost' ? 'Lost' : 'Open Pipeline';
+            if (opps.length) showSfTooltip(evt.clientX, evt.clientY, opps, label);
+            return;
+        }
         var cell = evt.target.closest('.opp-cell');
         if (!cell) return;
         var row = cell.closest('tr[data-prog]');
@@ -2173,20 +2257,24 @@
 
     document.addEventListener('mousemove', function(evt) {
         if (sfLocked) return;
-        if (evt.target.closest('.opp-cell')) _posSfTip(evt.clientX, evt.clientY);
+        if (evt.target.closest('.opp-cell') || evt.target.closest('.stage-hover-cell')) _posSfTip(evt.clientX, evt.clientY);
     });
 
     document.addEventListener('mouseout', function(evt) {
         if (sfLocked) return;
-        var fromCell = evt.target.closest && evt.target.closest('.opp-cell');
-        var fromTip  = evt.target.closest && evt.target.closest('#sfOppTooltip');
-        if (!fromCell && !fromTip) return;
-        var toCell = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('.opp-cell');
-        var toTip  = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('#sfOppTooltip');
-        if (!toCell && !toTip) hideSfTooltipDelayed(); else clearTimeout(sfHideTimer);
+        var fromCell  = evt.target.closest && evt.target.closest('.opp-cell');
+        var fromStage = evt.target.closest && evt.target.closest('.stage-hover-cell');
+        var fromTip   = evt.target.closest && evt.target.closest('#sfOppTooltip');
+        if (!fromCell && !fromStage && !fromTip) return;
+        var toCell  = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('.opp-cell');
+        var toStage = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('.stage-hover-cell');
+        var toTip   = evt.relatedTarget && evt.relatedTarget.closest && evt.relatedTarget.closest('#sfOppTooltip');
+        if (!toCell && !toStage && !toTip) hideSfTooltipDelayed(); else clearTimeout(sfHideTimer);
     });
 
     document.addEventListener('click', function(evt) {
+        var stageCell = evt.target.closest('.stage-hover-cell');
+        if (stageCell) { evt.stopPropagation(); sfLocked = true; var el = document.getElementById('sfOppTooltip'); if (el) el.style.border = '2px solid #0063AC'; return; }
         var cell = evt.target.closest('.opp-cell');
         if (cell) { sfLocked = true; var el = document.getElementById('sfOppTooltip'); if (el) el.style.border = '2px solid #0063AC'; return; }
         if (!evt.target.closest('#sfOppTooltip')) sfUnlock();
