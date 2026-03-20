@@ -72,6 +72,7 @@
     </style>
 </head>
 <body>
+<div class="mktoContent">
 
 <header class="header">
     <div class="header-left">
@@ -106,7 +107,10 @@
     <!-- FSA Test Panel -->
     <div id="fsaPanel">
         <h3>Reports Folder — Connection Test</h3>
-        <div id="fsaStatus">Not connected. Click "Reports Folder" in the header to select your OneDrive Reports folder.</div>
+        <div id="fsaStatus">Not connected. Click "Reports Folder" in the header to select your OneDrive Reports folder.<br><br>
+            <em>Ansell Healthcare\Team-Marketo - Documents\Marketo Documentation\Marketo-Dashboard\Reports</em><br><br>
+        Reports are stored on sharepoint
+        </div>
         <div id="fsaFileList"></div>
         <div class="fsa-note">This panel is only visible in the test build. It proves File System Access API works from this hosted URL before we wire it into the dashboards.</div>
     </div>
@@ -207,6 +211,8 @@
 </main>
 
 <div class="footer">Ansell Healthcare &middot; Marketo Analytics Hub &middot; FSA Test Build</div>
+
+</div><!-- /.mktoContent -->
 
 <script>
 // ── IndexedDB helpers ────────────────────────────────────────────────────────
