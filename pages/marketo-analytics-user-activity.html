@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marketo User Activity | Ansell</title>
-    <link rel="stylesheet" href="ansell.digital.css">
+    <link rel="stylesheet" href="../ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
@@ -107,7 +107,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Load Data
             </button>
-            <a href="index.html" class="home-btn">
+            <a href="../index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
@@ -485,7 +485,7 @@
             const mo = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
             const dateStr = `${y}-${mo}-${dd}`;
-            const path = `Reports/${dateStr} Audit_Trail_Asset.csv`;
+            const path = `../Reports/${dateStr} Audit_Trail_Asset.csv`;
             try {
                 const r = await fetch(path, { method: 'HEAD' });
                 if (r.ok) results.push({ path, dateStr });

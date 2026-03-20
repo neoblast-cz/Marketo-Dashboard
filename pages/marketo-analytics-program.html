@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marketo | Analytics</title>
-    <link rel="stylesheet" href="ansell.digital.css">
+    <link rel="stylesheet" href="../ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
@@ -79,7 +79,7 @@
             </div>
         </div>
         <div class="header-buttons">
-            <a href="index.html" class="home-btn">
+            <a href="../index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
@@ -581,7 +581,7 @@
             const d = new Date(today); d.setDate(d.getDate() - i);
             const dateStr = d.toISOString().slice(0, 10);
             try {
-                const r = await fetch('Reports/omnichannel/' + dateStr + ' Supermetrics' + suffix, { method: 'HEAD' });
+                const r = await fetch('../Reports/omnichannel/' + dateStr + ' Supermetrics' + suffix, { method: 'HEAD' });
                 if (r.ok) return dateStr;
             } catch {}
         }
@@ -594,7 +594,7 @@
             const d = new Date(today); d.setDate(d.getDate() - i);
             const dateStr = d.toISOString().slice(0, 10);
             try {
-                const r = await fetch('Reports/' + dateStr + ' iCapture Events.csv', { method: 'HEAD' });
+                const r = await fetch('../Reports/' + dateStr + ' iCapture Events.csv', { method: 'HEAD' });
                 if (r.ok) return dateStr;
             } catch {}
         }
@@ -605,7 +605,7 @@
         const today = new Date();
         for (let i = 0; i < 60; i++) {
             const d = new Date(today); d.setDate(d.getDate() - i);
-            const p = 'Reports/omnichannel/' + d.toISOString().slice(0, 10) + ' umt-builder-cost.xlsx';
+            const p = '../Reports/omnichannel/' + d.toISOString().slice(0, 10) + ' umt-builder-cost.xlsx';
             try { const r = await fetch(p, { method: 'HEAD' }); if (r.ok) return p; } catch {}
         }
         return null;
@@ -624,7 +624,7 @@
         if (!dateMb && !dateQl && !datePc && !datePw) { showEmpty(); return; }
 
         showLoading('Loading exports…');
-        const base = (date, suffix) => date ? 'Reports/omnichannel/' + date + ' Supermetrics' + suffix : null;
+        const base = (date, suffix) => date ? '../Reports/omnichannel/' + date + ' Supermetrics' + suffix : null;
         const [mbRaw, qlRaw, pcRaw, pwRaw] = await Promise.all([
             dateMb ? readFile(base(dateMb, ' - Membership v2.xlsx')).catch(() => [])       : Promise.resolve([]),
             dateQl ? readFile(base(dateQl, ' - Qualified v3.xlsx')).catch(() => [])        : Promise.resolve([]),
@@ -681,7 +681,7 @@
         // Also try to load iCapture Events files (Reports/ folder, independent date)
         const icDateStr = await detectIcaptureDate();
         if (icDateStr) {
-            const icBase = 'Reports/' + icDateStr + ' iCapture ';
+            const icBase = '../Reports/' + icDateStr + ' iCapture ';
             const [icEvRaw, icUsRaw] = await Promise.all([
                 readFile(icBase + 'Events.csv').catch(() => []),
                 readFile(icBase + 'Users.csv').catch(() => [])

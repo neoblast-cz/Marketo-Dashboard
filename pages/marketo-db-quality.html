@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Quality | Marketo Database</title>
-    <link rel="stylesheet" href="ansell.digital.css">
+    <link rel="stylesheet" href="../ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
@@ -45,7 +45,7 @@
                 <span class="api-btn-dot"></span>
                 Marketo API
             </button>
-            <a href="index.html" class="home-btn">
+            <a href="../index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
             </a>
@@ -396,7 +396,7 @@
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
             const dateStr = `${y}-${m}-${dd}`;
-            const path = `Reports/${dateStr} Dashboard_Export.csv`;
+            const path = `../Reports/${dateStr} Dashboard_Export.csv`;
             try {
                 const r = await fetch(path, { method: 'HEAD' });
                 if (r.ok) return { path, dateStr };
@@ -415,7 +415,7 @@
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
             const dateStr = `${y}-${m}-${dd}`;
-            const path = `Reports/${dateStr} Dashboard_Export.csv`;
+            const path = `../Reports/${dateStr} Dashboard_Export.csv`;
             try {
                 const r = await fetch(path, { method: 'HEAD' });
                 if (r.ok) results.push({ path, dateStr });
@@ -425,7 +425,7 @@
     }
 
     function switchExportFile(dateStr) {
-        const path = `Reports/${dateStr} Dashboard_Export.csv`;
+        const path = `../Reports/${dateStr} Dashboard_Export.csv`;
         loadCSV(path, dateStr);
     }
 

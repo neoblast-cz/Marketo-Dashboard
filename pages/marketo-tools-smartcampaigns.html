@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programs | Marketo Analytics</title>
-    <link rel="stylesheet" href="ansell.digital.css">
+    <title>Smart Campaigns | Marketo Analytics</title>
+    <link rel="stylesheet" href="../ansell.digital.css">
     <style>
         /* ── API Settings Bar ───────────────────────────────────────────── */
         .mkto-settings-bar { background:#f8f9fa; border-bottom:1px solid #e5e7eb; overflow:hidden; max-height:0; transition:max-height .3s ease; }
@@ -71,19 +71,23 @@
         .lp-row-deleting td { animation: lpRowSlideOut .35s cubic-bezier(.4,0,1,1) forwards; overflow:hidden; }
 
         /* ── Type badges ────────────────────────────────────────────────── */
-        .prog-type { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 7px; border-radius:3px; white-space:nowrap; }
-        .prog-type-default  { background:#eef4fb; color:#0063AC; }
-        .prog-type-email    { background:#fdf3f1; color:#c0392b; }
-        .prog-type-event    { background:#e8f5ee; color:#1a7a4a; }
-        .prog-type-engagement { background:#f3eefb; color:#7030A0; }
-        .prog-type-other    { background:#f5f6f7; color:#777; }
+        .sc-type { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+        .sc-type-batch   { background:#eef4fb; color:#0063AC; }
+        .sc-type-trigger { background:#e8f5ee; color:#1a7a4a; }
+
+        /* ── Active badge ───────────────────────────────────────────────── */
+        .sc-active { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+        .sc-active-yes { background:#e8f5ee; color:#1a7a4a; }
+        .sc-active-no  { background:#f5f6f7; color:#888; }
 
         /* ── Status badge ───────────────────────────────────────────────── */
-        .prog-status { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
-        .prog-status-active   { background:#e8f5ee; color:#1a7a4a; }
-        .prog-status-inactive { background:#f5f6f7; color:#888; }
-        .prog-status-complete { background:#eef4fb; color:#0063AC; }
-        .prog-status-aborted  { background:#fdf3f1; color:#c0392b; }
+        .sc-status { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+        .sc-status-active    { background:#e8f5ee; color:#1a7a4a; }
+        .sc-status-inactive  { background:#f5f6f7; color:#888; }
+        .sc-status-scheduled { background:#eef4fb; color:#0063AC; }
+        .sc-status-running   { background:#e0f5f2; color:#00796b; }
+        .sc-status-completed { background:#f5f6f7; color:#555; }
+        .sc-status-never     { background:#f5f6f7; color:#aaa; }
 
         /* ── Table ──────────────────────────────────────────────────────── */
         .lp-table-wrap { padding:18px 28px 40px; }
@@ -98,8 +102,6 @@
         .lp-table td.lp-desc { color:#888; font-style:italic; font-size:11px; }
         .lp-table td.lp-id   { color:#aaa; font-family:monospace; font-size:11px; }
         .lp-table td.lp-mono { color:#999; font-family:monospace; font-size:11px; }
-        .lp-table td.lp-url a { color:#0063AC; text-decoration:none; font-size:11px; }
-        .lp-table td.lp-url a:hover { text-decoration:underline; }
         /* ── Checkbox + action col ─────────────────────────────────────── */
         .lp-cb { width:15px; height:15px; cursor:pointer; accent-color:#0063AC; }
         .lp-table tr.lp-row-selected td { background:#f0f6fc; }
@@ -110,6 +112,12 @@
         .lp-table tr:hover .lp-delete-btn { display:inline-flex; align-items:center; }
         .lp-delete-btn.confirming { background:#8b1a1a; color:white; border-color:#8b1a1a; display:inline-flex !important; align-items:center; }
         .lp-delete-btn.working    { background:#eee; color:#888; border-color:#ddd; display:inline-flex !important; align-items:center; cursor:default; }
+        .lp-deactivate-btn { display:none; height:26px; padding:0 8px; border-radius:5px; border:1px solid #ffe082; background:#fff8e1; color:#b36800; font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap; transition:background .15s,border-color .15s; position:absolute; right:72px; top:0; }
+        .lp-deactivate-btn:hover { background:#fff0c0; border-color:#f0c040; }
+        .lp-deactivate-btn:disabled { opacity:.5; cursor:default; }
+        .lp-table tr:hover .lp-deactivate-btn { display:inline-flex; align-items:center; }
+        .lp-deactivate-btn.confirming { background:#b36800; color:white; border-color:#b36800; display:inline-flex !important; align-items:center; }
+        .lp-deactivate-btn.working    { background:#eee; color:#888; border-color:#ddd; display:inline-flex !important; align-items:center; cursor:default; }
 
         /* ── Bulk action bar ────────────────────────────────────────────── */
         .pg-bulk-bar { display:none; align-items:center; gap:12px; padding:12px 28px; background:#fff8e1; border-top:1px solid #ffe082; box-shadow:0 -2px 8px rgba(0,0,0,.08); position:fixed; bottom:0; left:0; right:0; z-index:200; }
@@ -119,24 +127,26 @@
         .pg-bulk-delete { height:30px; padding:0 14px; border-radius:5px; border:none; background:#8b1a1a; color:white; font-size:11px; font-weight:700; cursor:pointer; transition:background .15s; }
         .pg-bulk-delete:hover { background:#6d1414; }
         .pg-bulk-delete:disabled { background:#ddd; color:#aaa; cursor:default; }
+        .pg-bulk-deactivate { height:30px; padding:0 14px; border-radius:5px; border:none; background:#b36800; color:white; font-size:11px; font-weight:700; cursor:pointer; transition:background .15s; }
+        .pg-bulk-deactivate:hover { background:#8a5000; }
+        .pg-bulk-deactivate:disabled { background:#ddd; color:#aaa; cursor:default; }
         .pg-bulk-clear { height:30px; padding:0 12px; border-radius:5px; border:1px solid #d1d5db; background:white; font-size:11px; font-weight:600; color:#555; cursor:pointer; }
         .pg-bulk-progress { font-size:11px; color:#888; }
 
-        /* column widths (col 1 = checkbox) */
+        /* column widths */
         .lp-table th:nth-child(1)  { width:34px; cursor:default; } /* cb */
         .lp-table th:nth-child(2)  { width:55px; }    /* ID */
-        .lp-table th:nth-child(3)  { width:20%; }     /* Name */
-        .lp-table th:nth-child(4)  { width:100px; }   /* Type */
-        .lp-table th:nth-child(5)  { width:130px; }   /* Channel */
-        .lp-table th:nth-child(6)  { width:100px; }   /* Status */
+        .lp-table th:nth-child(3)  { width:22%; }     /* Name */
+        .lp-table th:nth-child(4)  { width:80px; }    /* Type */
+        .lp-table th:nth-child(5)  { width:60px; }    /* Active */
+        .lp-table th:nth-child(6)  { width:95px; }    /* Status */
         .lp-table th:nth-child(7)  { width:120px; }   /* Workspace */
-        .lp-table th:nth-child(8)  { width:140px; }   /* Folder */
-        .lp-table th:nth-child(9)  { width:110px; }   /* SFDC ID */
-        .lp-table th:nth-child(10) { width:160px; }   /* SFDC Name */
-        .lp-table th:nth-child(11) { }                /* Description — flex fill */
-        .lp-table th:nth-child(12) { width:92px; }    /* Updated */
-        .lp-table th:nth-child(13) { width:92px; }    /* Created */
-        .lp-table th:nth-child(14) { width:110px; }   /* Actions */
+        .lp-table th:nth-child(8)  { width:18%; }     /* Program */
+        .lp-table th:nth-child(9)  { width:130px; }   /* Folder */
+        .lp-table th:nth-child(10) { }                /* Description — flex fill */
+        .lp-table th:nth-child(11) { width:92px; }    /* Updated */
+        .lp-table th:nth-child(12) { width:92px; }    /* Created */
+        .lp-table th:nth-child(13) { width:150px; }   /* Actions */
 
         /* ── States ─────────────────────────────────────────────────────── */
         #pgEmpty,#pgLoading { display:none; padding:60px 28px; text-align:center; color:#888; }
@@ -164,8 +174,8 @@
             </svg>
         </div>
         <div>
-            <h1>Marketo <span>Programs</span></h1>
-            <p>All programs &middot; live inventory from the Marketo API</p>
+            <h1>Marketo <span>Smart Campaigns</span></h1>
+            <p>All smart campaigns &middot; live inventory from the Marketo API</p>
         </div>
     </div>
     <div class="header-buttons">
@@ -173,7 +183,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="20" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             API
         </button>
-        <a href="index.html" class="home-btn">
+        <a href="../index.html" class="home-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Hub
         </a>
@@ -210,23 +220,23 @@
 
 <!-- ── Filter bar ──────────────────────────────────────────────────────── -->
 <div class="lp-filter-bar">
-    <input class="lp-search" type="text" id="pgSearch" placeholder="Search by name, channel, folder…" oninput="renderTable()">
+    <input class="lp-search" type="text" id="pgSearch" placeholder="Search by name, program, folder…" oninput="renderTable()">
     <div class="lp-filter-sep"></div>
     <button class="lp-filter-btn active" id="btnAll"     onclick="setTypeFilter('')">All</button>
-    <button class="lp-filter-btn" id="btnDefault"        onclick="setTypeFilter('Default')">Default</button>
-    <button class="lp-filter-btn" id="btnEmail"          onclick="setTypeFilter('Email')">Email</button>
-    <button class="lp-filter-btn" id="btnEvent"          onclick="setTypeFilter('Event')">Event</button>
-    <button class="lp-filter-btn" id="btnEngagement"     onclick="setTypeFilter('Engagement')">Engagement</button>
+    <button class="lp-filter-btn" id="btnBatch"          onclick="setTypeFilter('batch')">Batch</button>
+    <button class="lp-filter-btn" id="btnTrigger"        onclick="setTypeFilter('trigger')">Trigger</button>
+    <div class="lp-filter-sep"></div>
+    <button class="lp-filter-btn" id="btnActive"         onclick="toggleActiveFilter()">Active Only</button>
     <div class="lp-filter-sep"></div>
     <select class="lp-ws-select" id="pgWsFilter" onchange="renderTable()">
         <option value="">All Workspaces</option>
     </select>
-    <select class="lp-ws-select" id="pgChannelFilter" onchange="renderTable()">
-        <option value="">All Channels</option>
+    <select class="lp-ws-select" id="pgProgFilter" onchange="renderTable()">
+        <option value="">All Programs</option>
     </select>
     <span class="lp-count" id="pgCount"></span>
     <span style="font-size:11px;color:#aaa;white-space:nowrap">API calls: <strong id="apiCallCount">0</strong></span>
-    <button class="lp-load-btn" id="pgLoadBtn" onclick="loadPrograms()">Load Programs</button>
+    <button class="lp-load-btn" id="pgLoadBtn" onclick="loadCampaigns()">Load Campaigns</button>
 </div>
 
 <!-- ── KPI row ─────────────────────────────────────────────────────────── -->
@@ -236,20 +246,20 @@
         <div class="lp-kpi-lbl">Total</div>
     </div>
     <div class="lp-kpi">
-        <div class="lp-kpi-val" id="kpiDefault" style="color:#0063AC">—</div>
-        <div class="lp-kpi-lbl">Default</div>
+        <div class="lp-kpi-val" id="kpiBatch" style="color:#0063AC">—</div>
+        <div class="lp-kpi-lbl">Batch</div>
     </div>
     <div class="lp-kpi">
-        <div class="lp-kpi-val" id="kpiEmail" style="color:#c0392b">—</div>
-        <div class="lp-kpi-lbl">Email</div>
+        <div class="lp-kpi-val" id="kpiTrigger" style="color:#1a7a4a">—</div>
+        <div class="lp-kpi-lbl">Trigger</div>
     </div>
     <div class="lp-kpi">
-        <div class="lp-kpi-val" id="kpiEvent" style="color:#1a7a4a">—</div>
-        <div class="lp-kpi-lbl">Event</div>
+        <div class="lp-kpi-val" id="kpiActive" style="color:#1a7a4a">—</div>
+        <div class="lp-kpi-lbl">Active</div>
     </div>
     <div class="lp-kpi">
-        <div class="lp-kpi-val" id="kpiEngagement" style="color:#7030A0">—</div>
-        <div class="lp-kpi-lbl">Engagement</div>
+        <div class="lp-kpi-val" id="kpiRequestable" style="color:#7030A0">—</div>
+        <div class="lp-kpi-lbl">Requestable</div>
     </div>
     <div class="lp-kpi">
         <div class="lp-kpi-val" id="kpiFetched" style="color:#0063AC">—</div>
@@ -264,22 +274,22 @@
             <table class="lp-ws-table" id="pgWsBreakdown"></table>
         </div>
     </div>
-    <div class="lp-ws-card collapsed" id="pgChannelCard">
-        <div class="lp-ws-card-title" onclick="toggleChannelCard()">
-            By Channel
+    <div class="lp-ws-card collapsed" id="pgProgCard">
+        <div class="lp-ws-card-title" onclick="toggleProgCard()">
+            By Program
             <button class="lp-ws-toggle" tabindex="-1">&#9660;</button>
         </div>
         <div class="lp-ws-card-body">
-            <table class="lp-ws-table" id="pgChannelBreakdown"></table>
+            <table class="lp-ws-table" id="pgProgBreakdown"></table>
         </div>
     </div>
-    <div class="lp-ws-card collapsed" id="pgFolderCard">
-        <div class="lp-ws-card-title" onclick="toggleFolderCard()">
-            By Folder
+    <div class="lp-ws-card collapsed" id="pgStatusCard">
+        <div class="lp-ws-card-title" onclick="toggleStatusCard()">
+            By Status
             <button class="lp-ws-toggle" tabindex="-1">&#9660;</button>
         </div>
         <div class="lp-ws-card-body">
-            <table class="lp-ws-table" id="pgFolderBreakdown"></table>
+            <table class="lp-ws-table" id="pgStatusBreakdown"></table>
         </div>
     </div>
 </div>
@@ -287,17 +297,18 @@
 <!-- ── Loading / Empty states ──────────────────────────────────────────── -->
 <div id="pgLoading">
     <div class="spinner"></div>
-    <div>Fetching programs…</div>
+    <div>Fetching smart campaigns…</div>
     <div class="lp-progress" id="pgProgress"></div>
 </div>
 <div id="pgEmpty">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:10px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
-    <div>No programs loaded yet. Configure the API and click <strong>Load Programs</strong>.</div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:10px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <div>No campaigns loaded yet. Configure the API and click <strong>Load Campaigns</strong>.</div>
 </div>
 
 <!-- ── Bulk action bar ──────────────────────────────────────────────────── -->
 <div class="pg-bulk-bar" id="pgBulkBar">
     <span class="pg-bulk-count"><strong id="pgBulkCount">0</strong> selected</span>
+    <button class="pg-bulk-deactivate" id="pgBulkDeactivateBtn" onclick="bulkDeactivate()">Deactivate Selected</button>
     <button class="pg-bulk-delete" id="pgBulkDeleteBtn" onclick="bulkDelete()">Delete Selected</button>
     <button class="pg-bulk-clear" onclick="clearSelection()">Clear</button>
     <span class="pg-bulk-progress" id="pgBulkProgress"></span>
@@ -312,12 +323,11 @@
                 <th onclick="sortBy('id')">ID <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('name')">Name <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('type')">Type <span class="sort-arrow">↕</span></th>
-                <th onclick="sortBy('channel')">Channel <span class="sort-arrow">↕</span></th>
+                <th onclick="sortBy('isActive')">Active <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('status')">Status <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('workspace')">Workspace <span class="sort-arrow">↕</span></th>
+                <th onclick="sortBy('program')">Program <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('folder')">Folder <span class="sort-arrow">↕</span></th>
-                <th onclick="sortBy('sfdcId')">SFDC ID <span class="sort-arrow">↕</span></th>
-                <th onclick="sortBy('sfdcName')">SFDC Name <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('description')">Description <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('updatedAt')">Updated <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('createdAt')">Created <span class="sort-arrow">↕</span></th>
@@ -412,18 +422,24 @@ async function testMktoConnection() {
 }
 
 // ── State ──────────────────────────────────────────────────────────────────
-let allPrograms  = [];
+let allCampaigns = [];
 let _mktoToken   = null;
 let typeFilter   = '';
+let activeOnly   = false;
 let sortCol      = 'updatedAt', sortDir = -1;
 let selectedIds  = new Set();
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function folderName(p) {
-    if (!p) return '—';
-    if (p.folderName) return p.folderName;
-    if (p.value)      return '#' + p.value;
+function folderName(f) {
+    if (!f) return '—';
+    if (f.folderName) return f.folderName;
+    if (f.value)      return '#' + f.value;
     return '—';
+}
+
+function programName(c) {
+    if (!c || !c.program) return '—';
+    return c.program.name || '—';
 }
 
 function fmtDate(s) {
@@ -436,46 +452,53 @@ function fmtDate(s) {
 
 function typeBadge(type) {
     const t = (type || '').toLowerCase();
-    const cls = t === 'default' ? 'prog-type-default'
-              : t === 'email'   ? 'prog-type-email'
-              : t === 'event'   ? 'prog-type-event'
-              : t === 'engagement' ? 'prog-type-engagement'
-              : 'prog-type-other';
-    return `<span class="prog-type ${cls}">${type || '—'}</span>`;
+    const cls = t === 'batch'   ? 'sc-type-batch'
+              : t === 'trigger' ? 'sc-type-trigger'
+              : '';
+    const label = t ? (t.charAt(0).toUpperCase() + t.slice(1)) : (type || '—');
+    return cls ? `<span class="sc-type ${cls}">${label}</span>` : `<span style="font-size:11px;color:#888">${label}</span>`;
+}
+
+function activeBadge(isActive) {
+    return isActive
+        ? `<span class="sc-active sc-active-yes">Yes</span>`
+        : `<span class="sc-active sc-active-no">No</span>`;
 }
 
 function statusBadge(status) {
     if (!status) return '—';
     const s = status.toLowerCase();
-    const cls = s === 'active'   ? 'prog-status-active'
-              : s === 'inactive' ? 'prog-status-inactive'
-              : s === 'complete' ? 'prog-status-complete'
-              : s === 'aborted'  ? 'prog-status-aborted'
+    const cls = s === 'active'    ? 'sc-status-active'
+              : s === 'inactive'  ? 'sc-status-inactive'
+              : s === 'scheduled' ? 'sc-status-scheduled'
+              : s === 'running'   ? 'sc-status-running'
+              : s === 'completed' ? 'sc-status-completed'
+              : s === 'never'     ? 'sc-status-never'
               : '';
-    return cls ? `<span class="prog-status ${cls}">${status}</span>` : `<span style="font-size:11px;color:#888">${status}</span>`;
+    return cls ? `<span class="sc-status ${cls}">${status}</span>` : `<span style="font-size:11px;color:#888">${status}</span>`;
 }
 
 // ── Populate filters ───────────────────────────────────────────────────────
 function populateWsFilter() {
-    const vals = [...new Set(allPrograms.map(p => p.workspace || '').filter(Boolean))].sort();
+    const vals = [...new Set(allCampaigns.map(c => c.workspace || '').filter(Boolean))].sort();
     const sel = document.getElementById('pgWsFilter');
     const cur = sel.value;
     sel.innerHTML = '<option value="">All Workspaces</option>' +
         vals.map(v => `<option value="${v}"${cur===v?' selected':''}>${v}</option>`).join('');
 }
 
-function populateChannelFilter() {
-    const vals = [...new Set(allPrograms.map(p => p.channel || '').filter(Boolean))].sort();
-    const sel = document.getElementById('pgChannelFilter');
+function populateProgFilter() {
+    const vals = [...new Set(allCampaigns.map(c => programName(c)).filter(v => v !== '—'))].sort();
+    const sel = document.getElementById('pgProgFilter');
     const cur = sel.value;
-    sel.innerHTML = '<option value="">All Channels</option>' +
+    sel.innerHTML = '<option value="">All Programs</option>' +
         vals.map(v => `<option value="${v}"${cur===v?' selected':''}>${v}</option>`).join('');
 }
 
 // ── Breakdown cards ────────────────────────────────────────────────────────
 function renderBreakdown(id, getKey) {
     const counts = {};
-    allPrograms.forEach(p => { const k = getKey(p) || '(none)'; counts[k] = (counts[k] || 0) + 1; });
+    allCampaigns.forEach(c => { const k = getKey(c) || '(none)'; counts[k] = (counts[k] || 0) + 1; });
     const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
     const maxCount = sorted[0]?.[1] || 1;
     document.getElementById(id).innerHTML = sorted.map(([name, n]) => {
@@ -488,33 +511,38 @@ function renderBreakdown(id, getKey) {
     }).join('');
 }
 
-function toggleWsCard()      { document.getElementById('pgWsCard').classList.toggle('collapsed'); }
-function toggleChannelCard() { document.getElementById('pgChannelCard').classList.toggle('collapsed'); }
-function toggleFolderCard()  { document.getElementById('pgFolderCard').classList.toggle('collapsed'); }
+function toggleWsCard()     { document.getElementById('pgWsCard').classList.toggle('collapsed'); }
+function toggleProgCard()   { document.getElementById('pgProgCard').classList.toggle('collapsed'); }
+function toggleStatusCard() { document.getElementById('pgStatusCard').classList.toggle('collapsed'); }
 
 // ── KPIs ───────────────────────────────────────────────────────────────────
 function renderKPIs() {
-    const count = t => allPrograms.filter(p => (p.type||'').toLowerCase() === t.toLowerCase()).length;
-    document.getElementById('kpiTotal').textContent   = allPrograms.length.toLocaleString();
-    document.getElementById('kpiDefault').textContent = count('Default').toLocaleString();
-    document.getElementById('kpiEmail').textContent   = count('Email').toLocaleString();
-    document.getElementById('kpiEvent').textContent   = count('Event').toLocaleString();
-    document.getElementById('kpiEngagement').textContent = count('Engagement').toLocaleString();
-    document.getElementById('kpiFetched').textContent = new Date().toLocaleTimeString();
+    document.getElementById('kpiTotal').textContent       = allCampaigns.length.toLocaleString();
+    document.getElementById('kpiBatch').textContent       = allCampaigns.filter(c => (c.type||'').toLowerCase() === 'batch').length.toLocaleString();
+    document.getElementById('kpiTrigger').textContent     = allCampaigns.filter(c => (c.type||'').toLowerCase() === 'trigger').length.toLocaleString();
+    document.getElementById('kpiActive').textContent      = allCampaigns.filter(c => c.isActive).length.toLocaleString();
+    document.getElementById('kpiRequestable').textContent = allCampaigns.filter(c => c.isRequestable).length.toLocaleString();
+    document.getElementById('kpiFetched').textContent     = new Date().toLocaleTimeString();
     populateWsFilter();
-    populateChannelFilter();
-    renderBreakdown('pgWsBreakdown',      p => p.workspace || '(none)');
-    renderBreakdown('pgChannelBreakdown', p => p.channel   || '(none)');
-    renderBreakdown('pgFolderBreakdown',  p => folderName(p.folder));
+    populateProgFilter();
+    renderBreakdown('pgWsBreakdown',     c => c.workspace || '(none)');
+    renderBreakdown('pgProgBreakdown',   c => programName(c));
+    renderBreakdown('pgStatusBreakdown', c => c.status || '(none)');
 }
 
-// ── Type filter ────────────────────────────────────────────────────────────
+// ── Type / active filter ───────────────────────────────────────────────────
 function setTypeFilter(t) {
     typeFilter = t;
-    ['All','Default','Email','Event','Engagement'].forEach(id => {
+    ['All','Batch','Trigger'].forEach(id => {
         document.getElementById('btn' + id).classList.remove('active');
     });
-    document.getElementById('btn' + (t || 'All')).classList.add('active');
+    document.getElementById('btn' + (t ? (t.charAt(0).toUpperCase() + t.slice(1)) : 'All')).classList.add('active');
+    renderTable();
+}
+
+function toggleActiveFilter() {
+    activeOnly = !activeOnly;
+    document.getElementById('btnActive').classList.toggle('active', activeOnly);
     renderTable();
 }
 
@@ -522,7 +550,7 @@ function setTypeFilter(t) {
 function sortBy(col) {
     if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
     document.querySelectorAll('.lp-table th').forEach(th => th.classList.remove('sorted'));
-    const cols = ['id','name','type','channel','status','workspace','folder','sfdcId','sfdcName','description','updatedAt','createdAt'];
+    const cols = ['id','name','type','isActive','status','workspace','program','folder','description','updatedAt','createdAt'];
     const idx = cols.indexOf(col);
     const ths = document.querySelectorAll('.lp-table th');
     if (ths[idx + 1]) ths[idx + 1].classList.add('sorted'); // +1 for checkbox col
@@ -531,80 +559,86 @@ function sortBy(col) {
 
 // ── Render table ───────────────────────────────────────────────────────────
 function renderTable() {
-    const q       = (document.getElementById('pgSearch').value || '').toLowerCase();
-    const wsF     = document.getElementById('pgWsFilter').value;
-    const chF     = document.getElementById('pgChannelFilter').value;
+    const q    = (document.getElementById('pgSearch').value || '').toLowerCase();
+    const wsF  = document.getElementById('pgWsFilter').value;
+    const prF  = document.getElementById('pgProgFilter').value;
 
-    let rows = allPrograms.filter(p => {
-        if (typeFilter && (p.type || '').toLowerCase() !== typeFilter.toLowerCase()) return false;
-        if (wsF && (p.workspace || '') !== wsF) return false;
-        if (chF && (p.channel   || '') !== chF) return false;
+    let rows = allCampaigns.filter(c => {
+        if (typeFilter && (c.type || '').toLowerCase() !== typeFilter) return false;
+        if (activeOnly && !c.isActive) return false;
+        if (wsF && (c.workspace || '') !== wsF) return false;
+        if (prF && programName(c) !== prF) return false;
         if (q && !(
-            (p.name        || '').toLowerCase().includes(q) ||
-            (p.description || '').toLowerCase().includes(q) ||
-            (p.channel     || '').toLowerCase().includes(q) ||
-            (p.workspace   || '').toLowerCase().includes(q) ||
-            (p.sfdcId      || '').toLowerCase().includes(q) ||
-            (p.sfdcName    || '').toLowerCase().includes(q) ||
-            folderName(p.folder).toLowerCase().includes(q)  ||
-            String(p.id).includes(q)
+            (c.name        || '').toLowerCase().includes(q) ||
+            (c.description || '').toLowerCase().includes(q) ||
+            (c.workspace   || '').toLowerCase().includes(q) ||
+            (c.status      || '').toLowerCase().includes(q) ||
+            programName(c).toLowerCase().includes(q)        ||
+            folderName(c.folder).toLowerCase().includes(q)  ||
+            String(c.id).includes(q)
         )) return false;
         return true;
     });
 
     rows.sort((a, b) => {
-        let av = a[sortCol], bv = b[sortCol];
-        if (sortCol === 'folder') { av = folderName(a.folder); bv = folderName(b.folder); }
+        let av, bv;
+        if (sortCol === 'folder')  { av = folderName(a.folder);  bv = folderName(b.folder); }
+        else if (sortCol === 'program') { av = programName(a); bv = programName(b); }
+        else if (sortCol === 'isActive') { av = a.isActive ? 1 : 0; bv = b.isActive ? 1 : 0; }
+        else { av = a[sortCol]; bv = b[sortCol]; }
         if (av == null) av = ''; if (bv == null) bv = '';
         return typeof av === 'number' ? (av - bv) * sortDir
              : String(av).localeCompare(String(bv)) * sortDir;
     });
 
-    document.getElementById('pgCount').textContent = rows.length.toLocaleString() + ' of ' + allPrograms.length.toLocaleString() + ' programs';
+    document.getElementById('pgCount').textContent = rows.length.toLocaleString() + ' of ' + allCampaigns.length.toLocaleString() + ' campaigns';
 
-    // Select-all state
     const selAll = document.getElementById('pgSelectAll');
     if (selAll) {
-        const checkedCnt = rows.filter(p => selectedIds.has(String(p.id))).length;
+        const checkedCnt = rows.filter(c => selectedIds.has(String(c.id))).length;
         selAll.checked       = rows.length > 0 && checkedCnt === rows.length;
         selAll.indeterminate = checkedCnt > 0 && checkedCnt < rows.length;
     }
 
     const tbody = document.getElementById('pgTbody');
-    tbody.innerHTML = rows.map(p => {
-        const fn         = folderName(p.folder);
-        const isSelected = selectedIds.has(String(p.id));
-        const cbCell     = `<td style="padding:7px 10px;text-align:center"><input type="checkbox" class="lp-cb" data-id="${p.id}" ${isSelected ? 'checked' : ''} onchange="toggleSelect(this)" onclick="event.stopPropagation()"></td>`;
-        const openBtn    = p.url
-            ? `<a href="${p.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#0063AC;text-decoration:none;padding:3px 8px;border:1px solid #cde0f5;border-radius:4px;background:#f0f6fc" title="Open in Marketo">
+    tbody.innerHTML = rows.map(c => {
+        const fn         = folderName(c.folder);
+        const pn         = programName(c);
+        const isSelected = selectedIds.has(String(c.id));
+        const cbCell     = `<td style="padding:7px 10px;text-align:center"><input type="checkbox" class="lp-cb" data-id="${c.id}" ${isSelected ? 'checked' : ''} onchange="toggleSelect(this)" onclick="event.stopPropagation()"></td>`;
+        const openBtn    = c.url
+            ? `<a href="${c.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#0063AC;text-decoration:none;padding:3px 8px;border:1px solid #cde0f5;border-radius:4px;background:#f0f6fc" title="Open in Marketo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Open</a>`
             : '';
+        const deactivateBtn = c.isActive
+            ? `<button class="lp-deactivate-btn" data-id="${c.id}" title="Deactivate this campaign" onclick="deactivateCampaign(this)">Deactivate</button>`
+            : '';
         const actionCell = `<div class="lp-action-cell">
-            <button class="lp-delete-btn" data-id="${p.id}" title="Delete this program" onclick="deleteProgram(this)">Delete</button>
+            ${deactivateBtn}
+            <button class="lp-delete-btn" data-id="${c.id}" title="Delete this campaign" onclick="deleteCampaign(this)">Delete</button>
             ${openBtn}
         </div>`;
         return `<tr class="${isSelected ? 'lp-row-selected' : ''}">` +
             cbCell +
-            `<td class="lp-id">${p.id}</td>` +
-            `<td class="lp-name" title="${(p.name||'').replace(/"/g,'&quot;')}">${p.name || '—'}</td>` +
-            `<td>${typeBadge(p.type)}</td>` +
-            `<td style="color:#555" title="${(p.channel||'').replace(/"/g,'&quot;')}">${p.channel || '—'}</td>` +
-            `<td>${statusBadge(p.status)}</td>` +
-            `<td style="overflow:hidden;text-overflow:ellipsis" title="${p.workspace||''}">${p.workspace || '—'}</td>` +
+            `<td class="lp-id">${c.id}</td>` +
+            `<td class="lp-name" title="${(c.name||'').replace(/"/g,'&quot;')}">${c.name || '—'}</td>` +
+            `<td>${typeBadge(c.type)}</td>` +
+            `<td>${activeBadge(c.isActive)}</td>` +
+            `<td>${statusBadge(c.status)}</td>` +
+            `<td style="overflow:hidden;text-overflow:ellipsis" title="${c.workspace||''}">${c.workspace || '—'}</td>` +
+            `<td style="overflow:hidden;text-overflow:ellipsis" title="${pn}">${pn}</td>` +
             `<td style="overflow:hidden;text-overflow:ellipsis" title="${fn}">${fn}</td>` +
-            `<td class="lp-mono" title="${(p.sfdcId||'').replace(/"/g,'&quot;')}">${p.sfdcId || '—'}</td>` +
-            `<td style="overflow:hidden;text-overflow:ellipsis" title="${(p.sfdcName||'').replace(/"/g,'&quot;')}">${p.sfdcName || '—'}</td>` +
-            `<td class="lp-desc" title="${(p.description||'').replace(/"/g,'&quot;')}">${p.description || '—'}</td>` +
-            `<td style="color:#666">${fmtDate(p.updatedAt)}</td>` +
-            `<td style="color:#666">${fmtDate(p.createdAt)}</td>` +
+            `<td class="lp-desc" title="${(c.description||'').replace(/"/g,'&quot;')}">${c.description || '—'}</td>` +
+            `<td style="color:#666">${fmtDate(c.updatedAt)}</td>` +
+            `<td style="color:#666">${fmtDate(c.createdAt)}</td>` +
             `<td style="padding:4px 6px">${actionCell}</td>` +
             '</tr>';
     }).join('');
 }
 
-// ── Load programs ──────────────────────────────────────────────────────────
-async function loadPrograms() {
+// ── Load campaigns ─────────────────────────────────────────────────────────
+async function loadCampaigns() {
     const cfg = getMktoConfig();
     if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
         toggleApiPanel();
@@ -623,12 +657,12 @@ async function loadPrograms() {
     try {
         const token = await mktoGetToken(cfg);
         _mktoToken = token;
-        allPrograms = [];
+        allCampaigns = [];
         let offset = 0;
         const maxReturn = 200;
         while (true) {
-            document.getElementById('pgProgress').textContent = `Fetched ${allPrograms.length} so far…`;
-            const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/programs.json?maxReturn=${maxReturn}&offset=${offset}`;
+            document.getElementById('pgProgress').textContent = `Fetched ${allCampaigns.length} so far…`;
+            const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/smartCampaigns.json?maxReturn=${maxReturn}&offset=${offset}`;
             const res = await mktoProxyFetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!res.ok) throw new Error(`API returned HTTP ${res.status}`);
             const json = await res.json();
@@ -637,7 +671,7 @@ async function loadPrograms() {
                 throw new Error(json.errors?.[0]?.message || 'API error');
             }
             if (!json.result || !json.result.length) break;
-            allPrograms.push(...json.result);
+            allCampaigns.push(...json.result);
             if (json.result.length < maxReturn) break;
             offset += maxReturn;
         }
@@ -691,8 +725,8 @@ function clearSelection() {
 }
 
 function updateBulkBar() {
-    const bar  = document.getElementById('pgBulkBar');
-    const cnt  = document.getElementById('pgBulkCount');
+    const bar = document.getElementById('pgBulkBar');
+    const cnt = document.getElementById('pgBulkCount');
     cnt.textContent = selectedIds.size;
     const show = selectedIds.size > 0;
     bar.classList.toggle('visible', show);
@@ -700,7 +734,7 @@ function updateBulkBar() {
 }
 
 // ── Delete single ──────────────────────────────────────────────────────────
-async function deleteProgram(btn) {
+async function deleteCampaign(btn) {
     const id = btn.dataset.id;
     if (!btn.classList.contains('confirming')) {
         btn.classList.add('confirming');
@@ -719,7 +753,7 @@ async function deleteProgram(btn) {
     try {
         const cfg = getMktoConfig();
         if (!_mktoToken) _mktoToken = await mktoGetToken(cfg);
-        const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/program/${id}/delete.json`;
+        const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${id}/delete.json`;
         let res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
         let json = await res.json();
         if (!json.success) {
@@ -733,7 +767,7 @@ async function deleteProgram(btn) {
             row.classList.add('lp-row-deleting');
             await new Promise(r => setTimeout(r, 370));
         }
-        allPrograms = allPrograms.filter(p => String(p.id) !== String(id));
+        allCampaigns = allCampaigns.filter(c => String(c.id) !== String(id));
         selectedIds.delete(String(id));
         renderKPIs();
         renderTable();
@@ -743,7 +777,98 @@ async function deleteProgram(btn) {
         btn.disabled = false;
         btn.textContent = 'Error!';
         btn.title = err.message;
-        setTimeout(() => { btn.textContent = 'Delete'; btn.title = 'Delete this program'; }, 3000);
+        setTimeout(() => { btn.textContent = 'Delete'; btn.title = 'Delete this campaign'; }, 3000);
+    }
+}
+
+// ── Deactivate single ─────────────────────────────────────────────────────
+async function deactivateCampaign(btn) {
+    const id = btn.dataset.id;
+    if (!btn.classList.contains('confirming')) {
+        btn.classList.add('confirming');
+        btn.textContent = 'Sure?';
+        btn._resetTimer = setTimeout(() => {
+            btn.classList.remove('confirming');
+            btn.textContent = 'Deactivate';
+        }, 3000);
+        return;
+    }
+    clearTimeout(btn._resetTimer);
+    btn.classList.remove('confirming');
+    btn.classList.add('working');
+    btn.disabled = true;
+    btn.textContent = 'Working…';
+    try {
+        const cfg = getMktoConfig();
+        if (!_mktoToken) _mktoToken = await mktoGetToken(cfg);
+        const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${id}/deactivate.json`;
+        let res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
+        let json = await res.json();
+        if (!json.success) {
+            _mktoToken = await mktoGetToken(cfg);
+            res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
+            json = await res.json();
+            if (!json.success) throw new Error(json.errors?.[0]?.message || 'API error');
+        }
+        const c = allCampaigns.find(x => String(x.id) === String(id));
+        if (c) c.isActive = false;
+        renderKPIs();
+        renderTable();
+    } catch (err) {
+        btn.classList.remove('working');
+        btn.disabled = false;
+        btn.textContent = 'Error!';
+        btn.title = err.message;
+        setTimeout(() => { btn.textContent = 'Deactivate'; btn.title = 'Deactivate this campaign'; }, 3000);
+    }
+}
+
+// ── Bulk deactivate ────────────────────────────────────────────────────────
+async function bulkDeactivate() {
+    if (!selectedIds.size) return;
+    const btn  = document.getElementById('pgBulkDeactivateBtn');
+    const prog = document.getElementById('pgBulkProgress');
+
+    if (!btn.dataset.armed) {
+        btn.dataset.armed = '1';
+        btn.textContent = 'Confirm Deactivate?';
+        btn.style.background = '#8a5000';
+        setTimeout(() => { btn.dataset.armed = ''; btn.textContent = 'Deactivate Selected'; btn.style.background = ''; }, 3000);
+        return;
+    }
+    btn.dataset.armed = '';
+    btn.disabled = true;
+    btn.textContent = 'Deactivating…';
+    const cfg  = getMktoConfig();
+    const ids  = [...selectedIds];
+    let done = 0, errors = 0;
+    prog.textContent = '0 / ' + ids.length + '…';
+    try {
+        if (!_mktoToken) _mktoToken = await mktoGetToken(cfg);
+        for (const id of ids) {
+            try {
+                const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${id}/deactivate.json`;
+                let res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
+                let json = await res.json();
+                if (!json.success) {
+                    _mktoToken = await mktoGetToken(cfg);
+                    res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
+                    json = await res.json();
+                    if (!json.success) throw new Error(json.errors?.[0]?.message || 'API error');
+                }
+                const c = allCampaigns.find(x => String(x.id) === String(id));
+                if (c) c.isActive = false;
+                done++;
+            } catch { errors++; }
+            prog.textContent = done + ' / ' + ids.length + (errors ? ` (${errors} failed)` : '') + '…';
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Deactivate Selected';
+        prog.textContent = errors ? `Done — ${errors} failed` : '';
+        renderKPIs();
+        renderTable();
+        updateBulkBar();
     }
 }
 
@@ -753,7 +878,6 @@ async function bulkDelete() {
     const btn  = document.getElementById('pgBulkDeleteBtn');
     const prog = document.getElementById('pgBulkProgress');
 
-    // Two-click confirm on bulk bar button
     if (!btn.dataset.armed) {
         btn.dataset.armed = '1';
         btn.textContent = 'Confirm Delete?';
@@ -772,7 +896,7 @@ async function bulkDelete() {
         if (!_mktoToken) _mktoToken = await mktoGetToken(cfg);
         for (const id of ids) {
             try {
-                const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/program/${id}/delete.json`;
+                const url = `https://${cfg.munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${id}/delete.json`;
                 let res  = await mktoProxyFetch(url, { method:'POST', headers:{ 'Authorization': `Bearer ${_mktoToken}` } });
                 let json = await res.json();
                 if (!json.success) {
@@ -781,7 +905,7 @@ async function bulkDelete() {
                     json = await res.json();
                     if (!json.success) throw new Error(json.errors?.[0]?.message || 'API error');
                 }
-                allPrograms = allPrograms.filter(p => String(p.id) !== String(id));
+                allCampaigns = allCampaigns.filter(c => String(c.id) !== String(id));
                 selectedIds.delete(id);
                 done++;
             } catch { errors++; }
