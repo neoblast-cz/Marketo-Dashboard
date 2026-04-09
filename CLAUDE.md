@@ -19,18 +19,19 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 | File | Purpose |
 |------|---------|
 | `index.html` | Navigation hub with dashboard cards and FAQ |
-| `marketo-analytics-program.html` | Program performance: KPIs, trendline, butterfly (FT/MT attribution), iCapture events, fixed costs |
-| `marketo-analytics-lead-generation.html` | Lead gen funnel: pipeline stages (People→MQL→SQL→Converted), transitions, multi-touch programs, omnichannel |
-| `marketo-analytics-user-activity.html` | Marketo audit trail viewer |
-| `marketo-db-analysis.html` | Database analysis: deliverability, GBU, acquisition channel, growth trends, record types. Has People/Leads/Contacts quick-filter buttons in filter bar. |
-| `marketo-db-quality.html` | Data quality scoring: field coverage, blank rates, org/country mismatches, picklist anomalies, live Marketo fix panel |
-| `marketo-tools-landing-pages.html` | Landing page inventory + bulk operations |
-| `marketo-tools-forms.html` | Forms inventory |
-| `marketo-tools-programs.html` | Programs inventory |
-| `marketo-tools-smartcampaigns.html` | Smart campaigns inventory |
+| `pages/marketo-analytics-program.html` | Program performance: KPIs, trendline, butterfly (FT/MT attribution), iCapture events, fixed costs |
+| `pages/marketo-analytics-lead-generation.html` | Lead gen funnel: pipeline stages (People→MQL→SQL→Converted), transitions, multi-touch programs, omnichannel |
+| `pages/marketo-analytics-user-activity.html` | Marketo audit trail viewer |
+| `pages/marketo-db-analysis.html` | Database analysis: deliverability, GBU, acquisition channel, growth trends, record types. Has People/Leads/Contacts quick-filter buttons in filter bar. |
+| `pages/marketo-db-quality.html` | Data quality scoring: field coverage, blank rates, org/country mismatches, picklist anomalies, live Marketo fix panel |
+| `pages/marketo-tools-landing-pages.html` | Landing page inventory + bulk operations |
+| `pages/marketo-tools-forms.html` | Forms inventory |
+| `pages/marketo-tools-programs.html` | Programs inventory |
+| `pages/marketo-tools-smartcampaigns.html` | Smart campaigns inventory |
 | `TEST-marketo-analytics.html` | Dev sandbox (do not deploy) |
 | `ansell.digital.css` | Shared Ansell brand design system (never edit unless explicitly asked) |
 | `mkto-proxy.ps1` | Local CORS proxy on port 3791 for Marketo API calls |
+| `Preprocess-DashboardExport.ps1` | Pre-processing script: reads latest `Dashboard_Export.csv` → writes `_slim.csv` + `_agg.json` to Reports/ |
 
 ---
 
@@ -41,6 +42,22 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 - **PapaParse** — `https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js` — CSV parsing (some pages)
 - **Google Fonts** — Asap 400/500/600/700
 - Vanilla JS, no frameworks, no bundler
+
+---
+
+## Pre-processing Pipeline (marketo-db-analysis.html)
+
+`Preprocess-DashboardExport.ps1` converts the large raw export into two fast-loading files. Run it each time a new `Dashboard_Export.csv` lands in `Reports/`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Preprocess-DashboardExport.ps1
+```
+
+Outputs (same date prefix as input):
+- `YYYY-MM-DD Dashboard_Export_agg.json` (~50 KB) — pre-computed aggregates for instant KPI render
+- `YYYY-MM-DD Dashboard_Export_slim.csv` (~30–50 MB) — only the columns the dashboard uses, with channel/record-type lookups pre-applied
+
+The PS1 contains its own copies of `Get-Channel`, `LEAD_RT_MAP`, `RECORD_TYPE_MAP`, `CHANNEL_EXCEPTIONS`, and `CHANNEL_PICKLIST` that **must be kept in sync** with the JS equivalents in `marketo-db-analysis.html` and `marketo-analytics-lead-generation.html`.
 
 ---
 
@@ -186,7 +203,7 @@ All monetary values stored in USD. EUR→USD conversion uses fixed rate `EUR_USD
 
 ## Acquisition Channel Derivation
 
-`deriveChannel(name)` in `marketo-db-analysis.html` and `marketo-analytics-lead-generation.html` derives a channel from the **Acquisition Program Name** field (not a stored Marketo field). Both files must be kept in sync.
+`deriveChannel(name)` in `pages/marketo-db-analysis.html` and `pages/marketo-analytics-lead-generation.html` derives a channel from the **Acquisition Program Name** field (not a stored Marketo field). The same logic also lives in `Preprocess-DashboardExport.ps1` as `Get-Channel`. All three must be kept in sync.
 
 **Logic order (first match wins):**
 
@@ -195,11 +212,16 @@ All monetary values stored in USD. EUR→USD conversion uses fixed rate `EUR_USD
    - `record created in webstore` → `Webstore`
    - `acquired prior to 2016` → `Legacy`
    - `created via list import` / `created via api connection` → `Operational`
+   - `record account created in dandb emea` / `record account created in dandb na` → `DandB`
+   - `record created in ansellguardian chemical` → `AnsellGuardian Chemical`
+   - `record created in linkedin sales navigator` → `LinkedIn Sales Navigator`
+   - `record created in myansell` → `Other`
    - Specific one-off legacy programs (e.g. Siebel DB Upload → `Operational`)
 
 2. **PICKLIST** (substring `includes()` check, specific before generic):
    - Specific: `Organic-social-WCH/LN/FB/other`, `Paid-social-LN/FB/other`, `Paid-display/search/video/list/msg/mix`
    - Web forms: `Web-form-AI`, `Web-form-ORG`, `Web-form-DIR`, `Web Form` (space variant for old format), `Web-form` (bare, new underscore format without suffix)
+   - `Referral-INT`
    - Generic: `Chatbot`, `DandB`, `Drift`, `Email`, `Events`, `Highspot`, `Online`, `Offline`, `Operational`, `Sales`, `Telemarketing`, `Third-party`, `Webinar`, `Webstore`
 
 3. **Old abbreviation patterns** (space-bounded, pre-2019 naming convention like `REGION.GBU ABBREV YEAR`):
