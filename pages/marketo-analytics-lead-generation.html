@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 </head>
 <body>
 
@@ -398,25 +399,34 @@
                 </div>
             </div>
 
+            <!-- Row 3: Scale + Date Range -->
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #f0f0f0">
+                <span class="filter-label">Scale:</span>
+                <button class="quick-filter-btn" id="btnLgTsWeek"    onclick="setTimeScale('week')"    style="margin:0">Week</button>
+                <button class="quick-filter-btn active" id="btnLgTsMonth"   onclick="setTimeScale('month')"   style="margin:0">Month</button>
+                <button class="quick-filter-btn" id="btnLgTsQuarter" onclick="setTimeScale('quarter')" style="margin:0">Quarter</button>
+                <button class="quick-filter-btn" id="btnLgTsYear"    onclick="setTimeScale('year')"    style="margin:0">Year</button>
+                <button class="quick-filter-btn" id="btnLgTsFY"      onclick="setTimeScale('fy')"      style="margin:0">FY</button>
+                <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+                <span class="filter-label">Date Range:</span>
+                <input type="date" id="lgDateFrom" oninput="onLgDateChange()"
+                    style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+                <span style="color:#bbb;font-size:12px">to</span>
+                <input type="date" id="lgDateTo" oninput="onLgDateChange()"
+                    style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+                <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px;flex-shrink:0"></span>
+                <button class="quick-filter-btn" id="lgPreset_30d" onclick="setLgDatePreset('30d')"  style="margin:0;padding:3px 9px;font-size:11px">30d</button>
+                <button class="quick-filter-btn" id="lgPreset_90d" onclick="setLgDatePreset('90d')"  style="margin:0;padding:3px 9px;font-size:11px">90d</button>
+                <button class="quick-filter-btn" id="lgPreset_cfy" onclick="setLgDatePreset('cfy')"  style="margin:0;padding:3px 9px;font-size:11px">Current FY</button>
+                <button class="quick-filter-btn" id="lgPreset_pfy" onclick="setLgDatePreset('pfy')"  style="margin:0;padding:3px 9px;font-size:11px">Prev FY</button>
+                <button class="quick-filter-btn" id="lgPreset_all" onclick="setLgDatePreset('all')"  style="margin:0;padding:3px 9px;font-size:11px">All time</button>
+            </div>
+
         </div>
 
         <div class="main">
             <div class="section-label">Lead Management Process
                 <span class="section-label-note" id="demandLeadCount"></span>
-                <span class="lmp-period-bar">
-                    <span class="lmp-period-label">Transitions in last</span>
-                    <button class="lmp-period-btn active" id="tPeriod30" onclick="setTransitionPeriod(30)">30 days</button>
-                    <button class="lmp-period-btn" id="tPeriod60" onclick="setTransitionPeriod(60)">60 days</button>
-                    <button class="lmp-period-btn" id="tPeriod90" onclick="setTransitionPeriod(90)">90 days</button>
-                    <button class="lmp-period-btn" id="tPeriodCustom" onclick="toggleTransitionCustom()">Custom</button>
-                    <span id="tCustomRange" style="display:none;align-items:center;gap:4px;margin-left:4px">
-                        <input type="date" id="tCustomFrom" onchange="applyTransitionCustom()"
-                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
-                        <span style="font-size:10px;color:#888">–</span>
-                        <input type="date" id="tCustomTo" onchange="applyTransitionCustom()"
-                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
-                    </span>
-                </span>
             </div>
             <div class="chart-card">
                 <div class="lmp-flow">
@@ -517,23 +527,7 @@
                 <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
-            <div class="section-label" style="margin-top:24px">Marketing Funnel
-                <span class="lmp-period-bar">
-                    <span class="lmp-period-label">Entries in last</span>
-                    <button class="lmp-period-btn active" id="fPeriod30" onclick="setFunnelPeriod(30)">30 days</button>
-                    <button class="lmp-period-btn" id="fPeriod60" onclick="setFunnelPeriod(60)">60 days</button>
-                    <button class="lmp-period-btn" id="fPeriod90" onclick="setFunnelPeriod(90)">90 days</button>
-                    <button class="lmp-period-btn" id="fPeriodAll" onclick="setFunnelPeriod(0)">All time</button>
-                    <button class="lmp-period-btn" id="fPeriodCustom" onclick="toggleFunnelCustom()">Custom</button>
-                    <span id="fCustomRange" style="display:none;align-items:center;gap:4px;margin-left:4px">
-                        <input type="date" id="fCustomFrom" onchange="applyFunnelCustom()"
-                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
-                        <span style="font-size:10px;color:#888">–</span>
-                        <input type="date" id="fCustomTo" onchange="applyFunnelCustom()"
-                            style="font-size:11px;padding:2px 5px;border:1px solid #d0d0d0;border-radius:4px;color:#333;background:#fff;cursor:pointer">
-                    </span>
-                </span>
-            </div>
+            <div class="section-label" style="margin-top:24px">Marketing Funnel</div>
             <div class="chart-card" id="simpleFunnelCard" style="padding:20px 28px"></div>
 
             <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
@@ -794,6 +788,26 @@
                 </div>
             </div>
 
+            <!-- ── Sankey: Channel → Funnel Stage ── -->
+            <div class="section-label" style="margin-top:28px">Lead Flow — Acquisition Channel → Funnel Stage</div>
+            <div class="chart-card">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+                    <div class="chart-title" style="margin:0">Which channels feed which funnel stages</div>
+                    <label style="font-size:11px;color:#888;display:flex;align-items:center;gap:5px;cursor:pointer">
+                        Top
+                        <select id="lgSankeyTopN" onchange="renderLeadSankey()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;background:#fff;color:#374151;cursor:pointer">
+                            <option value="10">10</option>
+                            <option value="15" selected>15</option>
+                            <option value="20">20</option>
+                        </select>
+                        channels
+                    </label>
+                </div>
+                <div id="lgSankeyWrap" style="position:relative;height:500px"></div>
+                <div id="lgSankeyEmpty" style="display:none;padding:40px;text-align:center;color:#aaa;font-size:13px">No data for the current filter selection.</div>
+                <div style="font-size:10px;color:#bbb;margin-top:8px">Link width proportional to lead count. Responds to all demand filters above.</div>
+            </div>
+
         </div>
     </div>
 
@@ -938,6 +952,46 @@
     let allData = [];
     let charts = {};
     let exportDateStr = '';
+
+    // World map state
+    var lgWorldLoadPromise  = null;
+    var lgWorldCountryPaths = [];
+    var lgWorldCanvasReady  = false;
+
+    // ISO 3166-1 numeric lookup (lowercase country name → id)
+    var CTRY_TO_ID = {
+        'afghanistan':4,'albania':8,'algeria':12,'angola':24,'argentina':32,
+        'armenia':51,'australia':36,'austria':40,'azerbaijan':31,'bahrain':48,
+        'bangladesh':50,'belarus':112,'belgium':56,'bolivia':68,
+        'bosnia and herzegovina':70,'brazil':76,'brunei':96,'bulgaria':100,
+        'cambodia':116,'cameroon':120,'canada':124,'chile':152,'china':156,
+        'colombia':170,'costa rica':188,'croatia':191,'cuba':192,'cyprus':196,
+        'czech republic':203,'czechia':203,'denmark':208,'dominican republic':214,
+        'ecuador':218,'egypt':818,'el salvador':222,'estonia':233,'ethiopia':231,
+        'finland':246,'france':250,'georgia':268,'germany':276,'ghana':288,
+        'greece':300,'guatemala':320,'honduras':340,'hong kong':344,'hungary':348,
+        'india':356,'indonesia':360,'iran':364,'iraq':368,'ireland':372,
+        'israel':376,'italy':380,'jamaica':388,'japan':392,'jordan':400,
+        'kazakhstan':398,'kenya':404,'korea':410,'south korea':410,
+        'republic of korea':410,'kuwait':414,'latvia':428,'lebanon':422,
+        'libya':434,'lithuania':440,'luxembourg':442,'malaysia':458,'malta':470,
+        'mexico':484,'moldova':498,'morocco':504,'mozambique':508,'myanmar':104,
+        'nepal':524,'netherlands':528,'new zealand':554,'nicaragua':558,
+        'nigeria':566,'norway':578,'oman':512,'pakistan':586,'panama':591,
+        'paraguay':600,'peru':604,'philippines':608,'poland':616,'portugal':620,
+        'qatar':634,'romania':642,'russia':643,'russian federation':643,
+        'saudi arabia':682,'senegal':686,'serbia':688,'singapore':702,
+        'slovakia':703,'slovenia':705,'south africa':710,'spain':724,
+        'sri lanka':144,'sweden':752,'switzerland':756,'taiwan':158,
+        'tanzania':834,'thailand':764,'trinidad and tobago':780,'tunisia':788,
+        'turkey':792,'turkiye':792,'türkiye':792,'ukraine':804,
+        'united arab emirates':784,'uae':784,'united kingdom':826,'uk':826,
+        'great britain':826,'united states':840,'usa':840,'us':840,
+        'united states of america':840,'uruguay':858,'uzbekistan':860,
+        'venezuela':862,'vietnam':704,'viet nam':704,'zambia':894,'zimbabwe':716,
+        'north macedonia':807,'montenegro':499,'liechtenstein':438,'monaco':492,
+        'andorra':20,'iceland':352
+    };
 
     // ═══════════════════════════════════════════════════════════
     //  HELPERS
@@ -1489,6 +1543,17 @@
         globalPeopleOnly = false;
         const btn3 = document.getElementById('btnPeopleOnly');
         if (btn3) btn3.classList.remove('active');
+        setTimeScale('month');
+        lgDateFrom = null;
+        lgDateTo   = null;
+        const lgFromEl = document.getElementById('lgDateFrom');
+        const lgToEl   = document.getElementById('lgDateTo');
+        if (lgFromEl) lgFromEl.value = '';
+        if (lgToEl)   lgToEl.value   = '';
+        ['30d','90d','cfy','pfy','all'].forEach(p => {
+            const b = document.getElementById('lgPreset_' + p);
+            if (b) b.classList.remove('active');
+        });
         renderDemandTab();
     }
 
@@ -2584,15 +2649,10 @@
     let lastTouchMode = 'success'; // 'success' | 'qualified'
     let mtMode        = 'success'; // 'success' | 'qualified'
     let demandFiltersInitialized = false;
-    let transitionDays       = 30;
-    let transitionCustomFrom = null; // Date | null
-    let transitionCustomTo   = null; // Date | null
-    let funnelDays           = 30;   // 0 = all time
-    let funnelCustomFrom     = null;
-    let funnelCustomTo       = null;
+    let lgDateFrom = null; // Date | null — global demand date range
+    let lgDateTo   = null; // Date | null
     let demandStackField    = '';   // '' | 'deliverability' | 'gbu' | 'vertical' | 'channel' | 'org'
-    let timelineGranularity    = 'month'; // 'month' | 'quarter' | 'year'
-    let nurtureOrgGranularity  = 'month';
+    let timeScale = 'month'; // 'week' | 'month' | 'quarter' | 'year' | 'fy'
     let _nurtureLeadsCache     = null;
     let scoringStatusFilter = new Set(); // empty = all statuses
 
@@ -2827,105 +2887,49 @@
         if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
     }
 
-    // ── Transition period controls ────────────────────────────
-    function setTransitionPeriod(days) {
-        transitionDays       = days;
-        transitionCustomFrom = null;
-        transitionCustomTo   = null;
-        [30, 60, 90].forEach(d => {
-            const btn = document.getElementById('tPeriod' + d);
-            if (btn) btn.classList.toggle('active', d === days);
+    // ── Global demand date range ──────────────────────────────
+    function setLgDatePreset(preset) {
+        const today  = new Date();
+        const fromEl = document.getElementById('lgDateFrom');
+        const toEl   = document.getElementById('lgDateTo');
+        ['30d','90d','cfy','pfy','all'].forEach(p => {
+            const b = document.getElementById('lgPreset_' + p);
+            if (b) b.classList.toggle('active', p === preset);
         });
-        const customBtn = document.getElementById('tPeriodCustom');
-        if (customBtn) customBtn.classList.remove('active');
-        const rangeEl = document.getElementById('tCustomRange');
-        if (rangeEl) rangeEl.style.display = 'none';
-        renderTransitionCounts();
-    }
-
-    function toggleTransitionCustom() {
-        const rangeEl  = document.getElementById('tCustomRange');
-        const customBtn = document.getElementById('tPeriodCustom');
-        const isOpen = rangeEl && rangeEl.style.display !== 'none';
-        if (isOpen) {
-            // collapse — revert to previous preset
-            rangeEl.style.display = 'none';
-            customBtn.classList.remove('active');
-            transitionCustomFrom = null;
-            transitionCustomTo   = null;
-            setTransitionPeriod(transitionDays);
-        } else {
-            // deactivate presets, show inputs
-            [30, 60, 90].forEach(d => {
-                const btn = document.getElementById('tPeriod' + d);
-                if (btn) btn.classList.remove('active');
-            });
-            customBtn.classList.add('active');
-            if (rangeEl) rangeEl.style.display = 'flex';
-            // pre-fill with the current preset window as a sensible default
-            const today = new Date();
-            const from  = new Date(today); from.setDate(from.getDate() - transitionDays);
-            document.getElementById('tCustomFrom').value = from.toISOString().slice(0, 10);
-            document.getElementById('tCustomTo').value   = today.toISOString().slice(0, 10);
-            applyTransitionCustom();
+        if (preset === '30d') {
+            const f = new Date(today); f.setDate(f.getDate() - 30);
+            fromEl.value = f.toISOString().slice(0,10);
+            toEl.value   = today.toISOString().slice(0,10);
+        } else if (preset === '90d') {
+            const f = new Date(today); f.setDate(f.getDate() - 90);
+            fromEl.value = f.toISOString().slice(0,10);
+            toEl.value   = today.toISOString().slice(0,10);
+        } else if (preset === 'cfy') {
+            const fy = today.getMonth() >= 6 ? today.getFullYear() + 1 : today.getFullYear();
+            fromEl.value = new Date(fy - 1, 6, 1).toISOString().slice(0,10);
+            toEl.value   = new Date(fy, 5, 30).toISOString().slice(0,10);
+        } else if (preset === 'pfy') {
+            const fy = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
+            fromEl.value = new Date(fy - 1, 6, 1).toISOString().slice(0,10);
+            toEl.value   = new Date(fy, 5, 30).toISOString().slice(0,10);
+        } else { // all
+            fromEl.value = '';
+            toEl.value   = '';
         }
+        onLgDateChange(false); // false = don't clear active preset
     }
 
-    function applyTransitionCustom() {
-        const fromVal = document.getElementById('tCustomFrom').value;
-        const toVal   = document.getElementById('tCustomTo').value;
-        if (!fromVal || !toVal) return;
-        transitionCustomFrom = new Date(fromVal + 'T00:00:00');
-        transitionCustomTo   = new Date(toVal   + 'T23:59:59');
-        renderTransitionCounts();
-    }
-
-    function setFunnelPeriod(days) {
-        funnelDays       = days;
-        funnelCustomFrom = null;
-        funnelCustomTo   = null;
-        [30, 60, 90, 0].forEach(d => {
-            const btn = document.getElementById('fPeriod' + (d === 0 ? 'All' : d));
-            if (btn) btn.classList.toggle('active', d === days);
-        });
-        const customBtn = document.getElementById('fPeriodCustom');
-        if (customBtn) customBtn.classList.remove('active');
-        const rangeEl = document.getElementById('fCustomRange');
-        if (rangeEl) rangeEl.style.display = 'none';
-        renderDemandTab();
-    }
-
-    function toggleFunnelCustom() {
-        const rangeEl   = document.getElementById('fCustomRange');
-        const customBtn = document.getElementById('fPeriodCustom');
-        const isOpen    = rangeEl && rangeEl.style.display !== 'none';
-        if (isOpen) {
-            rangeEl.style.display = 'none';
-            customBtn.classList.remove('active');
-            funnelCustomFrom = null;
-            funnelCustomTo   = null;
-            setFunnelPeriod(funnelDays);
-        } else {
-            [30, 60, 90, 0].forEach(d => {
-                const btn = document.getElementById('fPeriod' + (d === 0 ? 'All' : d));
-                if (btn) btn.classList.remove('active');
+    function onLgDateChange(clearPreset) {
+        if (clearPreset !== false) {
+            ['30d','90d','cfy','pfy','all'].forEach(p => {
+                const b = document.getElementById('lgPreset_' + p);
+                if (b) b.classList.remove('active');
             });
-            customBtn.classList.add('active');
-            if (rangeEl) rangeEl.style.display = 'flex';
-            const today = new Date();
-            const from  = new Date(today); from.setDate(from.getDate() - funnelDays || 30);
-            document.getElementById('fCustomFrom').value = from.toISOString().slice(0, 10);
-            document.getElementById('fCustomTo').value   = today.toISOString().slice(0, 10);
-            applyFunnelCustom();
         }
-    }
-
-    function applyFunnelCustom() {
-        const fromVal = document.getElementById('fCustomFrom').value;
-        const toVal   = document.getElementById('fCustomTo').value;
-        if (!fromVal || !toVal) return;
-        funnelCustomFrom = new Date(fromVal + 'T00:00:00');
-        funnelCustomTo   = new Date(toVal   + 'T23:59:59');
+        const fromVal = (document.getElementById('lgDateFrom') || {}).value;
+        const toVal   = (document.getElementById('lgDateTo')   || {}).value;
+        lgDateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+        lgDateTo   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
         renderDemandTab();
     }
 
@@ -2933,14 +2937,9 @@
         const el = document.getElementById('simpleFunnelCard');
         if (!el) return;
 
-        // ── Resolve active date window ────────────────────────────
-        let fFrom = null, fTo = null;
-        if (funnelCustomFrom && funnelCustomTo) {
-            fFrom = funnelCustomFrom; fTo = funnelCustomTo;
-        } else if (funnelDays > 0) {
-            fTo   = new Date();
-            fFrom = new Date(fTo); fFrom.setDate(fFrom.getDate() - funnelDays);
-        }
+        // ── Resolve active date window from global date range ────
+        const fFrom = lgDateFrom;
+        const fTo   = lgDateTo;
         function inWindow(dateStr) {
             if (!fFrom) return true; // all time
             const d = parseDate(dateStr);
@@ -3041,9 +3040,8 @@
                 </div>
             </div>` : '';
 
-        const periodLabel = fFrom
-            ? (funnelCustomFrom ? 'custom range' : `last ${funnelDays} days`)
-            : 'all time';
+        const fmt2 = d => d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'});
+        const periodLabel = fFrom ? `${fmt2(fFrom)} – ${fmt2(fTo)}` : 'all time';
 
         el.innerHTML = `
             <div style="max-width:760px">
@@ -3061,19 +3059,20 @@
         const leads = applyDemandFilters();
         const now   = new Date();
 
-        let currFrom, currTo, prevFrom, prevTo;
-        if (transitionCustomFrom && transitionCustomTo) {
-            currFrom = transitionCustomFrom;
-            currTo   = transitionCustomTo;
-            const spanMs = currTo - currFrom;
-            prevFrom = new Date(currFrom.getTime() - spanMs);
-            prevTo   = currFrom;
-        } else {
-            currTo   = now;
-            currFrom = new Date(now); currFrom.setDate(currFrom.getDate() - transitionDays);
-            prevTo   = currFrom;
-            prevFrom = new Date(now); prevFrom.setDate(prevFrom.getDate() - transitionDays * 2);
+        // When no date range set, clear badges and exit
+        if (!lgDateFrom || !lgDateTo) {
+            ['tBadgeCreated','tBadgeAssigned','tBadgeWorking','tBadgeReferral',
+             'tBadgeNurture','tBadgeUnqualified','tBadgeConverted'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '—';
+            });
+            return;
         }
+        const currFrom = lgDateFrom;
+        const currTo   = lgDateTo;
+        const spanMs   = currTo - currFrom;
+        const prevFrom = new Date(currFrom.getTime() - spanMs);
+        const prevTo   = currFrom;
 
         function countPeriod(dateField, from, to) {
             return leads.filter(r => {
@@ -3215,10 +3214,13 @@
             pillsEl.innerHTML = ph;
         }
 
-        // Apply status filter
-        const matrixLeads = scoringStatusFilter.size > 0
+        // Apply status filter + global date range on createdDate
+        const matrixLeadsBase = scoringStatusFilter.size > 0
             ? leads.filter(r => scoringStatusFilter.has(r.personStatus))
             : leads;
+        const matrixLeads = lgDateFrom
+            ? matrixLeadsBase.filter(r => { const d = parseDate(r.createdDate); return d && d >= lgDateFrom && d <= lgDateTo; })
+            : matrixLeadsBase;
 
         // Rows = Relative Urgency (3 top → 0 bottom), Cols = Relative Score (0 left → 3 right)
         const matrix = {};
@@ -3317,6 +3319,263 @@
 
         // Update transition count badges on LMP arrows
         renderTransitionCounts();
+
+        // Channel → Stage Sankey (filtered by date range on createdDate)
+        const sankeyLeads = lgDateFrom
+            ? leads.filter(r => { const d = parseDate(r.createdDate); return d && d >= lgDateFrom && d <= lgDateTo; })
+            : leads;
+        renderLeadSankey(sankeyLeads);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHANNEL → FUNNEL SANKEY (SVG, 5 columns)
+    // ═══════════════════════════════════════════════════════════
+    var _lgLastLeads = [];
+
+    function renderLeadSankey(leads) {
+        if (leads !== undefined) _lgLastLeads = leads;
+        const data  = _lgLastLeads;
+        const wrap  = document.getElementById('lgSankeyWrap');
+        const empty = document.getElementById('lgSankeyEmpty');
+        if (!wrap) return;
+
+        const topNEl = document.getElementById('lgSankeyTopN');
+        const topN   = topNEl ? (parseInt(topNEl.value, 10) || 15) : 15;
+
+        if (!data || !data.length) {
+            wrap.style.display  = 'none';
+            empty.style.display = '';
+            return;
+        }
+
+        // ── Palette & outcome definitions ──────────────────────
+        const CHAN_PALETTE   = ['#0063AC','#00A28F','#7030A0','#ED7D31','#70AD47','#4472C4','#FF6B6B','#20B2AA','#F0A500','#DC143C','#6495ED','#8B7355','#DDA0DD','#B8860B','#FF7F50','#3CB371','#9370DB','#CD853F','#00CED1','#FF6347'];
+        const OUTCOME_ORDER  = ['Converted','Nurture','Referral','Unqualified','Working'];
+        const OUTCOME_LABELS = { Converted:'Converted', Nurture:'Nurture', Referral:'Referral', Unqualified:'Unqualified', Working:'Active (SQL)' };
+        const OUTCOME_COLORS = { Converted:'#27ae60', Nurture:'#f39c12', Referral:'#e67e22', Unqualified:'#e74c3c', Working:'#5dade2' };
+
+        // ── Channel counts (top N) ──────────────────────────────
+        const chanAllCounts = {};
+        data.forEach(r => { const ch = r.channel || '(blank)'; chanAllCounts[ch] = (chanAllCounts[ch]||0)+1; });
+        const topChans  = Object.entries(chanAllCounts).sort((a,b)=>b[1]-a[1]).slice(0,topN).map(([ch])=>ch);
+        const chanSet   = new Set(topChans);
+        const chanColors = {};
+        topChans.forEach((ch,i) => { chanColors[ch] = CHAN_PALETTE[i % CHAN_PALETTE.length]; });
+
+        // Only count leads from top-N channels for consistency
+        const chanCounts = {};
+        topChans.forEach(ch => { chanCounts[ch] = 0; });
+        data.forEach(r => { const ch = r.channel || '(blank)'; if (chanSet.has(ch)) chanCounts[ch]++; });
+        const totalLeads = topChans.reduce((s,ch) => s + chanCounts[ch], 0);
+
+        // ── Funnel counts ───────────────────────────────────────
+        // Only consider leads from top-N channels
+        const inScope = data.filter(r => chanSet.has(r.channel || '(blank)'));
+        const mqlCount = inScope.filter(r => r.mqlDate).length;
+        const sqlLeads = inScope.filter(r => r.workingDate);
+        const sqlCount = sqlLeads.length;
+
+        const outcomeCounts = { Converted:0, Nurture:0, Referral:0, Unqualified:0, Working:0 };
+        sqlLeads.forEach(r => {
+            const ps = r.personStatus;
+            if      (ps === 'Converted')   outcomeCounts.Converted++;
+            else if (ps === 'Nurture')     outcomeCounts.Nurture++;
+            else if (ps === 'Referral')    outcomeCounts.Referral++;
+            else if (ps === 'Unqualified') outcomeCounts.Unqualified++;
+            else                           outcomeCounts.Working++;  // still being worked
+        });
+        const activeOutcomes = OUTCOME_ORDER.filter(o => outcomeCounts[o] > 0);
+
+        // Active (MQL) = ever MQL'd but never SQL'd
+        const activeMqlCount = mqlCount - sqlCount;
+
+        if (!totalLeads) {
+            wrap.style.display  = 'none';
+            empty.style.display = '';
+            return;
+        }
+        wrap.style.display  = '';
+        empty.style.display = 'none';
+
+        // ── Layout ──────────────────────────────────────────────
+        const W           = Math.max(700, wrap.offsetWidth || 920);
+        const NODE_W      = 12;
+        const N_COLS      = 5;
+        const LEFT_LBL_W  = 164;
+        const RIGHT_LBL_W = 128;
+        const PAD_T       = 38;   // space above for mid-column labels
+        const PAD_B       = 12;
+        const GAP_CHAN    = 6;
+        const GAP_OUT     = 8;
+        const GAP_MQL_SQL = 18;   // visual separator between Active(MQL) and SQL outcomes
+
+        // Evenly space 5 columns across usable width
+        const usable  = W - LEFT_LBL_W - RIGHT_LBL_W - N_COLS * NODE_W;
+        const colGap  = usable / (N_COLS - 1);
+        const xC      = Array.from({length:N_COLS}, (_,i) => LEFT_LBL_W + i * (NODE_W + colGap));
+
+        // Scale: fit channel column in H_CONTENT
+        const H_CHAN    = Math.max(200, topChans.length * 26);
+        const scale     = (H_CHAN - (topChans.length - 1) * GAP_CHAN) / totalLeads;
+
+        // Active MQL node height
+        const activeMqlH = activeMqlCount > 0 ? Math.max(2, activeMqlCount * scale) : 0;
+
+        // Outcome column height = Active(MQL) section + separator + SQL outcomes
+        const sqlOutcomeH = activeOutcomes.reduce((s,o) => s + Math.max(2, outcomeCounts[o] * scale), 0)
+                          + Math.max(0, activeOutcomes.length - 1) * GAP_OUT;
+        const outcomeH  = activeMqlH
+                        + (activeMqlH > 0 && sqlOutcomeH > 0 ? GAP_MQL_SQL : 0)
+                        + sqlOutcomeH;
+        const H_CONTENT      = Math.max(H_CHAN, outcomeH);
+        const hasNurtureLoop = outcomeCounts.Nurture > 0;
+        const LOOP_PAD       = hasNurtureLoop ? 48 : 0;
+        const H              = H_CONTENT + PAD_T + PAD_B + LOOP_PAD;
+        wrap.style.height    = H + 'px';
+
+        function centerY(h) { return PAD_T + (H_CONTENT - h) / 2; }
+        function esc(v) { return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        // ── Position nodes ──────────────────────────────────────
+        // Col 0: channels
+        let y = PAD_T;
+        const chanPos = {};
+        topChans.forEach(ch => {
+            const h = Math.max(2, chanCounts[ch] * scale);
+            chanPos[ch] = { y, h, yOut: y };
+            y += h + GAP_CHAN;
+        });
+
+        // Col 1: Demand Gen (single, top-aligned with channel column)
+        const dgH = Math.max(4, totalLeads * scale);
+        const dgY = PAD_T;
+
+        // Col 2: MQL
+        const mqlH = Math.max(4, mqlCount * scale);
+        const mqlY = centerY(mqlH);
+
+        // Col 3: SQL
+        const sqlH = Math.max(4, sqlCount * scale);
+        const sqlY = centerY(sqlH);
+
+        // Col 4: output items — Active(MQL) at top, then SQL outcomes
+        const outStartY = centerY(outcomeH);
+        y = outStartY;
+
+        // Active MQL position
+        const activeMqlPos = activeMqlCount > 0 ? { y, h: activeMqlH } : null;
+        if (activeMqlPos) y += activeMqlH + (sqlOutcomeH > 0 ? GAP_MQL_SQL : 0);
+
+        // SQL outcome positions
+        const outPos = {};
+        const outYIn = {};
+        activeOutcomes.forEach(o => {
+            const h = Math.max(2, outcomeCounts[o] * scale);
+            outPos[o]  = { y, h };
+            outYIn[o]  = y;
+            y += h + GAP_OUT;
+        });
+
+        // ── Draw SVG ────────────────────────────────────────────
+        function rib(x1, y1t, y1b, x2, y2t, y2b, color, opacity, title) {
+            const cx = (x1 + NODE_W + x2) / 2;
+            const d  = `M${x1+NODE_W} ${y1t} C${cx} ${y1t},${cx} ${y2t},${x2} ${y2t} L${x2} ${y2b} C${cx} ${y2b},${cx} ${y1b},${x1+NODE_W} ${y1b} Z`;
+            return `<path d="${d}" fill="${color}" fill-opacity="${opacity}" stroke="${color}" stroke-opacity="0.08" stroke-width="0.5"><title>${esc(title)}</title></path>`;
+        }
+
+        let svg = '';
+
+        // 1. Channels → Demand Gen
+        let dgYIn = dgY;
+        topChans.forEach(ch => {
+            const n  = chanPos[ch];
+            const fh = Math.max(1, chanCounts[ch] * scale);
+            svg += rib(xC[0], n.yOut, n.yOut+fh, xC[1], dgYIn, dgYIn+fh, chanColors[ch], 0.3,
+                       `${ch} → Demand Gen: ${chanCounts[ch].toLocaleString()}`);
+            n.yOut += fh;
+            dgYIn  += fh;
+        });
+
+        // 2. Demand Gen → MQL
+        if (mqlCount > 0)
+            svg += rib(xC[1], dgY, dgY+mqlH, xC[2], mqlY, mqlY+mqlH, '#3498db', 0.38,
+                       `Demand Gen → MQL: ${mqlCount.toLocaleString()}`);
+
+        // 3. MQL → SQL (top portion of MQL node)
+        if (sqlCount > 0)
+            svg += rib(xC[2], mqlY, mqlY+sqlH, xC[3], sqlY, sqlY+sqlH, '#1a6eb5', 0.38,
+                       `MQL → SQL (Working): ${sqlCount.toLocaleString()}`);
+
+        // 3b. MQL → Active (MQL) — long-range ribbon skipping col 3 (bottom portion of MQL node)
+        if (activeMqlPos) {
+            const mqlRibTop = mqlY + sqlH;
+            svg += rib(xC[2], mqlRibTop, mqlRibTop+activeMqlH, xC[4], activeMqlPos.y, activeMqlPos.y+activeMqlH,
+                       '#85c1e9', 0.38, `MQL → Active (MQL): ${activeMqlCount.toLocaleString()}`);
+        }
+
+        // 4. SQL → outcomes
+        let sqlYOut = sqlY;
+        activeOutcomes.forEach(o => {
+            const fh = Math.max(1, outcomeCounts[o] * scale);
+            svg += rib(xC[3], sqlYOut, sqlYOut+fh, xC[4], outYIn[o], outYIn[o]+fh, OUTCOME_COLORS[o], 0.38,
+                       `SQL → ${OUTCOME_LABELS[o]}: ${outcomeCounts[o].toLocaleString()}`);
+            sqlYOut      += fh;
+            outYIn[o]    += fh;
+        });
+
+        // ── Nodes ───────────────────────────────────────────────
+
+        // Channel nodes + labels
+        topChans.forEach(ch => {
+            const n   = chanPos[ch];
+            const col = chanColors[ch];
+            const lbl = ch.length > 22 ? ch.slice(0,20)+'…' : ch;
+            svg += `<rect x="${xC[0]}" y="${n.y}" width="${NODE_W}" height="${n.h}" fill="${col}" rx="2"/>`;
+            svg += `<text x="${xC[0]-7}" y="${n.y+n.h/2}" text-anchor="end" dominant-baseline="middle" font-size="10" font-weight="600" fill="${col}"><title>${esc(ch)}: ${chanCounts[ch].toLocaleString()}</title>${esc(lbl)}</text>`;
+        });
+
+        // Intermediate nodes with label above + count below label
+        function midNode(col, x, nodeY, nodeH, label, count) {
+            svg += `<rect x="${x}" y="${nodeY}" width="${NODE_W}" height="${nodeH}" fill="${col}" rx="2"/>`;
+            svg += `<text x="${x+NODE_W/2}" y="${nodeY-18}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}">${label}</text>`;
+            svg += `<text x="${x+NODE_W/2}" y="${nodeY-6}" text-anchor="middle" font-size="9" fill="${col}" opacity="0.8">${Number(count).toLocaleString()}</text>`;
+        }
+        midNode('#9b59b6', xC[1], dgY,  dgH,  'Demand Gen', totalLeads);
+        midNode('#3498db', xC[2], mqlY, mqlH, 'MQL',        mqlCount);
+        midNode('#1a6eb5', xC[3], sqlY, sqlH, 'SQL',        sqlCount);
+
+        // Active (MQL) node + label
+        if (activeMqlPos) {
+            svg += `<rect x="${xC[4]}" y="${activeMqlPos.y}" width="${NODE_W}" height="${activeMqlPos.h}" fill="#85c1e9" rx="2"/>`;
+            svg += `<text x="${xC[4]+NODE_W+7}" y="${activeMqlPos.y+activeMqlPos.h/2}" dominant-baseline="middle" font-size="10" font-weight="700" fill="#2e86c1">Active (MQL) <tspan font-size="9" font-weight="400" fill="#888">${activeMqlCount.toLocaleString()}</tspan></text>`;
+        }
+
+        // SQL outcome nodes + labels
+        activeOutcomes.forEach(o => {
+            const n   = outPos[o];
+            const col = OUTCOME_COLORS[o];
+            svg += `<rect x="${xC[4]}" y="${n.y}" width="${NODE_W}" height="${n.h}" fill="${col}" rx="2"/>`;
+            svg += `<text x="${xC[4]+NODE_W+7}" y="${n.y+n.h/2}" dominant-baseline="middle" font-size="10" font-weight="700" fill="${col}">${esc(OUTCOME_LABELS[o])} <tspan font-size="9" font-weight="400" fill="#888">${outcomeCounts[o].toLocaleString()}</tspan></text>`;
+        });
+
+        // ── Return arc: Nurture → Demand Gen (feedback loop) ────
+        if (hasNurtureLoop && outPos['Nurture']) {
+            const nPos        = outPos['Nurture'];
+            const nurtureMidY = nPos.y + nPos.h / 2;
+            const dgArriveY   = dgY + dgH * 0.78;   // aim at lower portion of DG node
+            const arcBot      = H - LOOP_PAD / 2;
+            const x0          = xC[4] + NODE_W;
+            const x1          = xC[1];
+            const labelX      = (x0 + x1) / 2;
+            svg += `<path d="M${x0} ${nurtureMidY} C${x0+90} ${arcBot},${x1-90} ${arcBot},${x1} ${dgArriveY}" fill="none" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="5,4" stroke-opacity="0.65" marker-end="url(#lgNurtureArrow)"><title>Nurture → re-enters Demand Gen: ${outcomeCounts.Nurture.toLocaleString()} records cycle back into pipeline</title></path>`;
+            svg += `<text x="${labelX}" y="${arcBot+13}" text-anchor="middle" font-size="9" fill="#f39c12" opacity="0.75">↺ re-enters pipeline (${outcomeCounts.Nurture.toLocaleString()})</text>`;
+        }
+
+        const svgDefs = hasNurtureLoop
+            ? `<defs><marker id="lgNurtureArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0 0, 7 3.5, 0 7" fill="#f39c12" opacity="0.75"/></marker></defs>`
+            : '';
+
+        wrap.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:Asap,sans-serif;overflow:visible">${svgDefs}${svg}</svg>`;
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -3374,42 +3633,59 @@
         else if (s === 'working')     renderWorkingDetail();
     }
 
-    function setTimelineGranularity(gran) {
-        timelineGranularity = gran;
+    function setTimeScale(s) {
+        timeScale = s;
+        ['Week','Month','Quarter','Year','FY'].forEach(function(x) {
+            var btn = document.getElementById('btnLgTs' + x);
+            if (btn) btn.classList.toggle('active', s === x.toLowerCase());
+        });
+        // Re-render all time-based charts
         const panel = document.getElementById('stageDetailPanel');
-        if (!panel || panel.style.display === 'none') return;
-        const s = panel.dataset.stage;
-        if      (s === 'demand')      renderDemandDetail();
-        else if (s === 'nurture')     renderNurtureDetail();
-        else if (s === 'referral')    renderReferralDetail();
-        else if (s === 'assigned')    renderAssignedDetail();
-        else if (s === 'working')     renderWorkingDetail();
+        if (panel && panel.style.display !== 'none') {
+            const stage = panel.dataset.stage;
+            if      (stage === 'demand')      renderDemandDetail();
+            else if (stage === 'nurture')     renderNurtureDetail();
+            else if (stage === 'referral')    renderReferralDetail();
+            else if (stage === 'assigned')    renderAssignedDetail();
+            else if (stage === 'working')     renderWorkingDetail();
+        }
+        drawNurtureByOrgChart();
     }
+    function setTimelineGranularity(gran) { setTimeScale(gran); }
 
     function getFYRange(mode) {
         const today = new Date();
-        // FY starts July 1; if we're before July the current FY started last calendar year
         const fyStartYear = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
         if (mode === 'currentFY') {
             return { from: new Date(fyStartYear, 6, 1), to: new Date(fyStartYear + 1, 6, 0) };
-        } else {
-            return { from: new Date(fyStartYear - 1, 6, 1), to: new Date(fyStartYear, 6, 0) };
         }
+        // 'lastFY' or 'lastfy'
+        return { from: new Date(fyStartYear - 1, 6, 1), to: new Date(fyStartYear, 6, 0) };
     }
 
     function tlKey(dateStr) {
         const d = parseDate(dateStr);
         if (!d) return null;
-        const y = d.getFullYear();
-        if (timelineGranularity === 'year')    return String(y);
-        if (timelineGranularity === 'quarter') return y + '-Q' + Math.ceil((d.getMonth() + 1) / 3);
-        // month / currentFY / lastFY all use monthly grouping
-        return y + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        const y = d.getFullYear(), mo = d.getMonth();
+        if (timeScale === 'week') {
+            const jan1 = new Date(y, 0, 1);
+            const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+            return y + '-W' + String(wk).padStart(2, '0');
+        }
+        if (timeScale === 'year')    return String(y);
+        if (timeScale === 'quarter') return y + '-Q' + Math.ceil((mo + 1) / 3);
+        if (timeScale === 'fy') {
+            const fy = mo >= 6 ? y + 1 : y;
+            return 'FY' + String(fy).slice(-2);
+        }
+        return y + '-' + String(mo + 1).padStart(2, '0');
     }
 
     function tlLabel(key) {
-        if (timelineGranularity === 'year')    return key;
-        if (timelineGranularity === 'quarter') {
+        if (timeScale === 'year')    return key;
+        if (timeScale === 'fy')      return key;
+        if (timeScale === 'week')    return key.replace('-W', ' W');
+        if (timeScale === 'quarter') {
             const [y, q] = key.split('-');
             return q + ' \'' + String(y).slice(2);
         }
@@ -3518,7 +3794,6 @@
         const orgNurtureHtml = `<div class="stage-detail-widget stage-timeline-widget" style="flex:2;min-width:400px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
                 <span class="stage-detail-widget-title" style="margin-bottom:0">Nurture Leads by Organisation · by Created Date</span>
-                <div class="stack-pills" style="margin-left:auto" id="nurtureOrgGranPills"></div>
             </div>
             <div style="position:relative;height:200px">
                 <canvas id="chartNurtureByOrg"></canvas>
@@ -3558,56 +3833,16 @@
         drawNurtureByOrgChart();
     }
 
-    function setNurtureOrgGranularity(gran) {
-        nurtureOrgGranularity = gran;
-        drawNurtureByOrgChart();
-    }
+    function setNurtureOrgGranularity(gran) { setTimeScale(gran); }
 
     function drawNurtureByOrgChart() {
         const nurtureLeads = _nurtureLeadsCache;
         if (!nurtureLeads) return;
-        const gran = nurtureOrgGranularity;
-
-        // Update pills
-        const pillsEl = document.getElementById('nurtureOrgGranPills');
-        if (pillsEl) {
-            const opts = [['month','Month'],['quarter','Quarter'],['year','Year'],['currentFY','Current FY'],['lastFY','Last FY']];
-            pillsEl.innerHTML = opts.map(([v, l]) =>
-                `<button class="stack-toggle-btn${gran === v ? ' active' : ''}" onclick="setNurtureOrgGranularity('${v}')">${l}</button>`
-            ).join('');
-        }
-
-        // Key / label helpers scoped to this chart's granularity
-        function gKey(dateStr) {
-            const d = parseDate(dateStr);
-            if (!d) return null;
-            const y = d.getFullYear();
-            if (gran === 'year')    return String(y);
-            if (gran === 'quarter') return y + '-Q' + Math.ceil((d.getMonth() + 1) / 3);
-            return y + '-' + String(d.getMonth() + 1).padStart(2, '0');
-        }
-        function gLabel(key) {
-            if (gran === 'year') return key;
-            if (gran === 'quarter') { const [y, q] = key.split('-'); return q + ' \'' + String(y).slice(2); }
-            const [y, m] = key.split('-');
-            return new Date(+y, +m - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        }
-
-        // Restrict to FY window when needed
-        let visibleLeads = nurtureLeads;
-        if (gran === 'currentFY' || gran === 'lastFY') {
-            const { from, to } = getFYRange(gran);
-            visibleLeads = nurtureLeads.filter(r => {
-                if (!r.createdDate) return false;
-                const d = parseDate(r.createdDate);
-                return d && d >= from && d <= to;
-            });
-        }
-
+        const visibleLeads = nurtureLeads;
         const orgStackMap = {}, orgTotals = {};
         visibleLeads.forEach(r => {
             if (!r.createdDate) return;
-            const mk = gKey(r.createdDate);
+            const mk = tlKey(r.createdDate);
             if (!mk) return;
             const org = r.org || '(blank)';
             if (!orgStackMap[org]) orgStackMap[org] = {};
@@ -3616,7 +3851,7 @@
         });
         const orgKeys = Object.entries(orgTotals).sort((a, b) => b[1] - a[1]).map(([k]) => k);
         const orgMonthSet = new Set();
-        visibleLeads.forEach(r => { if (r.createdDate) { const k = gKey(r.createdDate); if (k) orgMonthSet.add(k); } });
+        visibleLeads.forEach(r => { if (r.createdDate) { const k = tlKey(r.createdDate); if (k) orgMonthSet.add(k); } });
         const orgMonths = [...orgMonthSet].sort();
         const orgDatasets = orgKeys.map((org, i) => ({
             label: org,
@@ -3629,7 +3864,7 @@
         charts['chartNurtureByOrg'] = new Chart(
             document.getElementById('chartNurtureByOrg').getContext('2d'), {
             type: 'bar',
-            data: { labels: orgMonths.map(k => gLabel(k)), datasets: orgDatasets },
+            data: { labels: orgMonths.map(k => tlLabel(k)), datasets: orgDatasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
@@ -3883,19 +4118,9 @@
 
     // ── Shared: timeline chart widget ───────────────────────────
     function makeTimelineWidgetHtml(canvasId, title) {
-        const g = timelineGranularity;
-        const pill = (val, label) =>
-            `<button class="stack-toggle-btn${g === val ? ' active' : ''}" onclick="setTimelineGranularity('${val}')">${label}</button>`;
         return `<div class="stage-detail-widget stage-timeline-widget">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="margin-bottom:10px">
                 <span class="stage-detail-widget-title" style="margin-bottom:0">${title}</span>
-                <div class="stack-pills" style="margin-left:auto">
-                    ${pill('month',     'Month')}
-                    ${pill('quarter',   'Quarter')}
-                    ${pill('year',      'Year')}
-                    ${pill('currentFY', 'Current FY')}
-                    ${pill('lastFY',    'Last FY')}
-                </div>
             </div>
             <div style="position:relative;height:130px">
                 <canvas id="${canvasId}"></canvas>
@@ -3906,20 +4131,9 @@
     function drawTimelineChart(canvasId, leads, dateField, barColor) {
         const stackOpt = demandStackField ? DEMAND_STACK_OPTIONS.find(o => o.field === demandStackField) : null;
 
-        // Restrict to FY window when a fiscal year mode is selected
-        let visibleLeads = leads;
-        if (timelineGranularity === 'currentFY' || timelineGranularity === 'lastFY') {
-            const { from, to } = getFYRange(timelineGranularity);
-            visibleLeads = leads.filter(r => {
-                if (!r[dateField]) return false;
-                const d = parseDate(r[dateField]);
-                return d && d >= from && d <= to;
-            });
-        }
-
         // Collect all period keys at the current granularity
         const allKeys = new Set();
-        visibleLeads.forEach(r => { if (r[dateField]) { const k = tlKey(r[dateField]); if (k) allKeys.add(k); } });
+        leads.forEach(r => { if (r[dateField]) { const k = tlKey(r[dateField]); if (k) allKeys.add(k); } });
         const keys = [...allKeys].sort();
         if (!keys.length) return;
 
@@ -3928,7 +4142,7 @@
         let datasets;
         if (stackOpt) {
             const stackMap = {}, stackTotals = {};
-            visibleLeads.forEach(r => {
+            leads.forEach(r => {
                 if (!r[dateField]) return;
                 const mk = tlKey(r[dateField]);
                 if (!mk) return;
@@ -3947,7 +4161,7 @@
             }));
         } else {
             const counts = {};
-            visibleLeads.forEach(r => {
+            leads.forEach(r => {
                 if (!r[dateField]) return;
                 const k = tlKey(r[dateField]);
                 if (k) counts[k] = (counts[k] || 0) + 1;
@@ -4048,6 +4262,149 @@
         </div>`;
     }
 
+    // ═══════════════════════════════════════════════════════════
+    //  WORLD MAP (Assigned tab)
+    // ═══════════════════════════════════════════════════════════
+    function lgGetWorldData() {
+        if (lgWorldLoadPromise) return lgWorldLoadPromise;
+        lgWorldLoadPromise = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+            .then(function(r) { return r.json(); })
+            .then(function(topo) {
+                return topojson.feature(topo, topo.objects.countries).features;
+            });
+        return lgWorldLoadPromise;
+    }
+
+    function lgCtryColor(val, maxVal) {
+        if (!val) return '#d8dde4';
+        var t = Math.pow(val / maxVal, 0.55);
+        return 'rgb(' + Math.round(208*(1-t)) + ',' +
+                        Math.round(228 - 129*t) + ',' +
+                        Math.round(245 - 73*t)  + ')';
+    }
+
+    function lgDrawWorldMap(canvasEl) {
+        var ctx2 = canvasEl.getContext('2d');
+        var W = canvasEl.width, H = canvasEl.height;
+        var maxVal = lgWorldCountryPaths.length ? (lgWorldCountryPaths[0].maxVal || 1) : 1;
+        ctx2.clearRect(0, 0, W, H);
+        ctx2.fillStyle = '#EBF4FA';
+        ctx2.fillRect(0, 0, W, H);
+        lgWorldCountryPaths.forEach(function(cp) {
+            ctx2.fillStyle   = lgCtryColor(cp.value, maxVal);
+            ctx2.fill(cp.path, 'evenodd');
+            ctx2.strokeStyle = '#ffffff';
+            ctx2.lineWidth   = 0.5;
+            ctx2.stroke(cp.path);
+        });
+    }
+
+    function lgSetupMapMouse(canvasEl) {
+        var tt   = document.getElementById('lgMapTooltip');
+        var ctx2 = canvasEl.getContext('2d');
+        canvasEl.addEventListener('mousemove', function(e) {
+            var rect = canvasEl.getBoundingClientRect();
+            var sx = canvasEl.width  / rect.width;
+            var sy = canvasEl.height / rect.height;
+            var mx = (e.clientX - rect.left) * sx;
+            var my = (e.clientY - rect.top)  * sy;
+            var found = null;
+            for (var i = lgWorldCountryPaths.length - 1; i >= 0; i--) {
+                if (ctx2.isPointInPath(lgWorldCountryPaths[i].path, mx, my, 'evenodd')) {
+                    found = lgWorldCountryPaths[i];
+                    break;
+                }
+            }
+            if (found && (found.value > 0 || found.name)) {
+                tt.style.display = 'block';
+                tt.style.left    = (e.clientX - rect.left + 12) + 'px';
+                tt.style.top     = (e.clientY - rect.top  - 38) + 'px';
+                tt.innerHTML     = found.name
+                    ? '<strong>' + found.name + '</strong>' +
+                      (found.value ? '<br>' + found.value + ' MQL lead' + (found.value !== 1 ? 's' : '') : '')
+                    : 'No data';
+            } else {
+                tt.style.display = 'none';
+            }
+        });
+        canvasEl.addEventListener('mouseleave', function() { tt.style.display = 'none'; });
+    }
+
+    function renderLeadGenMap(leads) {
+        var mapLoading = document.getElementById('lgMapLoading');
+        if (mapLoading) mapLoading.style.display = 'flex';
+
+        var ccLower = {}, ccDisplay = {};
+        leads.forEach(function(r) {
+            var c = r.country || '';
+            if (!c || c === 'Unknown' || c === '') return;
+            var lower = c.toLowerCase();
+            ccLower[lower]   = (ccLower[lower] || 0) + 1;
+            if (!ccDisplay[lower]) ccDisplay[lower] = c;
+        });
+
+        lgGetWorldData().then(function(features) {
+            if (mapLoading) mapLoading.style.display = 'none';
+            var canvasEl = document.getElementById('lgChartWorldMap');
+            if (!canvasEl) return;
+
+            var W = canvasEl.offsetWidth || 900;
+            var H = Math.round(W / 2);
+            canvasEl.width  = W;
+            canvasEl.height = H;
+
+            var mg = 4, pw = W - 2*mg, ph = H - 2*mg;
+            function xy(lon, lat) {
+                return [mg + (lon + 180) / 360 * pw,
+                        mg + (90  - lat)  / 180 * ph];
+            }
+
+            var maxVal = 0;
+            Object.values(ccLower).forEach(function(v) { if (v > maxVal) maxVal = v; });
+            if (maxVal === 0) maxVal = 1;
+
+            lgWorldCountryPaths = features.map(function(f) {
+                var fid = parseInt(f.id, 10);
+                var val = 0, name = '';
+                Object.keys(ccLower).forEach(function(lower) {
+                    if (CTRY_TO_ID[lower] === fid) {
+                        val += ccLower[lower];
+                        if (!name) name = ccDisplay[lower];
+                    }
+                });
+                var p = new Path2D();
+                var g = f.geometry;
+                if (g) {
+                    var polys = g.type === 'Polygon'      ? [g.coordinates] :
+                                g.type === 'MultiPolygon' ?  g.coordinates  : [];
+                    polys.forEach(function(rings) {
+                        rings.forEach(function(ring) {
+                            if (!ring.length) return;
+                            var p0 = xy(ring[0][0], ring[0][1]);
+                            p.moveTo(p0[0], p0[1]);
+                            for (var i = 1; i < ring.length; i++) {
+                                var pi = xy(ring[i][0], ring[i][1]);
+                                p.lineTo(pi[0], pi[1]);
+                            }
+                            p.closePath();
+                        });
+                    });
+                }
+                return { feature: f, path: p, value: val, name: name, maxVal: maxVal };
+            });
+
+            lgDrawWorldMap(canvasEl);
+
+            if (!lgWorldCanvasReady) {
+                lgWorldCanvasReady = true;
+                lgSetupMapMouse(canvasEl);
+            }
+        }).catch(function(e) {
+            console.error('Lead gen world map failed:', e);
+            if (mapLoading) mapLoading.textContent = 'Map unavailable — check internet connection';
+        });
+    }
+
     function renderAssignedDetail() {
         const leads       = applyDemandFilters().filter(r => r.personStatus === 'Assigned');
         const n           = leads.length;
@@ -4075,8 +4432,26 @@
                 <div style="display:flex;flex-direction:column;gap:20px">${queueWidget}${mqlAgeWidget}${dqWidget}</div>
                 <div>${ownerWidget}</div>
             </div>` +
-            makeTimelineWidgetHtml('chartAssignedTimeline', 'MQL date over time');
+            makeTimelineWidgetHtml('chartAssignedTimeline', 'MQL date over time') +
+            `<div class="stage-detail-widget stage-timeline-widget" style="margin-top:20px">
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
+                    <span class="stage-detail-widget-title" style="margin-bottom:0">MQL Geography</span>
+                    <span style="font-size:10px;font-weight:400;color:#9ca3af">Countries shaded by number of MQL leads — hover for details</span>
+                </div>
+                <div id="lgMapWrap" style="position:relative;min-height:60px">
+                    <canvas id="lgChartWorldMap" style="width:100%;display:block"></canvas>
+                    <div id="lgMapLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#9ca3af;background:#fff;z-index:2">Loading map data…</div>
+                    <div id="lgMapTooltip" style="display:none;position:absolute;background:rgba(30,30,30,.88);color:#fff;font-size:11px;padding:5px 9px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:10;line-height:1.5"></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;justify-content:flex-end">
+                    <span style="font-size:10px;color:#9ca3af">Fewer</span>
+                    <div style="width:90px;height:7px;border-radius:3px;background:linear-gradient(to right,#d0e4f5,#0063AC)"></div>
+                    <span style="font-size:10px;color:#9ca3af">More</span>
+                </div>
+            </div>`;
         drawTimelineChart('chartAssignedTimeline', leads, 'mqlDate', '#3498db');
+        lgWorldCanvasReady = false; // canvas was just recreated via innerHTML
+        renderLeadGenMap(leads);
     }
 
     function renderWorkingDetail() {

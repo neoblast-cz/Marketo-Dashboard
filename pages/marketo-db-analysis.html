@@ -8,11 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
-        #btnPeopleOnly.active, #btnLeadsOnly.active, #btnContactsOnly.active {
+        #btnPeopleOnly.active, #btnLeadsOnly.active, #btnContactsOnly.active, #btnIncludeSales.active {
             background: var(--ansell-blue) !important;
             border-color: var(--ansell-blue) !important;
             color: #fff !important;
         }
+        #growthProgWrap.open { max-height: 560px; }
     </style>
 </head>
 <body>
@@ -45,6 +46,10 @@
             </div>
         </div>
         <div class="header-buttons">
+            <button class="api-btn" id="folderBtn" onclick="pickFolder()">
+                <span class="api-btn-dot" id="folderDot"></span>
+                Reports Folder
+            </button>
             <button class="load-btn" onclick="document.getElementById('fileInput').click()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Load Data
@@ -130,6 +135,7 @@
             <button id="btnPeopleOnly"   onclick="togglePeopleOnly()"   style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">People</button>
             <button id="btnLeadsOnly"    onclick="toggleLeadsOnly()"    style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">Leads</button>
             <button id="btnContactsOnly" onclick="toggleContactsOnly()" style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444">Contacts</button>
+            <button id="btnIncludeSales" onclick="toggleIncludeSales()" style="padding:3px 10px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#444" class="active">Include Sales</button>
         </span>
         <button class="filter-reset" onclick="resetFilters()">Reset All</button>
         <span class="filter-count" id="filterCount"></span>
@@ -339,6 +345,12 @@
                         <div class="expand-month-inner">
                             <div class="expand-month-label" id="growthMonthLabel"></div>
                             <div class="chart-wrap" style="height:200px"><canvas id="chartGrowthMonthly"></canvas></div>
+                        </div>
+                    </div>
+                    <div id="growthProgWrap" class="expand-month-wrap">
+                        <div class="expand-month-inner">
+                            <div class="expand-month-label" id="growthProgLabel"></div>
+                            <div id="growthProgList" style="max-height:480px;overflow-y:auto"></div>
                         </div>
                     </div>
                 </div>
@@ -673,9 +685,97 @@
     }
 
     // ═══════════════════════════════════════════════════════════
+    //  FSA (FILE SYSTEM ACCESS API)
+    // ═══════════════════════════════════════════════════════════
+    const isHosted = !['localhost', '127.0.0.1'].includes(location.hostname);
+    let _reportsHandle = null;
+
+    function idbOpen() {
+        return new Promise((res, rej) => {
+            const req = indexedDB.open('mkto-dash', 1);
+            req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+            req.onsuccess = e => res(e.target.result);
+            req.onerror   = e => rej(e);
+        });
+    }
+    async function idbGet(key) {
+        const db = await idbOpen();
+        return new Promise(res => {
+            const tx = db.transaction('kv', 'readonly');
+            const r  = tx.objectStore('kv').get(key);
+            r.onsuccess = () => res(r.result);
+            r.onerror   = () => res(null);
+        });
+    }
+    async function idbSet(key, val) {
+        const db = await idbOpen();
+        return new Promise(res => {
+            const tx = db.transaction('kv', 'readwrite');
+            tx.objectStore('kv').put(val, key);
+            tx.oncomplete = res;
+        });
+    }
+    async function tryRestoreHandle() {
+        try {
+            const h = await idbGet('reportsFolder');
+            if (!h) return null;
+            const perm = await h.queryPermission({ mode: 'read' });
+            if (perm === 'granted') return h;
+            const req = await h.requestPermission({ mode: 'read' });
+            if (req === 'granted') return h;
+        } catch {}
+        return null;
+    }
+    function setFolderConnected(name) {
+        const btn = document.getElementById('folderBtn');
+        if (btn) { btn.classList.add('configured'); btn.title = 'Connected: ' + name; }
+    }
+    async function pickFolder() {
+        if (!window.showDirectoryPicker) {
+            alert('File System Access API not supported. Use Edge or Chrome.');
+            return;
+        }
+        try {
+            const handle = await window.showDirectoryPicker({ mode: 'read' });
+            _reportsHandle = handle;
+            await idbSet('reportsFolder', handle);
+            setFolderConnected(handle.name);
+            const allExports = await detectAllExports();
+            if (allExports.length) {
+                const sel = document.getElementById('exportDateSelect');
+                if (sel) {
+                    sel.innerHTML = '';
+                    allExports.forEach(({ dateStr }) => {
+                        const opt = document.createElement('option');
+                        opt.value = dateStr;
+                        opt.textContent = formatExportDate(dateStr);
+                        sel.appendChild(opt);
+                    });
+                    sel.value = allExports[0].dateStr;
+                }
+                loadCSV(allExports[0].path, allExports[0].dateStr);
+            } else {
+                showEmpty();
+            }
+        } catch (e) {
+            if (e.name !== 'AbortError') console.error(e);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     //  FILE DETECTION & LOADING
     // ═══════════════════════════════════════════════════════════
     async function detectLatestExport() {
+        if (isHosted && _reportsHandle) {
+            const matches = [];
+            for await (const [name] of _reportsHandle.entries()) {
+                if (name.endsWith('Dashboard_Export.csv')) matches.push(name);
+            }
+            if (!matches.length) return null;
+            matches.sort().reverse();
+            const filename = matches[0];
+            return { path: filename, dateStr: filename.substring(0, 10) };
+        }
         const today = new Date();
         for (let i = 0; i < 90; i++) {
             const d = new Date(today);
@@ -694,6 +794,14 @@
     }
 
     async function detectAllExports() {
+        if (isHosted && _reportsHandle) {
+            const matches = [];
+            for await (const [name] of _reportsHandle.entries()) {
+                if (name.endsWith('Dashboard_Export.csv')) matches.push(name);
+            }
+            matches.sort().reverse();
+            return matches.map(name => ({ path: name, dateStr: name.substring(0, 10) }));
+        }
         const results = [];
         const today = new Date();
         for (let i = 0; i < 90; i++) {
@@ -713,7 +821,9 @@
     }
 
     function switchExportFile(dateStr) {
-        const path = `../Reports/${dateStr} Dashboard_Export.csv`;
+        const path = (isHosted && _reportsHandle)
+            ? `${dateStr} Dashboard_Export.csv`
+            : `../Reports/${dateStr} Dashboard_Export.csv`;
         loadCSV(path, dateStr);
     }
 
@@ -816,16 +926,30 @@
         btn.disabled = false;
     }
 
-    function loadCSV(path, dateStr) {
+    async function loadCSV(path, dateStr) {
         exportDateStr = dateStr;
         showLoading('Auto-loading latest export…');
-        Papa.parse(path, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: (res) => processData(res.data),
-            error: () => showEmpty()
-        });
+        if (isHosted && _reportsHandle) {
+            try {
+                const filename = path.split('/').pop();
+                const fh = await _reportsHandle.getFileHandle(filename);
+                const file = await fh.getFile();
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (res) => processData(res.data),
+                    error: () => showEmpty()
+                });
+            } catch (e) { showEmpty(); }
+        } else {
+            Papa.parse(path, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (res) => processData(res.data),
+                error: () => showEmpty()
+            });
+        }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1027,9 +1151,16 @@
 
     function applyFilters() {
         return allData.filter(r => {
-            if (globalLeadsOnly    && r.sfdcType !== 'Lead')    return false;
-            if (globalContactsOnly && r.sfdcType !== 'Contact') return false;
-            if (globalPeopleOnly   && r.sfdcType)                return false;
+            // Type quick-filters: multi-select — if any active, record must match at least one
+            if (globalLeadsOnly || globalContactsOnly || globalPeopleOnly) {
+                const t = r.sfdcType || '';
+                const match = (globalLeadsOnly    && t === 'Lead')    ||
+                              (globalContactsOnly && t === 'Contact') ||
+                              (globalPeopleOnly   && t === '');
+                if (!match) return false;
+            }
+            // Include Sales toggle — when OFF, exclude "Record Created in Salesforce"
+            if (!globalIncludeSales && r.acqProgram.toLowerCase() === 'record created in salesforce') return false;
             const org   = msState['f-org'];
             if (org.size   && !org.has(r.org || '(blank)'))            return false;
             const gbu   = msState['f-gbu'];
@@ -1069,13 +1200,13 @@
         }
         globalLeadsOnly    = false;
         globalContactsOnly = false;
-        const btn = document.getElementById('btnLeadsOnly');
-        if (btn) btn.classList.remove('active');
-        const btn2 = document.getElementById('btnContactsOnly');
-        if (btn2) btn2.classList.remove('active');
-        globalPeopleOnly = false;
-        const btn3 = document.getElementById('btnPeopleOnly');
-        if (btn3) btn3.classList.remove('active');
+        globalPeopleOnly   = false;
+        globalIncludeSales = true;
+        ['btnLeadsOnly','btnContactsOnly','btnPeopleOnly'].forEach(id => {
+            const b = document.getElementById(id); if (b) b.classList.remove('active');
+        });
+        const bSales = document.getElementById('btnIncludeSales');
+        if (bSales) bSales.classList.add('active');
         updateFilterCount(allData.length);
         renderAll(allData);
     }
@@ -1084,11 +1215,6 @@
         return (currentFilteredData && currentFilteredData.length) ? currentFilteredData : allData;
     }
 
-    function _clearOtherSfdcFilters(keep) {
-        if (keep !== 'leads')    { globalLeadsOnly    = false; const b = document.getElementById('btnLeadsOnly');    if (b) b.classList.remove('active'); }
-        if (keep !== 'contacts') { globalContactsOnly = false; const b = document.getElementById('btnContactsOnly'); if (b) b.classList.remove('active'); }
-        if (keep !== 'people')   { globalPeopleOnly   = false; const b = document.getElementById('btnPeopleOnly');   if (b) b.classList.remove('active'); }
-    }
     function _applyAndRender() {
         const filtered = applyFilters();
         updateFilterCount(filtered.length);
@@ -1097,23 +1223,22 @@
     }
     function toggleLeadsOnly() {
         globalLeadsOnly = !globalLeadsOnly;
-        if (globalLeadsOnly) _clearOtherSfdcFilters('leads');
-        const btn = document.getElementById('btnLeadsOnly');
-        if (btn) btn.classList.toggle('active', globalLeadsOnly);
+        document.getElementById('btnLeadsOnly').classList.toggle('active', globalLeadsOnly);
         _applyAndRender();
     }
     function toggleContactsOnly() {
         globalContactsOnly = !globalContactsOnly;
-        if (globalContactsOnly) _clearOtherSfdcFilters('contacts');
-        const btn = document.getElementById('btnContactsOnly');
-        if (btn) btn.classList.toggle('active', globalContactsOnly);
+        document.getElementById('btnContactsOnly').classList.toggle('active', globalContactsOnly);
         _applyAndRender();
     }
     function togglePeopleOnly() {
         globalPeopleOnly = !globalPeopleOnly;
-        if (globalPeopleOnly) _clearOtherSfdcFilters('people');
-        const btn = document.getElementById('btnPeopleOnly');
-        if (btn) btn.classList.toggle('active', globalPeopleOnly);
+        document.getElementById('btnPeopleOnly').classList.toggle('active', globalPeopleOnly);
+        _applyAndRender();
+    }
+    function toggleIncludeSales() {
+        globalIncludeSales = !globalIncludeSales;
+        document.getElementById('btnIncludeSales').classList.toggle('active', globalIncludeSales);
         _applyAndRender();
     }
 
@@ -1791,11 +1916,19 @@
 
     let currentGrowthData = [];
     let expandedGrowthYear = null;
+    let expandedGrowthMonth = null;
+    let growthYears = [];
+    let growthMonths = [];
     let currentOptInData  = [];
     let expandedOptInYear = null;
+    let optInYears = [];
     let currentVerticalData = [];
     let expandedVertical    = null;
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const GROWTH_COLOR     = '#0063AC';
+    const GROWTH_COLOR_SEL = '#0096D6';
+    const OPTIN_COLOR      = '#00A28F';
+    const OPTIN_COLOR_SEL  = '#00C4AA';
 
     function makeGrowthChart(canvasId, labels, datasets, onClickFn) {
         const ctx = document.getElementById(canvasId).getContext('2d');
@@ -1826,40 +1959,123 @@
         });
     }
 
-    function growthDatasets(keys, matrix, drillKeys, fallbackData, color) {
+    function growthDatasets(keys, matrix, drillKeys, fallbackData, color, activeKey, activeColor) {
         if (drillKeys.length) return makeDrillDatasets(keys, matrix, drillKeys);
-        return [{ label: '', data: keys.map(k => fallbackData[k] || 0), backgroundColor: color, borderWidth: 0, borderRadius: 2 }];
+        const bg = (activeKey !== undefined && activeColor)
+            ? keys.map(k => String(k) === String(activeKey) ? activeColor : color)
+            : color;
+        return [{ label: '', data: keys.map(k => fallbackData[k] || 0), backgroundColor: bg, borderWidth: 0, borderRadius: 2 }];
     }
 
     function renderGrowth(data) {
         currentGrowthData = data;
         expandedGrowthYear = null;
+        expandedGrowthMonth = null;
         const wrap = document.getElementById('growthMonthWrap');
         if (wrap) wrap.classList.remove('open');
+        const progWrap = document.getElementById('growthProgWrap');
+        if (progWrap) progWrap.classList.remove('open');
         const { matrix, drillKeys } = buildDrillMatrix(data, r => r.createdYear);
         const counts = {};
         data.forEach(r => { if (r.createdYear) counts[r.createdYear] = (counts[r.createdYear] || 0) + 1; });
-        const years = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-        makeGrowthChart('chartGrowth', years.map(String), growthDatasets(years, matrix, drillKeys, counts, '#0063AC'),
-            (evt, elements) => { if (!elements.length) return; toggleGrowthMonthly(years[elements[0].index]); });
+        growthYears = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+        makeGrowthChart('chartGrowth', growthYears.map(String), growthDatasets(growthYears, matrix, drillKeys, counts, GROWTH_COLOR),
+            (evt, elements) => { if (!elements.length) return; toggleGrowthMonthly(growthYears[elements[0].index]); });
+    }
+
+    function updateGrowthYearColors(activeYear) {
+        const gc = charts['chartGrowth'];
+        if (gc && gc.data.datasets.length === 1) {
+            gc.data.datasets[0].backgroundColor = activeYear !== null
+                ? growthYears.map(y => y === activeYear ? GROWTH_COLOR_SEL : GROWTH_COLOR)
+                : GROWTH_COLOR;
+            gc.update('none');
+        }
     }
 
     function toggleGrowthMonthly(year) {
         const wrap = document.getElementById('growthMonthWrap');
+        const progWrap = document.getElementById('growthProgWrap');
         if (expandedGrowthYear === year) {
             expandedGrowthYear = null;
+            expandedGrowthMonth = null;
             if (wrap) wrap.classList.remove('open');
+            if (progWrap) progWrap.classList.remove('open');
+            updateGrowthYearColors(null);
         } else {
             expandedGrowthYear = year;
+            expandedGrowthMonth = null;
+            if (progWrap) progWrap.classList.remove('open');
+            updateGrowthYearColors(year);
             const lbl = document.getElementById('growthMonthLabel');
             if (lbl) lbl.textContent = `Monthly breakdown — ${year}`;
             const yearData = currentGrowthData.filter(r => r.createdYear === year);
             const { matrix, drillKeys } = buildDrillMatrix(yearData, r => r.createdMonth);
             const counts = {};
             yearData.forEach(r => { if (r.createdMonth) counts[r.createdMonth] = (counts[r.createdMonth] || 0) + 1; });
-            const months = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-            makeGrowthChart('chartGrowthMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, '#0063AC'));
+            growthMonths = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+            makeGrowthChart('chartGrowthMonthly', growthMonths.map(m => MONTH_NAMES[m - 1]), growthDatasets(growthMonths, matrix, drillKeys, counts, GROWTH_COLOR_SEL),
+                (evt, elements) => { if (!elements.length) return; toggleGrowthPrograms(year, growthMonths[elements[0].index]); });
             if (wrap) wrap.classList.add('open');
+        }
+    }
+
+    function updateGrowthMonthColors(activeMonth) {
+        const mc = charts['chartGrowthMonthly'];
+        if (mc && mc.data.datasets.length === 1) {
+            mc.data.datasets[0].backgroundColor = activeMonth !== null
+                ? growthMonths.map(m => m === activeMonth ? GROWTH_COLOR : GROWTH_COLOR_SEL)
+                : GROWTH_COLOR_SEL;
+            mc.update('none');
+        }
+    }
+
+    function toggleGrowthPrograms(year, month) {
+        const wrap = document.getElementById('growthProgWrap');
+        const key = `${year}-${month}`;
+        if (expandedGrowthMonth === key) {
+            expandedGrowthMonth = null;
+            if (wrap) wrap.classList.remove('open');
+            updateGrowthMonthColors(null);
+            return;
+        }
+        expandedGrowthMonth = key;
+        updateGrowthMonthColors(month);
+        const monthData = currentGrowthData.filter(r => r.createdYear === year && r.createdMonth === month);
+        const counts = {};
+        monthData.forEach(r => {
+            const prog = r.acqProgram || '(blank)';
+            counts[prog] = (counts[prog] || 0) + 1;
+        });
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+        const total = monthData.length;
+        const maxCount = sorted.length ? sorted[0][1] : 1;
+        const lbl = document.getElementById('growthProgLabel');
+        if (lbl) lbl.textContent = `Top acquisition programs — ${MONTH_NAMES[month - 1]} ${year}`;
+        const listEl = document.getElementById('growthProgList');
+        if (listEl) {
+            listEl.innerHTML = sorted.length ? sorted.map(([prog, count]) => {
+                const barW = Math.round((count / maxCount) * 100);
+                return `<div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+                    <span style="flex:0 0 200px;font-size:11px;color:var(--ansell-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${prog}">${prog}</span>
+                    <div style="flex:1;background:#f0f0f0;border-radius:2px;height:8px;min-width:60px">
+                        <div style="width:${barW}%;background:${GROWTH_COLOR_SEL};height:8px;border-radius:2px"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:600;color:var(--ansell-dark);white-space:nowrap;min-width:36px;text-align:right">${fmt(count)}</span>
+                    <span style="font-size:10px;color:var(--ansell-light-gray);width:38px;text-align:right;flex-shrink:0">${pct(count, total)}</span>
+                </div>`;
+            }).join('') : '<span style="font-size:11px;color:var(--ansell-light-gray)">No data for this month</span>';
+        }
+        if (wrap) wrap.classList.add('open');
+    }
+
+    function updateOptInYearColors(activeYear) {
+        const gc = charts['chartOptInGrowth'];
+        if (gc && gc.data.datasets.length === 1) {
+            gc.data.datasets[0].backgroundColor = activeYear !== null
+                ? optInYears.map(y => y === activeYear ? OPTIN_COLOR_SEL : OPTIN_COLOR)
+                : OPTIN_COLOR;
+            gc.update('none');
         }
     }
 
@@ -1871,9 +2087,9 @@
         const { matrix, drillKeys } = buildDrillMatrix(data, r => r.optInYear);
         const counts = {};
         data.forEach(r => { if (r.optInYear) counts[r.optInYear] = (counts[r.optInYear] || 0) + 1; });
-        const years = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-        makeGrowthChart('chartOptInGrowth', years.map(String), growthDatasets(years, matrix, drillKeys, counts, '#00A28F'),
-            (evt, elements) => { if (!elements.length) return; toggleOptInMonthly(years[elements[0].index]); });
+        optInYears = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
+        makeGrowthChart('chartOptInGrowth', optInYears.map(String), growthDatasets(optInYears, matrix, drillKeys, counts, OPTIN_COLOR),
+            (evt, elements) => { if (!elements.length) return; toggleOptInMonthly(optInYears[elements[0].index]); });
     }
 
     function toggleOptInMonthly(year) {
@@ -1881,8 +2097,10 @@
         if (expandedOptInYear === year) {
             expandedOptInYear = null;
             if (wrap) wrap.classList.remove('open');
+            updateOptInYearColors(null);
         } else {
             expandedOptInYear = year;
+            updateOptInYearColors(year);
             const lbl = document.getElementById('optInMonthLabel');
             if (lbl) lbl.textContent = `Monthly breakdown — ${year}`;
             const yearData = currentOptInData.filter(r => r.optInYear === year);
@@ -1890,7 +2108,7 @@
             const counts = {};
             yearData.forEach(r => { if (r.optInMonth) counts[r.optInMonth] = (counts[r.optInMonth] || 0) + 1; });
             const months = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-            makeGrowthChart('chartOptInMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, '#00A28F'));
+            makeGrowthChart('chartOptInMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, OPTIN_COLOR_SEL));
             if (wrap) wrap.classList.add('open');
         }
     }
@@ -2097,6 +2315,7 @@
     let globalLeadsOnly    = false;
     let globalContactsOnly = false;
     let globalPeopleOnly   = false;
+    let globalIncludeSales = true;
 
     // ═══════════════════════════════════════════════════════════
     //  DEMAND GENERATION TAB
@@ -3203,21 +3422,49 @@
     });
 
     window.addEventListener('load', async () => {
-        const allExports = await detectAllExports();
-        if (allExports.length) {
-            const sel = document.getElementById('exportDateSelect');
-            if (sel) {
-                sel.innerHTML = '';
-                allExports.forEach(({ dateStr }) => {
-                    const opt = document.createElement('option');
-                    opt.value = dateStr;
-                    opt.textContent = formatExportDate(dateStr);
-                    sel.appendChild(opt);
-                });
-                sel.value = allExports[0].dateStr;
+        if (!isHosted) {
+            document.getElementById('folderBtn').style.display = 'none';
+            const allExports = await detectAllExports();
+            if (allExports.length) {
+                const sel = document.getElementById('exportDateSelect');
+                if (sel) {
+                    sel.innerHTML = '';
+                    allExports.forEach(({ dateStr }) => {
+                        const opt = document.createElement('option');
+                        opt.value = dateStr;
+                        opt.textContent = formatExportDate(dateStr);
+                        sel.appendChild(opt);
+                    });
+                    sel.value = allExports[0].dateStr;
+                }
+                loadCSV(allExports[0].path, allExports[0].dateStr);
             }
-            loadCSV(allExports[0].path, allExports[0].dateStr);
+            return;
         }
+        // Hosted: try to restore saved FSA handle
+        const handle = await tryRestoreHandle();
+        if (handle) {
+            _reportsHandle = handle;
+            setFolderConnected(handle.name);
+            const allExports = await detectAllExports();
+            if (allExports.length) {
+                const sel = document.getElementById('exportDateSelect');
+                if (sel) {
+                    sel.innerHTML = '';
+                    allExports.forEach(({ dateStr }) => {
+                        const opt = document.createElement('option');
+                        opt.value = dateStr;
+                        opt.textContent = formatExportDate(dateStr);
+                        sel.appendChild(opt);
+                    });
+                    sel.value = allExports[0].dateStr;
+                }
+                loadCSV(allExports[0].path, allExports[0].dateStr);
+            } else {
+                showEmpty();
+            }
+        }
+        // else: no handle saved — wait for user to click "Reports Folder"
     });
     </script>
 

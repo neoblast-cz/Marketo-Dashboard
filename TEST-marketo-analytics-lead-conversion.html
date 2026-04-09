@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo | Lead Conversion Champions</title>
+    <link rel="stylesheet" href="../ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <style>
+        .filter-bar { position: sticky; top: 71px; z-index: 99; flex-direction: column; padding: 0; gap: 0; }
+        .header     { position: sticky; top: 0; z-index: 100; }
+        .fb-row { display: flex; align-items: center; gap: 8px; padding: 7px 30px; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
+        .fb-row + .fb-row { border-top: 1px solid #f0f0f0; }
+
+        /* ── Upload zone ── */
+        #uploadZone {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: calc(100vh - 80px); gap: 20px; padding: 40px;
+        }
+        .upload-card {
+            background: #fff; border-radius: 12px; border: 2px dashed #c0cfe0;
+            padding: 60px 80px; text-align: center; cursor: pointer;
+            transition: border-color .2s, background .2s; max-width: 520px; width: 100%;
+        }
+        .upload-card:hover, .upload-card.drag-over {
+            border-color: #0063AC; background: #f0f6ff;
+        }
+        .upload-icon { width: 56px; height: 56px; color: #0063AC; margin: 0 auto 16px; opacity: .7; }
+        .upload-title { font-size: 17px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+        .upload-sub { font-size: 12px; color: #9ca3af; }
+        .upload-btn {
+            display: inline-block; margin-top: 18px; padding: 9px 22px;
+            background: #0063AC; color: white; border-radius: 5px;
+            font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+        }
+        .upload-btn:hover { background: #0052a3; }
+        #fileInput { display: none; }
+
+        /* ── Content ── */
+        #dashContent { display: none; padding: 24px 30px; }
+
+        /* ── KPI cards ── */
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+        @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+
+        /* ── Chart grid ── */
+        .chart-row { display: grid; gap: 16px; margin-bottom: 20px; }
+        .chart-row-2 { grid-template-columns: 1fr 1fr; }
+        .chart-row-1 { grid-template-columns: 1fr; }
+
+        /* ── Champion table ── */
+        .champ-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .champ-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb; color: #555; font-weight: 600; background: #f8f9fa; white-space: nowrap; cursor: pointer; user-select: none; }
+        .champ-table th:hover { background: #edf0f3; }
+        .champ-table th .sort-arrow { font-size: 10px; margin-left: 4px; color: #bbb; }
+        .champ-table th.sorted .sort-arrow { color: #0063AC; }
+        .champ-table td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .champ-table tr:hover td { background: #f8f9fa; }
+        .champ-table .num-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #0063AC; }
+        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 10px; font-weight: 700; background: #e8f0fb; color: #0063AC; }
+        .rank-badge.r1 { background: #ffd700; color: #7a5f00; }
+        .rank-badge.r2 { background: #c0c0c0; color: #555; }
+        .rank-badge.r3 { background: #cd7f32; color: #6b3a1f; }
+        .bar-fill { display: inline-block; height: 8px; background: #0063AC; border-radius: 2px; min-width: 2px; }
+        .pct-label { font-size: 10px; color: #9ca3af; margin-left: 6px; }
+
+        /* ── Detail table ── */
+        .detail-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .detail-table th { text-align: left; padding: 7px 10px; border-bottom: 2px solid #e5e7eb; color: #555; font-weight: 600; background: #f8f9fa; white-space: nowrap; cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 1; }
+        .detail-table th:hover { background: #edf0f3; }
+        .detail-table th .sort-arrow { font-size: 10px; margin-left: 3px; color: #bbb; }
+        .detail-table th.sorted .sort-arrow { color: #0063AC; }
+        .detail-table td { padding: 5px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .detail-table tr:hover td { background: #f8f9fa; }
+        .bool-true  { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #e4f5ee; color: #1a7a4a; }
+        .bool-false { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #fef3cd; color: #7a6200; }
+
+        /* ── Scroll container ── */
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 420px; }
+        .detail-scroll { overflow-x: auto; overflow-y: auto; max-height: 360px; }
+
+        /* ── Section label ── */
+        .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 8px; }
+
+        /* ── Country flag pill ── */
+        .country-pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #f3f4f6; color: #374151; }
+
+        /* ── World map ── */
+        #mapWrap { position: relative; min-height: 60px; }
+        #mapLoading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #9ca3af; background: #fff; z-index: 2; }
+        .map-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; justify-content: flex-end; }
+        .map-legend-label { font-size: 10px; color: #9ca3af; }
+        .map-legend-bar { width: 90px; height: 7px; border-radius: 3px; background: linear-gradient(to right, #d0e4f5, #0063AC); }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ HEADER ══════════════════════════════════════════════════════ -->
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>Lead Conversion Champions</span></h1>
+                <div class="header-sub">
+                    Who converts leads to contacts — and who should get more leads
+                    <span id="fileBadge" style="display:none" class="export-badge">
+                        <span class="export-badge-dot"></span>
+                        <span id="fileBadgeText"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <label for="fileInput" class="home-btn" style="cursor:pointer" title="Load a new file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load File
+            </label>
+        </div>
+    </header>
+
+    <!-- ═══ FILTER BAR ═══════════════════════════════════════════════════ -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+        <div class="fb-row">
+            <span class="filter-label">Filter:</span>
+
+            <div class="ms-wrap" id="ms-country">
+                <button class="ms-btn" onclick="toggleMs('country',event)">
+                    <span id="ms-country-label">Country</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-country-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('country')">Select All</button><button onclick="clearMs('country')">Clear</button></div>
+                    <div class="ms-list" id="ms-country-list"></div>
+                </div>
+            </div>
+
+            <div class="ms-wrap" id="ms-champion">
+                <button class="ms-btn" onclick="toggleMs('champion',event)">
+                    <span id="ms-champion-label">Champion</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-champion-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('champion')">Select All</button><button onclick="clearMs('champion')">Clear</button></div>
+                    <div class="ms-list" id="ms-champion-list"></div>
+                </div>
+            </div>
+
+            <div class="ms-wrap" id="ms-owner">
+                <button class="ms-btn" onclick="toggleMs('owner',event)">
+                    <span id="ms-owner-label">Contact Owner</span>
+                    <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                </button>
+                <div class="ms-panel" id="ms-owner-panel" onclick="event.stopPropagation()">
+                    <div class="ms-actions"><button onclick="selectAllMs('owner')">Select All</button><button onclick="clearMs('owner')">Clear</button></div>
+                    <div class="ms-list" id="ms-owner-list"></div>
+                </div>
+            </div>
+
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+            <span class="filter-label">Created from lead only:</span>
+            <button class="quick-filter-btn" id="btnCflOnly" onclick="toggleCflOnly()" style="margin:0" title="Show only records where IsCreatedFromLead = TRUE">Yes</button>
+
+            <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
+            <button onclick="exportCSV()" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #6b7280;background:white;color:#374151;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit" title="Export filtered records to CSV">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+            </button>
+            <button onclick="exportView()" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #0063AC;background:#0063AC;color:white;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit" title="Export current view as a standalone HTML file you can email or share">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share View
+            </button>
+            <span class="filter-count" id="filterCount"></span>
+        </div>
+
+        <div class="fb-row">
+            <span class="filter-label">Timeline Scale:</span>
+            <button class="quick-filter-btn" id="btnTsWeek"    onclick="setTimeScale('week')"    style="margin:0">Week</button>
+            <button class="quick-filter-btn active" id="btnTsMonth"   onclick="setTimeScale('month')"   style="margin:0">Month</button>
+            <button class="quick-filter-btn" id="btnTsQuarter" onclick="setTimeScale('quarter')" style="margin:0">Quarter</button>
+            <button class="quick-filter-btn" id="btnTsYear"    onclick="setTimeScale('year')"    style="margin:0">Year</button>
+
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+            <span class="filter-label">Date Range:</span>
+            <input type="date" id="dateFrom" oninput="onDateChange()"
+                style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+            <span style="color:#bbb;font-size:12px">to</span>
+            <input type="date" id="dateTo" oninput="onDateChange()"
+                style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;height:28px;color:#374151;outline:none">
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px;flex-shrink:0"></span>
+            <button class="quick-filter-btn" id="preset_30d" onclick="setDatePreset('30d')"  style="margin:0;padding:3px 9px;font-size:11px">30d</button>
+            <button class="quick-filter-btn" id="preset_90d" onclick="setDatePreset('90d')"  style="margin:0;padding:3px 9px;font-size:11px">90d</button>
+            <button class="quick-filter-btn" id="preset_cfy" onclick="setDatePreset('cfy')"  style="margin:0;padding:3px 9px;font-size:11px">Current FY</button>
+            <button class="quick-filter-btn" id="preset_all" onclick="setDatePreset('all')"  style="margin:0;padding:3px 9px;font-size:11px">All time</button>
+        </div>
+    </div>
+
+    <!-- ═══ UPLOAD ZONE ════════════════════════════════════════════════ -->
+    <div id="uploadZone">
+        <div class="upload-card" id="dropZone"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <div class="upload-title">Load Lead Conversion Report</div>
+            <div class="upload-sub">
+                Drop your <strong>Contacts created from Leads</strong> .xlsx file here,<br>
+                or click to browse
+            </div>
+            <div style="margin-top:14px">
+                <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Choose File</button>
+            </div>
+        </div>
+        <div style="font-size:11px;color:#9ca3af;text-align:center;max-width:420px">
+            Expected columns: <em>Contact Owner, IsCreatedFromLead, Edited By, Field / Event, Edit Date,
+            Created Date, Contact Full Name, Mailing Country, contact id 18</em>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".xlsx,.csv" onchange="onFileSelect(event)">
+
+    <!-- ═══ DASHBOARD CONTENT ══════════════════════════════════════════ -->
+    <div id="dashContent" style="display:none">
+
+        <!-- KPIs -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">Contacts Converted</div>
+                <div class="kpi-value" id="kpiTotal">—</div>
+                <div class="kpi-sub" id="kpiTotalSub"></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Unique Champions</div>
+                <div class="kpi-value" id="kpiChampions">—</div>
+                <div class="kpi-sub" id="kpiChampionsSub"></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Countries</div>
+                <div class="kpi-value" id="kpiCountries">—</div>
+                <div class="kpi-sub" id="kpiCountriesSub"></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Contact Owners</div>
+                <div class="kpi-value" id="kpiOwners">—</div>
+                <div class="kpi-sub" id="kpiOwnersSub"></div>
+            </div>
+        </div>
+
+        <!-- Champion Leaderboard -->
+        <div class="chart-card" style="margin-bottom:16px">
+            <div class="chart-title">Champion Leaderboard
+                <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:8px">Ranked by number of lead-to-contact conversions</span>
+            </div>
+            <div id="leaderboardWrap" style="overflow-x:auto"></div>
+        </div>
+
+        <!-- World Map -->
+        <div class="chart-card" style="margin-bottom:16px">
+            <div class="chart-title">Conversion Geography
+                <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:8px">Countries shaded by number of conversions — hover for details</span>
+            </div>
+            <div id="mapWrap">
+                <canvas id="chartWorldMap" style="width:100%;display:block"></canvas>
+                <div id="mapLoading">Loading map data…</div>
+                <div id="mapTooltip" style="display:none;position:absolute;background:rgba(30,30,30,.88);color:#fff;font-size:11px;padding:5px 9px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:10;line-height:1.5"></div>
+            </div>
+            <div class="map-legend">
+                <span class="map-legend-label">Fewer conversions</span>
+                <div class="map-legend-bar"></div>
+                <span class="map-legend-label">More</span>
+            </div>
+        </div>
+
+        <!-- Timeline + Country breakdown -->
+        <div class="chart-row chart-row-2">
+            <div class="chart-card">
+                <div class="chart-title">Conversion Timeline
+                    <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:8px" id="timelinePeriodLabel"></span>
+                </div>
+                <canvas id="chartTimeline" height="190"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">By Country</div>
+                <canvas id="chartCountry" height="190"></canvas>
+            </div>
+        </div>
+
+        <!-- Contact Owner breakdown + Monthly champion heatmap -->
+        <div class="chart-row chart-row-2">
+            <div class="chart-card">
+                <div class="chart-title">Contact Owner Distribution
+                    <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:8px">Who owns the converted contacts</span>
+                </div>
+                <canvas id="chartOwner" height="190"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Top Champions × Country
+                    <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:8px">Stacked by champion, coloured by country</span>
+                </div>
+                <canvas id="chartChampionCountry" height="190"></canvas>
+            </div>
+        </div>
+
+        <!-- Detail records table -->
+        <div class="chart-card">
+            <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+                <span>All Records <span id="detailCount" style="font-size:11px;font-weight:400;color:#9ca3af"></span></span>
+                <input type="text" id="searchInput" placeholder="Search name, account, champion…"
+                    oninput="onSearch()"
+                    style="font-size:12px;padding:5px 10px;border:1px solid #ddd;border-radius:4px;width:240px;outline:none">
+            </div>
+            <div class="detail-scroll">
+                <table class="detail-table" id="detailTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortDetail('fullName')"   >Name <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('editedBy')"   >Champion (Edited By) <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('owner')"      >Contact Owner <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('country')"    >Country <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('accountName')">Account <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('editDate')"   >Edit Date <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('createdDate')">Created Date <span class="sort-arrow">↕</span></th>
+                            <th onclick="sortDetail('cfl')"        style="text-align:center">From Lead? <span class="sort-arrow">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /dashContent -->
+
+    <script>
+    // ══════════════════════════════════════════════════════════════
+    // State
+    // ══════════════════════════════════════════════════════════════
+    var rawData     = [];   // all rows after dedup
+    var msState     = { country: new Set(), champion: new Set(), owner: new Set() };
+    var cflOnly     = false;
+    var dateFrom    = null; // Date | null
+    var dateTo      = null; // Date | null
+    var timeScale   = 'month';
+    var charts      = {};
+    var detailSort  = { col: 'editDate', asc: false };
+    var searchQuery = '';
+    var worldLoadPromise  = null;  // cached fetch promise for topojson
+    var worldCountryPaths = [];    // { feature, path:Path2D, value, name }
+    var worldCanvasReady  = false; // mouse listener attached once
+
+    // ── ISO 3166-1 numeric lookup (lowercase country name → id) ──────────
+    var CTRY_TO_ID = {
+        'afghanistan':4,'albania':8,'algeria':12,'angola':24,'argentina':32,
+        'armenia':51,'australia':36,'austria':40,'azerbaijan':31,'bahrain':48,
+        'bangladesh':50,'belarus':112,'belgium':56,'bolivia':68,
+        'bosnia and herzegovina':70,'brazil':76,'brunei':96,'bulgaria':100,
+        'cambodia':116,'cameroon':120,'canada':124,'chile':152,'china':156,
+        'colombia':170,'costa rica':188,'croatia':191,'cuba':192,'cyprus':196,
+        'czech republic':203,'czechia':203,'denmark':208,'dominican republic':214,
+        'ecuador':218,'egypt':818,'el salvador':222,'estonia':233,'ethiopia':231,
+        'finland':246,'france':250,'georgia':268,'germany':276,'ghana':288,
+        'greece':300,'guatemala':320,'honduras':340,'hong kong':344,'hungary':348,
+        'india':356,'indonesia':360,'iran':364,'iraq':368,'ireland':372,
+        'israel':376,'italy':380,'jamaica':388,'japan':392,'jordan':400,
+        'kazakhstan':398,'kenya':404,'korea':410,'south korea':410,
+        'republic of korea':410,'kuwait':414,'latvia':428,'lebanon':422,
+        'libya':434,'lithuania':440,'luxembourg':442,'malaysia':458,'malta':470,
+        'mexico':484,'moldova':498,'morocco':504,'mozambique':508,'myanmar':104,
+        'nepal':524,'netherlands':528,'new zealand':554,'nicaragua':558,
+        'nigeria':566,'norway':578,'oman':512,'pakistan':586,'panama':591,
+        'paraguay':600,'peru':604,'philippines':608,'poland':616,'portugal':620,
+        'qatar':634,'romania':642,'russia':643,'russian federation':643,
+        'saudi arabia':682,'senegal':686,'serbia':688,'singapore':702,
+        'slovakia':703,'slovenia':705,'south africa':710,'spain':724,
+        'sri lanka':144,'sweden':752,'switzerland':756,'taiwan':158,
+        'tanzania':834,'thailand':764,'trinidad and tobago':780,'tunisia':788,
+        'turkey':792,'turkiye':792,'türkiye':792,'ukraine':804,
+        'united arab emirates':784,'uae':784,'united kingdom':826,'uk':826,
+        'great britain':826,'united states':840,'usa':840,'us':840,
+        'united states of america':840,'uruguay':858,'uzbekistan':860,
+        'venezuela':862,'vietnam':704,'viet nam':704,'zambia':894,'zimbabwe':716,
+        'sweden':752,'norway':578,'denmark':208,'finland':246,'iceland':352,
+        'austria':40,'switzerland':756,'netherlands':528,'belgium':56,
+        'luxembourg':442,'liechtenstein':438,'monaco':492,'andorra':20,
+        'portugal':620,'spain':724,'france':250,'italy':380,'germany':276,
+        'united kingdom':826,'ireland':372,'iceland':352,'malta':470,
+        'cyprus':196,'greece':300,'albania':8,'north macedonia':807,
+        'serbia':688,'montenegro':499,'bosnia and herzegovina':70,'croatia':191,
+        'slovenia':705,'slovakia':703,'czech republic':203,'czechia':203,
+        'hungary':348,'romania':642,'bulgaria':100,'moldova':498,'ukraine':804,
+        'belarus':112,'estonia':233,'latvia':428,'lithuania':440,'poland':616,
+        'russia':643
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // File Loading
+    // ══════════════════════════════════════════════════════════════
+    function onDragOver(e)  { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+    function onDragLeave(e) { document.getElementById('dropZone').classList.remove('drag-over'); }
+    function onDrop(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').classList.remove('drag-over');
+        var file = e.dataTransfer.files[0];
+        if (file) loadFile(file);
+    }
+    function onFileSelect(e) { var f = e.target.files[0]; if (f) loadFile(f); }
+
+    function loadFile(file) {
+        // Update upload zone to show loading state
+        var uploadTitle = document.querySelector('.upload-title');
+        if (uploadTitle) uploadTitle.textContent = 'Reading ' + file.name + '…';
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var buf  = e.target.result;
+                var wb   = XLSX.read(buf, { type: 'array', cellDates: true });
+                var sheet = wb.Sheets[wb.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+                if (rows.length === 0) {
+                    showError('The file appears to be empty or has no data rows.');
+                    return;
+                }
+                processData(rows, file.name);
+            } catch(err) {
+                console.error('File load error:', err);
+                showError('Could not read file: ' + err.message);
+            }
+        };
+        reader.onerror = function() {
+            showError('FileReader error — could not read the file.');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function showError(msg) {
+        var uploadTitle = document.querySelector('.upload-title');
+        if (uploadTitle) { uploadTitle.textContent = 'Error'; uploadTitle.style.color = '#e11d48'; }
+        var uploadSub = document.querySelector('.upload-sub');
+        if (uploadSub) { uploadSub.innerHTML = '<span style="color:#e11d48">' + escHtml(msg) + '</span>'; }
+    }
+
+    function processData(rows, fileName) {
+        // Deduplicate by contact id 18 — prefer IsCreatedFromLead = TRUE
+        var byId = {};
+        rows.forEach(function(r) {
+            var id  = String(r['contact id 18'] || r['Contact Id 18'] || '').trim();
+            var cfl = String(r['IsCreatedFromLead'] || '').trim().toUpperCase() === 'TRUE';
+            if (!id) { id = '_no_id_' + Math.random(); } // keep rows without ID
+            if (!byId[id]) {
+                byId[id] = r;
+            } else {
+                // Prefer the row where IsCreatedFromLead = TRUE
+                var existCfl = String(byId[id]['IsCreatedFromLead'] || '').trim().toUpperCase() === 'TRUE';
+                if (cfl && !existCfl) byId[id] = r;
+            }
+        });
+
+        rawData = Object.values(byId).map(function(r) {
+            return {
+                contactId:   String(r['contact id 18'] || r['Contact Id 18'] || '').trim(),
+                fullName:    String(r['Contact Full Name'] || (r['First Name'] || '') + ' ' + (r['Last Name'] || '')).trim(),
+                owner:       String(r['Contact Owner'] || '').trim(),
+                editedBy:    String(r['Edited By'] || '').trim(),
+                fieldEvent:  String(r['Field / Event'] || '').trim(),
+                editDate:    parseDate(r['Edit Date']),
+                createdDate: parseDate(r['Created Date']),
+                country:     String(r['Mailing Country'] || '').trim() || 'Unknown',
+                accountName: String(r['Account Name'] || '').trim(),
+                cfl:         String(r['IsCreatedFromLead'] || '').trim().toUpperCase() === 'TRUE',
+            };
+        });
+
+        // Show file badge
+        var badge = document.getElementById('fileBadge');
+        badge.style.display = '';
+        document.getElementById('fileBadgeText').textContent = fileName;
+
+        initFilters();
+        showDash();
+        try {
+            renderAll();
+        } catch(err) {
+            console.error('Render error:', err);
+            var fc = document.getElementById('filterCount');
+            if (fc) fc.innerHTML = '<span style="color:#e11d48">Render error: ' + escHtml(err.message) + '</span>';
+        }
+    }
+
+    function parseDate(v) {
+        if (!v) return null;
+        if (v instanceof Date) return isNaN(v) ? null : v;
+        var s = String(v).trim();
+        if (!s) return null;
+        // Excel serial number
+        var n = parseFloat(s);
+        if (!isNaN(n) && n > 40000 && n < 70000) {
+            return new Date(Math.round((n - 25569) * 86400 * 1000));
+        }
+        var d = new Date(s);
+        return isNaN(d) ? null : d;
+    }
+
+    function showDash() {
+        document.getElementById('uploadZone').style.display  = 'none';
+        document.getElementById('filterBar').style.display   = 'flex';
+        document.getElementById('dashContent').style.display = 'block';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Multi-select helpers
+    // ══════════════════════════════════════════════════════════════
+    function toggleMs(key, e) {
+        if (e) e.stopPropagation();
+        var wrap  = document.getElementById('ms-' + key);
+        var panel = document.getElementById('ms-' + key + '-panel');
+        var open  = panel.style.display === 'block';
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+        panel.style.display = open ? 'none' : 'block';
+    }
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+    });
+
+    function selectAllMs(key) {
+        document.querySelectorAll('#ms-' + key + '-list input').forEach(function(cb) { cb.checked = true; });
+        onMsChange(key);
+    }
+    function clearMs(key) {
+        document.querySelectorAll('#ms-' + key + '-list input').forEach(function(cb) { cb.checked = false; });
+        onMsChange(key);
+    }
+    function onMsChange(key) {
+        msState[key] = new Set();
+        document.querySelectorAll('#ms-' + key + '-list input:checked').forEach(function(cb) {
+            msState[key].add(cb.value);
+        });
+        updateMsLabel(key);
+        renderAll();
+    }
+    function updateMsLabel(key) {
+        var total   = document.querySelectorAll('#ms-' + key + '-list input').length;
+        var checked = document.querySelectorAll('#ms-' + key + '-list input:checked').length;
+        var labels  = { country: 'Country', champion: 'Champion', owner: 'Contact Owner' };
+        var el = document.getElementById('ms-' + key + '-label');
+        el.textContent = (checked === 0 || checked === total) ? labels[key] : labels[key] + ' (' + checked + ')';
+    }
+
+    function initFilters() {
+        var counts = { country: {}, champion: {}, owner: {} };
+        rawData.forEach(function(r) {
+            counts.country[r.country]   = (counts.country[r.country]   || 0) + 1;
+            counts.champion[r.editedBy] = (counts.champion[r.editedBy] || 0) + 1;
+            counts.owner[r.owner]       = (counts.owner[r.owner]       || 0) + 1;
+        });
+
+        function buildList(key, obj) {
+            var sorted = Object.entries(obj).sort(function(a,b) { return b[1]-a[1]; });
+            var list = document.getElementById('ms-' + key + '-list');
+            var html = '';
+            sorted.forEach(function(entry) {
+                var val = entry[0], cnt = entry[1];
+                var id = 'ms_' + key + '_' + String(val).replace(/\W/g,'_');
+                html += '<label class="ms-item"><input type="checkbox" id="' + id + '" value="' + escHtml(val) + '" checked onchange="onMsChange(\'' + key + '\')"><span>' + escHtml(val) + '</span><span style="margin-left:auto;font-size:10px;color:#aaa">' + cnt + '</span></label>';
+            });
+            list.innerHTML = html;
+            // init Set with all values
+            msState[key] = new Set(sorted.map(function(e) { return e[0]; }));
+        }
+
+        buildList('country',  counts.country);
+        buildList('champion', counts.champion);
+        buildList('owner',    counts.owner);
+    }
+
+    function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    // ══════════════════════════════════════════════════════════════
+    // Filter controls
+    // ══════════════════════════════════════════════════════════════
+    function toggleCflOnly() {
+        cflOnly = !cflOnly;
+        document.getElementById('btnCflOnly').classList.toggle('active', cflOnly);
+        renderAll();
+    }
+
+    function setTimeScale(s) {
+        timeScale = s;
+        ['Week','Month','Quarter','Year'].forEach(function(x) {
+            var btn = document.getElementById('btnTs' + x);
+            if (btn) btn.classList.toggle('active', s === x.toLowerCase());
+        });
+        renderAll();
+    }
+
+    function setDatePreset(preset) {
+        var today  = new Date();
+        var fromEl = document.getElementById('dateFrom');
+        var toEl   = document.getElementById('dateTo');
+        ['30d','90d','cfy','all'].forEach(function(p) {
+            var b = document.getElementById('preset_' + p);
+            if (b) b.classList.toggle('active', p === preset);
+        });
+        if (preset === '30d') {
+            var f = new Date(today); f.setDate(f.getDate() - 30);
+            fromEl.value = f.toISOString().slice(0,10);
+            toEl.value   = today.toISOString().slice(0,10);
+        } else if (preset === '90d') {
+            var f = new Date(today); f.setDate(f.getDate() - 90);
+            fromEl.value = f.toISOString().slice(0,10);
+            toEl.value   = today.toISOString().slice(0,10);
+        } else if (preset === 'cfy') {
+            var fy = today.getMonth() >= 6 ? today.getFullYear() + 1 : today.getFullYear();
+            fromEl.value = new Date(fy - 1, 6, 1).toISOString().slice(0,10);
+            toEl.value   = new Date(fy, 5, 30).toISOString().slice(0,10);
+        } else {
+            fromEl.value = '';
+            toEl.value   = '';
+        }
+        onDateChange(false);
+    }
+
+    function onDateChange(clearPreset) {
+        if (clearPreset !== false) {
+            ['30d','90d','cfy','all'].forEach(function(p) {
+                var b = document.getElementById('preset_' + p);
+                if (b) b.classList.remove('active');
+            });
+        }
+        var fromVal = (document.getElementById('dateFrom') || {}).value;
+        var toVal   = (document.getElementById('dateTo')   || {}).value;
+        dateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+        dateTo   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
+        renderAll();
+    }
+
+    function resetFilters() {
+        cflOnly   = false;
+        dateFrom  = null;
+        dateTo    = null;
+        timeScale = 'month';
+        document.getElementById('btnCflOnly').classList.remove('active');
+        var fromEl = document.getElementById('dateFrom');
+        var toEl   = document.getElementById('dateTo');
+        if (fromEl) fromEl.value = '';
+        if (toEl)   toEl.value   = '';
+        ['30d','90d','cfy','all'].forEach(function(p) {
+            var b = document.getElementById('preset_' + p);
+            if (b) b.classList.remove('active');
+        });
+        setTimeScale('month');
+        selectAllMs('country');
+        selectAllMs('champion');
+        selectAllMs('owner');
+    }
+
+    function onSearch() {
+        searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+        renderDetailTable(getFiltered());
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Data filtering
+    // ══════════════════════════════════════════════════════════════
+    function getFiltered() {
+        return rawData.filter(function(r) {
+            if (cflOnly && !r.cfl) return false;
+            if (msState.country.size  > 0 && !msState.country.has(r.country))   return false;
+            if (msState.champion.size > 0 && !msState.champion.has(r.editedBy)) return false;
+            if (msState.owner.size    > 0 && !msState.owner.has(r.owner))       return false;
+            if (dateFrom && r.editDate && r.editDate < dateFrom) return false;
+            if (dateTo   && r.editDate && r.editDate > dateTo)   return false;
+            return true;
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Bucket helper
+    // ══════════════════════════════════════════════════════════════
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function getBucket(date, scale) {
+        if (!date) return null;
+        var d = date instanceof Date ? date : new Date(date);
+        if (isNaN(d)) return null;
+        var y = d.getFullYear(), mo = d.getMonth(), w;
+        if (scale === 'week') {
+            var jan1 = new Date(y, 0, 1);
+            var weekNum = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+            return y + '-W' + String(weekNum).padStart(2,'0');
+        }
+        if (scale === 'month')   return y + '-' + String(mo+1).padStart(2,'0');
+        if (scale === 'quarter') return y + '-Q' + (Math.floor(mo/3)+1);
+        if (scale === 'year')    return String(y);
+        return null;
+    }
+
+    function formatBucketLabel(key, scale) {
+        if (scale === 'month')   { var pts = key.split('-'); return months[+pts[1]-1] + ' ' + pts[0].slice(2); }
+        if (scale === 'quarter') { var pts = key.split('-'); return pts[1] + ' ' + pts[0].slice(2); }
+        if (scale === 'week')    { var pts = key.split('-W'); return 'Wk' + pts[1] + ' ' + pts[0].slice(2); }
+        return key;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Render all
+    // ══════════════════════════════════════════════════════════════
+    function safe(fn, data) {
+        try { fn(data); } catch(e) { console.error(fn.name + ' failed:', e); }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // World Map
+    // ══════════════════════════════════════════════════════════════
+    function getWorldData() {
+        if (worldLoadPromise) return worldLoadPromise;
+        worldLoadPromise = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+            .then(function(r) { return r.json(); })
+            .then(function(topo) {
+                return topojson.feature(topo, topo.objects.countries).features;
+            });
+        return worldLoadPromise;
+    }
+
+    function renderWorldMap(data) {
+        var mapLoading = document.getElementById('mapLoading');
+        if (mapLoading) mapLoading.style.display = 'flex';
+
+        // Count by country (lowercase for lookup, original casing for display)
+        var ccLower = {}, ccDisplay = {};
+        data.forEach(function(r) {
+            if (!r.country || r.country === 'Unknown') return;
+            var lower = r.country.toLowerCase();
+            ccLower[lower] = (ccLower[lower] || 0) + 1;
+            if (!ccDisplay[lower]) ccDisplay[lower] = r.country;
+        });
+
+        getWorldData().then(function(features) {
+            if (mapLoading) mapLoading.style.display = 'none';
+            var canvasEl = document.getElementById('chartWorldMap');
+            if (!canvasEl) return;
+
+            // Size canvas to its actual CSS width
+            var W = canvasEl.offsetWidth || 900;
+            var H = Math.round(W / 2); // equirectangular natural ratio is 2:1
+            canvasEl.width  = W;
+            canvasEl.height = H;
+
+            // Equirectangular projection with small margin
+            var mg = 4;
+            var pw = W - 2 * mg, ph = H - 2 * mg;
+            function xy(lon, lat) {
+                return [mg + (lon + 180) / 360 * pw,
+                        mg + (90  - lat)  / 180 * ph];
+            }
+
+            // Max value for colour scaling
+            var maxVal = 0;
+            Object.values(ccLower).forEach(function(v) { if (v > maxVal) maxVal = v; });
+            if (maxVal === 0) maxVal = 1;
+
+            // Build Path2D objects + assign values
+            worldCountryPaths = features.map(function(f) {
+                var fid = parseInt(f.id, 10);
+                var val = 0, name = '';
+                Object.keys(ccLower).forEach(function(lower) {
+                    if (CTRY_TO_ID[lower] === fid) {
+                        val  += ccLower[lower];
+                        if (!name) name = ccDisplay[lower];
+                    }
+                });
+
+                var p = new Path2D();
+                var g = f.geometry;
+                if (g) {
+                    var polys = g.type === 'Polygon'      ? [g.coordinates] :
+                                g.type === 'MultiPolygon' ?  g.coordinates  : [];
+                    polys.forEach(function(rings) {
+                        rings.forEach(function(ring) {
+                            if (!ring.length) return;
+                            var p0 = xy(ring[0][0], ring[0][1]);
+                            p.moveTo(p0[0], p0[1]);
+                            for (var i = 1; i < ring.length; i++) {
+                                var pi = xy(ring[i][0], ring[i][1]);
+                                p.lineTo(pi[0], pi[1]);
+                            }
+                            p.closePath();
+                        });
+                    });
+                }
+                return { feature: f, path: p, value: val, name: name, maxVal: maxVal };
+            });
+
+            drawWorldMap(canvasEl);
+
+            // Attach mouse listener only once
+            if (!worldCanvasReady) {
+                worldCanvasReady = true;
+                setupMapMouse(canvasEl);
+            }
+        }).catch(function(e) {
+            console.error('World map failed:', e);
+            if (mapLoading) mapLoading.textContent = 'Map unavailable — check internet connection';
+        });
+    }
+
+    function ctryColor(val, maxVal) {
+        if (!val) return '#d8dde4';
+        var t = Math.pow(val / maxVal, 0.55); // gentle curve so low counts still show colour
+        return 'rgb(' + Math.round(208*(1-t)) + ',' +
+                        Math.round(228 - 129*t) + ',' +
+                        Math.round(245 - 73*t)  + ')';
+    }
+
+    function drawWorldMap(canvasEl) {
+        var ctx2 = canvasEl.getContext('2d');
+        var W = canvasEl.width, H = canvasEl.height;
+        var maxVal = worldCountryPaths.length ? (worldCountryPaths[0].maxVal || 1) : 1;
+
+        ctx2.clearRect(0, 0, W, H);
+        // Ocean
+        ctx2.fillStyle = '#EBF4FA';
+        ctx2.fillRect(0, 0, W, H);
+
+        worldCountryPaths.forEach(function(cp) {
+            ctx2.fillStyle   = ctryColor(cp.value, maxVal);
+            ctx2.fill(cp.path, 'evenodd');
+            ctx2.strokeStyle = '#ffffff';
+            ctx2.lineWidth   = 0.5;
+            ctx2.stroke(cp.path);
+        });
+    }
+
+    function setupMapMouse(canvasEl) {
+        var tt = document.getElementById('mapTooltip');
+        var ctx2 = canvasEl.getContext('2d');
+
+        canvasEl.addEventListener('mousemove', function(e) {
+            var rect = canvasEl.getBoundingClientRect();
+            var sx = canvasEl.width  / rect.width;
+            var sy = canvasEl.height / rect.height;
+            var mx = (e.clientX - rect.left) * sx;
+            var my = (e.clientY - rect.top)  * sy;
+
+            var found = null;
+            for (var i = worldCountryPaths.length - 1; i >= 0; i--) {
+                if (ctx2.isPointInPath(worldCountryPaths[i].path, mx, my, 'evenodd')) {
+                    found = worldCountryPaths[i];
+                    break;
+                }
+            }
+
+            if (found && (found.value > 0 || found.name)) {
+                tt.style.display = 'block';
+                tt.style.left    = (e.clientX - rect.left + 12) + 'px';
+                tt.style.top     = (e.clientY - rect.top  - 38) + 'px';
+                tt.innerHTML     = found.name
+                    ? '<strong>' + escHtml(found.name) + '</strong>' +
+                      (found.value ? '<br>' + found.value + ' conversion' + (found.value !== 1 ? 's' : '') : '')
+                    : 'No data';
+            } else {
+                tt.style.display = 'none';
+            }
+        });
+
+        canvasEl.addEventListener('mouseleave', function() {
+            tt.style.display = 'none';
+        });
+    }
+
+    function renderAll() {
+        var data = getFiltered();
+        safe(renderKPIs, data);
+        safe(renderLeaderboard, data);
+        safe(renderTimeline, data);
+        safe(renderCountryChart, data);
+        safe(renderOwnerChart, data);
+        safe(renderChampionCountryChart, data);
+        safe(renderDetailTable, data);
+        renderWorldMap(data); // async — runs independently
+        updateFilterCount();
+    }
+
+    function updateFilterCount() {
+        var data = getFiltered();
+        var el = document.getElementById('filterCount');
+        if (el) el.textContent = data.length + ' of ' + rawData.length + ' records';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Export CSV
+    // ══════════════════════════════════════════════════════════════
+    function exportCSV() {
+        var data = getFiltered();
+        if (!data.length) { alert('No records to export.'); return; }
+
+        var cols = [
+            { h: 'Contact Full Name',    v: function(r) { return r.fullName; } },
+            { h: 'Champion (Edited By)', v: function(r) { return r.editedBy; } },
+            { h: 'Contact Owner',        v: function(r) { return r.owner; } },
+            { h: 'Mailing Country',      v: function(r) { return r.country === 'Unknown' ? '' : r.country; } },
+            { h: 'Account Name',         v: function(r) { return r.accountName; } },
+            { h: 'IsCreatedFromLead',    v: function(r) { return r.cfl ? 'TRUE' : 'FALSE'; } },
+            { h: 'Edit Date',            v: function(r) { return r.editDate ? r.editDate.toISOString().slice(0,10) : ''; } },
+            { h: 'Created Date',         v: function(r) { return r.createdDate ? r.createdDate.toISOString().slice(0,10) : ''; } },
+            { h: 'Field / Event',        v: function(r) { return r.fieldEvent; } },
+            { h: 'Contact ID 18',        v: function(r) { return r.contactId; } },
+        ];
+
+        function csvCell(v) {
+            var s = String(v == null ? '' : v);
+            if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+                return '"' + s.replace(/"/g, '""') + '"';
+            }
+            return s;
+        }
+
+        var lines = [ cols.map(function(c) { return csvCell(c.h); }).join(',') ];
+        data.forEach(function(r) {
+            lines.push(cols.map(function(c) { return csvCell(c.v(r)); }).join(','));
+        });
+
+        var csv  = lines.join('\r\n');
+        var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel UTF-8
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        var now  = new Date().toISOString().slice(0,10);
+        a.href     = url;
+        a.download = 'lead-conversion-champions-' + now + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Export View — self-contained HTML with charts as PNG images
+    // ══════════════════════════════════════════════════════════════
+    function exportView() {
+        function tv(id) { var e = document.getElementById(id); return e ? e.textContent : ''; }
+        function img(ch) { return ch ? ch.toBase64Image('image/png', 1) : ''; }
+
+        var i1 = img(charts.timeline);
+        var i2 = img(charts.country);
+        var i3 = img(charts.owner);
+        var i4 = img(charts.champCtry);
+
+        var leaderHTML = document.getElementById('leaderboardWrap').innerHTML;
+        var filterDesc = tv('filterCount');
+        var fileBadge  = document.getElementById('fileBadgeText').textContent;
+        var today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+        var p = [];
+        p.push('<!DOCTYPE html>');
+        p.push('<html lang="en"><head>');
+        p.push('<meta charset="UTF-8">');
+        p.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
+        p.push('<title>Lead Conversion Champions ' + escHtml(today) + '<\/title>');
+        p.push('<style>');
+        p.push('@import url("https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&display=swap");');
+        p.push('*{margin:0;padding:0;box-sizing:border-box}');
+        p.push('body{font-family:Asap,"Segoe UI",sans-serif;background:#f5f6f7;color:#2C2A29}');
+        p.push('.hdr{background:#fff;padding:14px 30px;border-bottom:4px solid #0063AC;display:flex;align-items:center;gap:16px}');
+        p.push('.hdr h1{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}');
+        p.push('.hdr h1 span{color:#0063AC} .hdr-sub{font-size:11px;color:#75787B;margin-top:3px}');
+        p.push('.badge{display:inline-flex;align-items:center;gap:5px;background:#e8f1f8;color:#0063AC;font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;margin-left:8px}');
+        p.push('.badge-dot{width:6px;height:6px;border-radius:50%;background:#00A28F}');
+        p.push('.content{padding:24px 30px}');
+        p.push('.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}');
+        p.push('.kpi-card{background:#fff;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-top:4px solid #BBBCBC}');
+        p.push('.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#75787B;margin-bottom:8px}');
+        p.push('.kpi-value{font-size:30px;font-weight:700;color:#2C2A29;line-height:1;margin-bottom:5px}');
+        p.push('.kpi-sub{font-size:11px;color:#BBBCBC}');
+        p.push('.chart-row{display:grid;gap:16px;margin-bottom:20px;grid-template-columns:1fr 1fr}');
+        p.push('.chart-card{background:#fff;padding:22px 24px;box-shadow:0 1px 4px rgba(0,0,0,.07)}');
+        p.push('.chart-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#75787B;margin-bottom:14px}');
+        p.push('.chart-card img{width:100%;height:auto;display:block}');
+        p.push('.champ-table{width:100%;border-collapse:collapse;font-size:12px}');
+        p.push('.champ-table th{text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;color:#555;font-weight:600;background:#f8f9fa;white-space:nowrap}');
+        p.push('.champ-table td{padding:6px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}');
+        p.push('.num-cell{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#0063AC}');
+        p.push('.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:700;background:#e8f0fb;color:#0063AC}');
+        p.push('.rank-badge.r1{background:#ffd700;color:#7a5f00}.rank-badge.r2{background:#c0c0c0;color:#555}.rank-badge.r3{background:#cd7f32;color:#6b3a1f}');
+        p.push('.bar-fill{display:inline-block;height:8px;background:#0063AC;border-radius:2px;min-width:2px}');
+        p.push('.footer{text-align:center;padding:20px;color:#BBBCBC;font-size:11px;border-top:1px solid #e8e8e8;margin-top:10px}');
+        p.push('<\/style><\/head><body>');
+
+        // Header
+        p.push('<div class="hdr">');
+        p.push('<svg width="90" height="28" viewBox="0 0 446 138" xmlns="http://www.w3.org/2000/svg"><g><path fill="#0061AD" d="M314 84l9 11c-8 7-17 10-29 10-10-.3-18-3-23-9-6-7-8-16-9-28-1-12 3-21 9-28 6-7 14-11 24-10 9 .4 17 1.6 23 10 4 7 7 17 7 29 0 1 0 4 0 4l-42-.1c.3 6 .6 10 3 13 2 3 9 7 19 4 7-1 13-4 15-6z"/><path fill="#0061AD" d="M72 5h22l30 97-21-.4-7-23H68l-7 24H41L72 5zm10 22l-10 35h19z"/><path fill="#00A494" d="M60 117c41-5 80-8 120-7 28 1 58 3 88 5 22 1 50 3 75 3l30-.4c25-2 52-6 72-10l2 3-27 10c-30 11-61 13-95 15-40 .8-79-2-119-4-60-3-132-12-192 3l-12 4C-10 127 45 120 60 117z"/><\/g><\/svg>');
+        p.push('<div><h1>Marketo | <span>Lead Conversion Champions<\/span><\/h1>');
+        p.push('<div class="hdr-sub">Who converts leads to contacts');
+        p.push('<span class="badge"><span class="badge-dot"><\/span>' + escHtml(fileBadge) + '<\/span>');
+        p.push('<span style="margin-left:12px;color:#aaa">Exported ' + escHtml(today) + ' &nbsp;&middot;&nbsp; ' + escHtml(filterDesc) + '<\/span>');
+        p.push('<\/div><\/div><\/div>');
+
+        // Content
+        p.push('<div class="content">');
+
+        // KPIs
+        p.push('<div class="kpi-row">');
+        p.push('<div class="kpi-card"><div class="kpi-label">Contacts Converted<\/div><div class="kpi-value">' + escHtml(tv('kpiTotal')) + '<\/div><div class="kpi-sub">' + escHtml(tv('kpiTotalSub')) + '<\/div><\/div>');
+        p.push('<div class="kpi-card"><div class="kpi-label">Unique Champions<\/div><div class="kpi-value">' + escHtml(tv('kpiChampions')) + '<\/div><div class="kpi-sub">' + escHtml(tv('kpiChampionsSub')) + '<\/div><\/div>');
+        p.push('<div class="kpi-card"><div class="kpi-label">Countries<\/div><div class="kpi-value">' + escHtml(tv('kpiCountries')) + '<\/div><div class="kpi-sub">' + escHtml(tv('kpiCountriesSub')) + '<\/div><\/div>');
+        p.push('<div class="kpi-card"><div class="kpi-label">Contact Owners<\/div><div class="kpi-value">' + escHtml(tv('kpiOwners')) + '<\/div><div class="kpi-sub">' + escHtml(tv('kpiOwnersSub')) + '<\/div><\/div>');
+        p.push('<\/div>');
+
+        // Leaderboard
+        p.push('<div class="chart-card" style="margin-bottom:16px">');
+        p.push('<div class="chart-title">Champion Leaderboard<\/div>');
+        p.push(leaderHTML);
+        p.push('<\/div>');
+
+        // Charts as images
+        p.push('<div class="chart-row">');
+        p.push('<div class="chart-card"><div class="chart-title">Conversion Timeline<\/div>' + (i1 ? '<img src="' + i1 + '">' : '<p style="color:#aaa;font-size:12px">No data<\/p>') + '<\/div>');
+        p.push('<div class="chart-card"><div class="chart-title">By Country<\/div>' + (i2 ? '<img src="' + i2 + '">' : '<p style="color:#aaa;font-size:12px">No data<\/p>') + '<\/div>');
+        p.push('<\/div>');
+        p.push('<div class="chart-row">');
+        p.push('<div class="chart-card"><div class="chart-title">Contact Owner Distribution<\/div>' + (i3 ? '<img src="' + i3 + '">' : '<p style="color:#aaa;font-size:12px">No data<\/p>') + '<\/div>');
+        p.push('<div class="chart-card"><div class="chart-title">Top Champions \u00d7 Country<\/div>' + (i4 ? '<img src="' + i4 + '">' : '<p style="color:#aaa;font-size:12px">No data<\/p>') + '<\/div>');
+        p.push('<\/div>');
+
+        p.push('<\/div>'); // /content
+        p.push('<div class="footer">Lead Conversion Champions \u00b7 Ansell Healthcare \u00b7 Marketo Analytics \u00b7 ' + escHtml(today) + '<\/div>');
+        p.push('<\/body><\/html>');
+
+        var html = p.join('\n');
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        var now  = new Date().toISOString().slice(0,10);
+        a.href     = url;
+        a.download = 'lead-conversion-champions-' + now + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // KPIs
+    // ══════════════════════════════════════════════════════════════
+    function fmt(n) { return n == null ? '—' : n.toLocaleString(); }
+
+    function renderKPIs(data) {
+        var cflCount = data.filter(r => r.cfl).length;
+        document.getElementById('kpiTotal').textContent    = fmt(data.length);
+        document.getElementById('kpiTotalSub').textContent = cflCount + ' confirmed from lead';
+
+        var champions = new Set(data.map(r => r.editedBy).filter(Boolean));
+        document.getElementById('kpiChampions').textContent    = fmt(champions.size);
+        var topChamp = '';
+        if (data.length) {
+            var cc = {};
+            data.forEach(r => { if (r.editedBy) cc[r.editedBy] = (cc[r.editedBy] || 0) + 1; });
+            var top = Object.entries(cc).sort((a,b) => b[1]-a[1])[0];
+            if (top) topChamp = top[0].split(' ')[0] + ': ' + top[1];
+        }
+        document.getElementById('kpiChampionsSub').textContent = topChamp;
+
+        var countries = new Set(data.map(r => r.country).filter(Boolean));
+        document.getElementById('kpiCountries').textContent    = fmt(countries.size);
+        document.getElementById('kpiCountriesSub').textContent = Array.from(countries).slice(0,3).join(', ') + (countries.size > 3 ? '…' : '');
+
+        var owners = new Set(data.map(r => r.owner).filter(Boolean));
+        document.getElementById('kpiOwners').textContent    = fmt(owners.size);
+        document.getElementById('kpiOwnersSub').textContent = owners.size + ' distinct owners';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Champion Leaderboard (table with inline bars)
+    // ══════════════════════════════════════════════════════════════
+    var leaderSort = { col: 'count', asc: false };
+
+    function renderLeaderboard(data) {
+        var cc = {}, countries = {};
+        data.forEach(function(r) {
+            if (!r.editedBy) return;
+            cc[r.editedBy] = (cc[r.editedBy] || 0) + 1;
+            if (!countries[r.editedBy]) countries[r.editedBy] = new Set();
+            if (r.country) countries[r.editedBy].add(r.country);
+        });
+
+        var sorted = Object.entries(cc).sort((a,b) => b[1]-a[1]);
+        var maxVal = sorted.length ? sorted[0][1] : 1;
+        var total  = data.length || 1;
+
+        var html = '<table class="champ-table"><thead><tr>' +
+            '<th style="width:36px">#</th>' +
+            '<th onclick="sortLeaderboard(\'name\')">Champion <span class="sort-arrow">↕</span></th>' +
+            '<th onclick="sortLeaderboard(\'count\')" class="num-cell sorted" style="width:80px">Conversions <span class="sort-arrow">↓</span></th>' +
+            '<th style="width:200px">Share</th>' +
+            '<th style="width:60px" class="num-cell">%</th>' +
+            '<th>Countries</th>' +
+            '</tr></thead><tbody>';
+
+        sorted.forEach(function([name, cnt], idx) {
+            var rankClass = idx === 0 ? 'r1' : (idx === 1 ? 'r2' : (idx === 2 ? 'r3' : ''));
+            var barW = Math.round((cnt / maxVal) * 160);
+            var pct  = ((cnt / total) * 100).toFixed(1);
+            var ctryList = countries[name] ? Array.from(countries[name]).slice(0,3).join(', ') : '';
+            if (countries[name] && countries[name].size > 3) ctryList += ' +' + (countries[name].size - 3);
+            html += '<tr>' +
+                '<td><span class="rank-badge ' + rankClass + '">' + (idx+1) + '</span></td>' +
+                '<td style="font-weight:600">' + escHtml(name) + '</td>' +
+                '<td class="num-cell">' + cnt + '</td>' +
+                '<td><span class="bar-fill" style="width:' + barW + 'px;background:#0063AC"></span></td>' +
+                '<td class="num-cell" style="color:#9ca3af">' + pct + '%</td>' +
+                '<td style="color:#6b7280;font-size:11px">' + escHtml(ctryList) + '</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('leaderboardWrap').innerHTML = html;
+    }
+
+    function sortLeaderboard(col) { /* simplified — always sorted by count desc */ }
+
+    // ══════════════════════════════════════════════════════════════
+    // Timeline chart
+    // ══════════════════════════════════════════════════════════════
+    function renderTimeline(data) {
+        var buckets = {};
+        data.forEach(function(r) {
+            var k = getBucket(r.editDate, timeScale);
+            if (!k) return;
+            buckets[k] = (buckets[k] || 0) + 1;
+        });
+
+        var keys   = Object.keys(buckets).sort();
+        var labels = keys.map(k => formatBucketLabel(k, timeScale));
+        var values = keys.map(k => buckets[k]);
+
+        if (charts.timeline) charts.timeline.destroy();
+        var ctx = document.getElementById('chartTimeline').getContext('2d');
+        charts.timeline = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Conversions',
+                    data: values,
+                    backgroundColor: 'rgba(0,99,172,0.75)',
+                    borderColor: '#0063AC',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { display: false }, tooltip: { callbacks: {
+                    label: ctx => ' ' + ctx.parsed.y + ' conversions'
+                }}},
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                    y: { beginAtZero: true, ticks: { font: { size: 10 }, stepSize: 1 }, grid: { color: '#f0f0f0' } }
+                }
+            }
+        });
+
+        var periodLabel = '';
+        if (dateFrom && dateTo) {
+            var fmt2 = function(d) { return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' }); };
+            periodLabel = fmt2(dateFrom) + ' – ' + fmt2(dateTo);
+        }
+        document.getElementById('timelinePeriodLabel').textContent = periodLabel;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Country chart
+    // ══════════════════════════════════════════════════════════════
+    var COUNTRY_COLORS = ['#0063AC','#00A28F','#e11d48','#f59e0b','#8b5cf6','#06b6d4','#10b981','#f97316','#64748b','#ec4899'];
+
+    function renderCountryChart(data) {
+        var cc = {};
+        data.forEach(function(r) { cc[r.country] = (cc[r.country] || 0) + 1; });
+        var sorted = Object.entries(cc).sort((a,b) => b[1]-a[1]).slice(0, 12);
+
+        if (charts.country) charts.country.destroy();
+        var ctx = document.getElementById('chartCountry').getContext('2d');
+        charts.country = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(([c]) => c),
+                datasets: [{
+                    label: 'Conversions',
+                    data: sorted.map(([,v]) => v),
+                    backgroundColor: sorted.map((_, i) => COUNTRY_COLORS[i % COUNTRY_COLORS.length]),
+                    borderRadius: 3,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#f0f0f0' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Owner chart
+    // ══════════════════════════════════════════════════════════════
+    function renderOwnerChart(data) {
+        var cc = {};
+        data.forEach(function(r) { if (r.owner) cc[r.owner] = (cc[r.owner] || 0) + 1; });
+        var sorted = Object.entries(cc).sort((a,b) => b[1]-a[1]).slice(0, 12);
+
+        if (charts.owner) charts.owner.destroy();
+        var ctx = document.getElementById('chartOwner').getContext('2d');
+        charts.owner = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(([o]) => o),
+                datasets: [{
+                    label: 'Contacts',
+                    data: sorted.map(([,v]) => v),
+                    backgroundColor: 'rgba(0,162,143,0.75)',
+                    borderColor: '#00A28F',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#f0f0f0' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Champion × Country stacked chart
+    // ══════════════════════════════════════════════════════════════
+    function renderChampionCountryChart(data) {
+        // Top 8 champions
+        var cc = {};
+        data.forEach(function(r) { if (r.editedBy) cc[r.editedBy] = (cc[r.editedBy] || 0) + 1; });
+        var topChamps = Object.entries(cc).sort((a,b) => b[1]-a[1]).slice(0, 8).map(([c]) => c);
+
+        // Unique countries in filtered data
+        var allCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort();
+
+        // Build matrix: champion → country → count
+        var matrix = {};
+        topChamps.forEach(function(ch) { matrix[ch] = {}; });
+        data.forEach(function(r) {
+            if (!r.editedBy || !matrix[r.editedBy]) return;
+            var ctry = r.country || 'Unknown';
+            matrix[r.editedBy][ctry] = (matrix[r.editedBy][ctry] || 0) + 1;
+        });
+
+        var datasets = allCountries.map(function(ctry, i) {
+            return {
+                label: ctry,
+                data: topChamps.map(ch => matrix[ch][ctry] || 0),
+                backgroundColor: COUNTRY_COLORS[i % COUNTRY_COLORS.length],
+                borderRadius: 2,
+            };
+        });
+
+        if (charts.champCtry) charts.champCtry.destroy();
+        var ctx = document.getElementById('chartChampionCountry').getContext('2d');
+        charts.champCtry = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: topChamps, datasets: datasets },
+            options: {
+                responsive: true, maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 8 } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 30 } },
+                    y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 }, stepSize: 1 }, grid: { color: '#f0f0f0' } }
+                }
+            }
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Detail table
+    // ══════════════════════════════════════════════════════════════
+    function sortDetail(col) {
+        if (detailSort.col === col) { detailSort.asc = !detailSort.asc; }
+        else { detailSort.col = col; detailSort.asc = true; }
+        renderDetailTable(getFiltered());
+    }
+
+    function renderDetailTable(data) {
+        // Apply search
+        var q = searchQuery;
+        var rows = q ? data.filter(function(r) {
+            return (r.fullName + r.editedBy + r.owner + r.accountName + r.country).toLowerCase().includes(q);
+        }) : data;
+
+        // Sort
+        var col = detailSort.col, asc = detailSort.asc;
+        rows = rows.slice().sort(function(a, b) {
+            var av = a[col], bv = b[col];
+            if (av instanceof Date && bv instanceof Date) {
+                return asc ? av - bv : bv - av;
+            }
+            if (av == null) av = '';
+            if (bv == null) bv = '';
+            av = String(av).toLowerCase(); bv = String(bv).toLowerCase();
+            return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+
+        // Update sort arrows
+        document.querySelectorAll('.detail-table th').forEach(function(th) {
+            th.classList.remove('sorted');
+            var arrow = th.querySelector('.sort-arrow');
+            if (arrow) arrow.textContent = '↕';
+        });
+
+        document.getElementById('detailCount').textContent = '(' + rows.length + ' records)';
+
+        var tbody = document.getElementById('detailTbody');
+        var limit = 500;
+        var html  = '';
+        rows.slice(0, limit).forEach(function(r) {
+            var editDStr    = r.editDate    ? r.editDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+            var createdDStr = r.createdDate ? r.createdDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+            html += '<tr>' +
+                '<td style="font-weight:500">' + escHtml(r.fullName || '—') + '</td>' +
+                '<td style="color:#0063AC;font-weight:600">' + escHtml(r.editedBy || '—') + '</td>' +
+                '<td>' + escHtml(r.owner || '—') + '</td>' +
+                '<td><span class="country-pill">' + escHtml(r.country) + '</span></td>' +
+                '<td style="color:#6b7280">' + escHtml(r.accountName || '—') + '</td>' +
+                '<td style="color:#374151;font-variant-numeric:tabular-nums">' + editDStr + '</td>' +
+                '<td style="color:#6b7280;font-variant-numeric:tabular-nums">' + createdDStr + '</td>' +
+                '<td style="text-align:center"><span class="' + (r.cfl ? 'bool-true' : 'bool-false') + '">' + (r.cfl ? 'Yes' : 'No') + '</span></td>' +
+                '</tr>';
+        });
+        if (rows.length > limit) {
+            html += '<tr><td colspan="8" style="text-align:center;color:#9ca3af;font-style:italic;padding:10px">Showing first ' + limit + ' of ' + rows.length + ' records — apply filters to narrow</td></tr>';
+        }
+        tbody.innerHTML = html;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Auto-detect & load latest "Contacts created from Leads" file
+    // ══════════════════════════════════════════════════════════════
+    async function autoDetectFile() {
+        var title = document.querySelector('.upload-title');
+        var sub   = document.querySelector('.upload-sub');
+        if (title) title.textContent = 'Looking for report files…';
+
+        try {
+            // Fetch Reports/ directory listing (Live Server provides one)
+            var dirRes = await fetch('../Reports/');
+            if (!dirRes.ok) throw new Error('no listing');
+            var dirUrl = dirRes.url;                        // resolved base URL
+            var html   = await dirRes.text();
+
+            // Find all .xlsx/.xls files containing "Contacts" and "Leads"
+            var re    = /href="([^"?#]*Contacts[^"?#]*Leads[^"?#]*\.xlsx?)"/gi;
+            var m, files = [];
+            while ((m = re.exec(html)) !== null) {
+                var fileUrl  = new URL(m[1], dirUrl).href;
+                var fileName = decodeURIComponent(fileUrl.split('/').pop());
+                files.push({ url: fileUrl, name: fileName });
+            }
+
+            if (!files.length) {
+                // Nothing found — restore upload UI
+                if (title) title.textContent = 'Load Lead Conversion Report';
+                if (sub) sub.innerHTML = 'Drop your <strong>Contacts created from Leads</strong> .xlsx file here,<br>or click to browse';
+                return;
+            }
+
+            // Sort by filename (date prefix YYYY-MM-DD sorts lexicographically)
+            files.sort(function(a, b) { return b.name.localeCompare(a.name); });
+            var best = files[0];
+
+            if (title) title.textContent = 'Loading ' + best.name + '\u2026';
+
+            var fileRes = await fetch(best.url);
+            if (!fileRes.ok) throw new Error('fetch failed: ' + fileRes.status);
+            var buf  = await fileRes.arrayBuffer();
+            var wb   = XLSX.read(buf, { type: 'array', cellDates: true });
+            var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+
+            if (!rows.length) throw new Error('file is empty');
+            processData(rows, best.name);
+
+        } catch (e) {
+            console.log('Auto-detect:', e.message);
+            if (title) title.textContent = 'Load Lead Conversion Report';
+            if (sub) sub.innerHTML = 'Drop your <strong>Contacts created from Leads</strong> .xlsx file here,<br>or click to browse';
+        }
+    }
+
+    window.addEventListener('load', autoDetectFile);
+    </script>
+</body>
+</html>
