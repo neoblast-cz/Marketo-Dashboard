@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketo | Email Analytics</title>
+    <link rel="stylesheet" href="../ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .filter-bar { position: sticky; top: 0; z-index: 99; flex-direction: column; padding: 0; gap: 0; }
+        .fb-row { display: flex; align-items: center; gap: 8px; padding: 7px 30px; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
+        .fb-row + .fb-row { border-top: 1px solid #f0f0f0; }
+
+        /* ── KPI grid ── */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+        @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        .kpi-card { background: #fff; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); border-top: 3px solid var(--ansell-blue); }
+        .kpi-card.teal   { border-top-color: #00A28F; }
+        .kpi-card.orange { border-top-color: #D97706; }
+        .kpi-card.red    { border-top-color: #c62828; }
+        .kpi-card.purple { border-top-color: #7C3AED; }
+        .kpi-card.green  { border-top-color: #2e7d32; }
+        .kpi-card.gray   { border-top-color: #9ca3af; }
+        .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; margin-bottom: 4px; }
+        .kpi-val   { font-size: 26px; font-weight: 700; color: #1a2230; line-height: 1.1; }
+        .kpi-sub   { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+        /* ── Chart grid ── */
+        .chart-row  { display: grid; gap: 20px; margin-bottom: 24px; }
+        .chart-row.cols-2 { grid-template-columns: 1fr 1fr; }
+        .chart-row.cols-3 { grid-template-columns: 2fr 1fr 1fr; }
+        @media (max-width: 900px) { .chart-row.cols-2, .chart-row.cols-3 { grid-template-columns: 1fr; } }
+        .chart-card { background: #fff; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+        .chart-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #374151; margin-bottom: 16px; }
+        .chart-sub   { font-size: 11px; color: #9ca3af; font-weight: 400; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+        .chart-wrap  { position: relative; }
+
+        /* ── Table ── */
+        .tbl-wrap { overflow-x: auto; }
+        .email-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .email-table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e5e7eb; color: #555; font-weight: 600; position: sticky; top: 0; background: #f8f9fa; z-index: 1; cursor: pointer; user-select: none; white-space: nowrap; }
+        .email-table th:hover { background: #edf0f3; }
+        .email-table th .sort-arrow { font-size: 10px; margin-left: 3px; color: #bbb; }
+        .email-table th.sorted .sort-arrow { color: #0063AC; }
+        .email-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .email-table tr:hover td { background: #f8f9fa; }
+        .num-cell  { text-align: right; font-variant-numeric: tabular-nums; }
+        .pct-cell  { text-align: right; font-variant-numeric: tabular-nums; }
+        .good-pct  { color: #1a7a4a; font-weight: 600; }
+        .warn-pct  { color: #D97706; font-weight: 600; }
+        .bad-pct   { color: #c62828; font-weight: 600; }
+        .email-name-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prog-name-cell  { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 11px; }
+        .ch-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #e8f0fb; color: #1565c0; white-space: nowrap; }
+        .rate-bar { display: flex; align-items: center; gap: 6px; }
+        .rate-bar-track { flex: 1; height: 5px; background: #e5e7eb; border-radius: 3px; min-width: 40px; }
+        .rate-bar-fill  { height: 5px; border-radius: 3px; background: #0063AC; }
+
+        /* ── Search ── */
+        .search-input { padding: 5px 10px; border: 1px solid #dde0e7; border-radius: 5px; font-size: 12px; font-family: inherit; color: #374151; outline: none; width: 200px; }
+        .search-input:focus { border-color: #0063AC; }
+        .search-input::placeholder { color: #b0b7c3; }
+
+        /* ── Section layout ── */
+        .main { padding: 28px 30px; }
+        .sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; margin: 0 0 14px; }
+
+        /* ── Loading / empty states ── */
+        #loadingState { text-align: center; padding: 80px 20px; }
+        .spinner { display: inline-block; width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #0063AC; border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: 14px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loadingMsg { color: #6b7280; font-size: 14px; }
+        #emptyState { text-align: center; padding: 80px 20px; display: none; }
+        #emptyState p { color: #9ca3af; font-size: 14px; }
+        #dashContent { display: none; }
+
+        /* ── Tabs for charts ── */
+        .tab-btns { display: flex; gap: 2px; margin-bottom: 14px; }
+        .tab-btn { background: none; border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px 11px; font-size: 11px; font-weight: 600; color: #6b7280; cursor: pointer; }
+        .tab-btn.active { background: #0063AC; border-color: #0063AC; color: #fff; }
+
+        /* ── Legend chips ── */
+        .legend-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+        .legend-chip { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
+        .legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-line { width: 18px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+        /* ── Footnote ── */
+        .footnote { font-size: 10px; color: #b0b7c3; margin-top: 8px; }
+
+        /* ── Info tooltip ── */
+        .info-tip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 15px; height: 15px; border-radius: 50%;
+            background: #e5e7eb; color: #6b7280;
+            font-size: 10px; font-weight: 700; cursor: default;
+            position: relative; flex-shrink: 0; vertical-align: middle;
+            margin-left: 3px; user-select: none;
+        }
+        .info-tip:hover .info-tip-box,
+        .info-tip:focus .info-tip-box { display: block; }
+        .info-tip-box {
+            display: none; position: absolute; top: calc(100% + 7px); left: 50%;
+            transform: translateX(-50%); width: 260px;
+            background: #1f2937; color: #f3f4f6;
+            font-size: 11px; font-weight: 400; line-height: 1.55;
+            padding: 9px 11px; border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.25);
+            text-transform: none; letter-spacing: 0; z-index: 200; white-space: normal;
+        }
+        .info-tip-box strong { color: #fff; }
+        .info-tip-box::after {
+            content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            border: 5px solid transparent; border-bottom-color: #1f2937;
+        }
+
+        /* ── Sidenav ── */
+        #pageLayout { display: flex; align-items: flex-start; }
+        #sidenav {
+            flex-shrink: 0; width: 190px;
+            border-right: 1px solid #e5e7eb; background: #fff;
+            padding: 14px 0 16px; box-sizing: border-box;
+            position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        #navSearch {
+            display: block; width: calc(100% - 20px); margin: 0 10px 10px;
+            padding: 6px 10px; font-size: 12px; font-family: inherit; color: #374151;
+            border: 1px solid #dde0e7; border-radius: 5px; outline: none; box-sizing: border-box;
+        }
+        #navSearch:focus { border-color: #0063AC; }
+        #navSearch::placeholder { color: #b0b7c3; }
+        .nav-group-label {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .09em; color: #b0b7c3; padding: 10px 12px 3px;
+        }
+        .nav-link {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 12px 5px 15px; font-size: 12px;
+            color: #4b5563; text-decoration: none; border-left: 3px solid transparent;
+            line-height: 1.35; transition: background .1s, color .1s;
+        }
+        .nav-link:hover { background: #f4f7fb; color: #0063AC; }
+        .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; font-weight: 600; }
+        .nav-sub-link {
+            display: flex; align-items: center;
+            padding: 3px 12px 3px 26px; font-size: 11px; color: #9ca3af;
+            text-decoration: none; border-left: 3px solid transparent;
+            line-height: 1.3; transition: background .1s, color .1s;
+        }
+        .nav-sub-link:hover { background: #f4f7fb; color: #0063AC; }
+        .nav-sub-link.active { border-left-color: #93c5fd; background: #f0f5fc; color: #0063AC; }
+        #sections { flex: 1; min-width: 0; }
+        .page-section { margin-bottom: 36px; scroll-margin-top: 95px; }
+    </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ══════════════════════════════════════════════════════ -->
+<header class="header">
+    <div class="header-left">
+        <div class="ansell-logo">
+            <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                <g>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                </g>
+            </svg>
+        </div>
+        <div>
+            <h1>Marketo | <span>Email Analytics</span></h1>
+            <div class="header-sub">
+                Email Performance &amp; Deliverability
+                <div id="fileBadgeWrap" style="display:none;margin-top:5px;flex-wrap:wrap;gap:2px 20px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="header-buttons">
+        <a href="../index.html" class="home-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Hub
+        </a>
+    </div>
+</header>
+
+<!-- ═══ FILTER BAR ═══════════════════════════════════════════════════ -->
+<div class="filter-bar" id="filterBar" style="display:none">
+
+    <!-- Row 1: Time Scale + Reset -->
+    <div class="fb-row">
+        <span class="filter-label">Scale:</span>
+        <button class="quick-filter-btn" id="btnTsWeek"    onclick="setTimeScale('week')"    style="margin:0">Week</button>
+        <button class="quick-filter-btn active" id="btnTsMonth" onclick="setTimeScale('month')" style="margin:0">Month</button>
+        <button class="quick-filter-btn" id="btnTsQuarter" onclick="setTimeScale('quarter')" style="margin:0">Quarter</button>
+        <button class="quick-filter-btn" id="btnTsYear"    onclick="setTimeScale('year')"    style="margin:0">Year</button>
+        <button class="quick-filter-btn" id="btnTsFY"      onclick="setTimeScale('fy')"      style="margin:0">FY</button>
+
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+
+        <span class="filter-label">Batch size:</span>
+        <button class="quick-filter-btn active" id="btnBsAll"  onclick="toggleBatchSize('all')"   style="margin:0">All</button>
+        <button class="quick-filter-btn"        id="btnBs100"  onclick="toggleBatchSize('lt100')" style="margin:0" title="0 – 99 recipients">&lt; 100</button>
+        <button class="quick-filter-btn"        id="btnBs1k"   onclick="toggleBatchSize('lt1k')"  style="margin:0" title="100 – 999 recipients">&lt; 1K</button>
+        <button class="quick-filter-btn"        id="btnBs10k"  onclick="toggleBatchSize('lt10k')" style="margin:0" title="1,000 – 9,999 recipients">&lt; 10K</button>
+        <button class="quick-filter-btn"        id="btnBs20k"  onclick="toggleBatchSize('lt20k')" style="margin:0" title="10,000 – 19,999 recipients">&lt; 20K</button>
+        <button class="quick-filter-btn"        id="btnBs20kp" onclick="toggleBatchSize('gt20k')" style="margin:0" title="20,000+ recipients">&gt; 20K</button>
+
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+
+        <span class="filter-label">Type:</span>
+        <button class="quick-filter-btn active" id="btnTypeAll"     onclick="setEmailType('all')"     style="margin:0">All</button>
+        <button class="quick-filter-btn"         id="btnTypeBatch"   onclick="setEmailType('batch')"   style="margin:0" title="Sent once — one-off campaigns">Batch</button>
+        <button class="quick-filter-btn"         id="btnTypeNurture" onclick="setEmailType('nurture')" style="margin:0">Nurture</button><span class="info-tip" tabindex="0">?<span class="info-tip-box">An email is classified as <strong>Nurture</strong> when the same email name appears on <strong>2 or more distinct send dates</strong>. This typically indicates a drip or automation sequence where the same content is delivered to different contacts over time — as opposed to a one-off batch send.</span></span>
+
+        <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
+        <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <!-- Row 2: Dimension filters + search -->
+    <div class="fb-row">
+        <span class="filter-label">Filter:</span>
+
+        <div class="ms-wrap" id="ms-f-region">
+            <button class="ms-btn" onclick="toggleMs('f-region',event)">
+                <span id="ms-f-region-label">Region</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-region-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-region')">Select All</button><button onclick="clearMs('f-region')">Clear</button></div>
+                <div class="ms-list" id="ms-f-region-list"></div>
+            </div>
+        </div>
+
+        <div class="ms-wrap" id="ms-f-vertical">
+            <button class="ms-btn" onclick="toggleMs('f-vertical',event)">
+                <span id="ms-f-vertical-label">Vertical</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-vertical-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-vertical')">Select All</button><button onclick="clearMs('f-vertical')">Clear</button></div>
+                <div class="ms-list" id="ms-f-vertical-list"></div>
+            </div>
+        </div>
+
+        <div class="ms-wrap" id="ms-f-channel">
+            <button class="ms-btn" onclick="toggleMs('f-channel',event)">
+                <span id="ms-f-channel-label">Channel</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-channel-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-channel')">Select All</button><button onclick="clearMs('f-channel')">Clear</button></div>
+                <div class="ms-list" id="ms-f-channel-list"></div>
+            </div>
+        </div>
+
+        <div class="ms-wrap" id="ms-f-fy">
+            <button class="ms-btn" onclick="toggleMs('f-fy',event)">
+                <span id="ms-f-fy-label">FY</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-fy-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-fy')">Select All</button><button onclick="clearMs('f-fy')">Clear</button></div>
+                <div class="ms-list" id="ms-f-fy-list"></div>
+            </div>
+        </div>
+
+        <div class="ms-wrap" id="ms-f-subregion">
+            <button class="ms-btn" onclick="toggleMs('f-subregion',event)">
+                <span id="ms-f-subregion-label">Sub-region</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-subregion-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-subregion')">Select All</button><button onclick="clearMs('f-subregion')">Clear</button></div>
+                <div class="ms-list" id="ms-f-subregion-list"></div>
+            </div>
+        </div>
+
+        <input type="search" class="search-input" id="emailSearch" placeholder="Search email or program…" oninput="onMsChange()">
+    </div>
+</div>
+
+<!-- ═══ STATES ═══════════════════════════════════════════════════════ -->
+<div id="loadingState">
+    <div class="spinner"></div>
+    <div id="loadingMsg">Detecting latest Email export…</div>
+</div>
+
+<div id="emptyState">
+    <p>No <code>Dashboard_Export_Emails.xlsx</code> file found in <code>Reports/</code>.</p>
+    <p style="margin-top:8px;font-size:12px">Place the file (date-prefixed) in the Reports folder and reload.</p>
+</div>
+
+<!-- ═══ DASHBOARD ═══════════════════════════════════════════════════ -->
+<div id="pageLayout">
+
+<nav id="sidenav">
+    <input id="navSearch" type="search" placeholder="Search…" oninput="navSearchFn(this.value)">
+    <div class="nav-group">
+        <div class="nav-group-label">Overview</div>
+        <a class="nav-link" href="#sec-kpis">KPIs</a>
+        <a class="nav-sub-link" href="#sec-kpis">Messages · Rates summary</a>
+        <a class="nav-link" href="#sec-trend">Trends Over Time</a>
+        <a class="nav-sub-link" href="#sec-trend">Sent / Not Delivered</a>
+        <a class="nav-sub-link" href="#sec-trend">Open · Click · Bounce rate</a>
+    </div>
+    <div class="nav-group">
+        <div class="nav-group-label">Delivery &amp; Health</div>
+        <a class="nav-link" href="#sec-delivery">Delivery &amp; Health</a>
+        <a class="nav-sub-link" href="#sec-health">Deliverability Breakdown</a>
+        <a class="nav-sub-link" href="#sec-senders">Sending Addresses</a>
+    </div>
+    <div class="nav-group">
+        <div class="nav-group-label">Engagement</div>
+        <a class="nav-link" href="#sec-engagement">Engagement</a>
+        <a class="nav-sub-link" href="#sec-channel">By Channel</a>
+        <a class="nav-sub-link" href="#sec-dayofweek">Best Day to Send</a>
+        <a class="nav-sub-link" href="#sec-sender">By Sender Address</a>
+        <a class="nav-sub-link" href="#sec-scatter">Open Rate vs Click Rate</a>
+        <a class="nav-sub-link" href="#sec-clicks">Clicks vs Unique Clicks</a>
+        <a class="nav-sub-link" href="#sec-subjects">Top Subject Lines</a>
+    </div>
+    <div class="nav-group">
+        <div class="nav-group-label">Reputation</div>
+        <a class="nav-link" href="#sec-reputation">Reputation</a>
+        <a class="nav-sub-link" href="#sec-reputation">Unsub &amp; Bounce Trends</a>
+        <a class="nav-sub-link" href="#sec-region">By Region</a>
+        <a class="nav-sub-link" href="#sec-watchlist">Watchlist</a>
+    </div>
+    <div class="nav-group">
+        <div class="nav-group-label">Detail</div>
+        <a class="nav-link" href="#sec-table">All Emails</a>
+        <a class="nav-sub-link" href="#sec-table">Sortable per-send table</a>
+    </div>
+</nav>
+
+<div id="sections">
+<main class="main" id="dashContent">
+
+    <!-- KPIs -->
+    <div class="page-section" id="sec-kpis">
+    <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+            <div class="kpi-label">Messages Sent</div>
+            <div class="kpi-val" id="kpiSent">—</div>
+            <div class="kpi-sub" id="kpiSentSub"></div>
+        </div>
+        <div class="kpi-card teal">
+            <div class="kpi-label">Delivery Rate</div>
+            <div class="kpi-val" id="kpiDelivery">—</div>
+            <div class="kpi-sub" id="kpiDeliverySub"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Open Rate</div>
+            <div class="kpi-val" id="kpiOpen">—</div>
+            <div class="kpi-sub" id="kpiOpenSub">of delivered</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Unique Click Rate</div>
+            <div class="kpi-val" id="kpiClick">—</div>
+            <div class="kpi-sub" id="kpiClickSub">of delivered</div>
+        </div>
+        <div class="kpi-card purple">
+            <div class="kpi-label">Click-to-Open</div>
+            <div class="kpi-val" id="kpiCTO">—</div>
+            <div class="kpi-sub">unique clicks / opens</div>
+        </div>
+        <div class="kpi-card orange">
+            <div class="kpi-label">Hard Bounce Rate</div>
+            <div class="kpi-val" id="kpiBounce">—</div>
+            <div class="kpi-sub" id="kpiBounceSub">of sent</div>
+        </div>
+        <div class="kpi-card red">
+            <div class="kpi-label">Unsubscribe Rate</div>
+            <div class="kpi-val" id="kpiUnsub">—</div>
+            <div class="kpi-sub">of delivered</div>
+        </div>
+        <div class="kpi-card gray">
+            <div class="kpi-label">Email Sends</div>
+            <div class="kpi-val" id="kpiCount">—</div>
+            <div class="kpi-sub" id="kpiCountSub"></div>
+        </div>
+    </div>
+    </div><!-- /sec-kpis -->
+
+    <!-- Trendline -->
+    <div class="page-section" id="sec-trend">
+    <div class="chart-card">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            <div class="chart-title" style="margin-bottom:0">
+                Volume &amp; Engagement Over Time
+                <span class="chart-sub">Sent / Not Delivered (bars) · Rate overlay (line)</span>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:4px">
+                <button class="tab-btn active" id="btnMetricOpen"   onclick="setTrendMetric('open')"   style="padding:3px 9px">Open Rate</button>
+                <button class="tab-btn"         id="btnMetricClick"  onclick="setTrendMetric('click')"  style="padding:3px 9px">Click Rate</button>
+                <button class="tab-btn"         id="btnMetricBounce" onclick="setTrendMetric('bounce')" style="padding:3px 9px">Bounce Rate</button>
+            </div>
+        </div>
+        <div class="chart-wrap" style="height:260px">
+            <canvas id="chartTrend"></canvas>
+        </div>
+        <div class="legend-row" style="margin-top:10px">
+            <span class="legend-chip"><span class="legend-dot" style="background:rgba(0,162,143,0.55)"></span>Sent</span>
+            <span class="legend-chip"><span class="legend-dot" style="background:rgba(220,38,38,0.25)"></span>Not delivered</span>
+            <span class="legend-chip"><span class="legend-line" style="background:#F59E0B"></span><span id="legendTrendMetric">Open Rate</span></span>
+        </div>
+        <p class="footnote">Teal = Sent (delivered portion). Red sliver = not delivered. Full bar height = total attempted sends. Hover for exact counts and delivery rate.</p>
+    </div>
+    </div><!-- /sec-trend -->
+
+    <!-- ── DELIVERY & HEALTH ───────────────────────────────────────── -->
+    <div class="page-section" id="sec-delivery">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Delivery &amp; Health</div>
+        <div class="chart-row cols-2">
+            <div class="chart-card" id="sec-health">
+                <div class="chart-title">Deliverability Breakdown
+                    <span class="chart-sub">Delivered · Bounced · Unsubscribed · Complaints</span>
+                </div>
+                <div class="chart-wrap" style="height:260px">
+                    <canvas id="chartHealth"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="sec-senders">
+                <div class="chart-title">Top Sending Addresses
+                    <span class="chart-sub">By volume sent</span>
+                </div>
+                <div class="chart-wrap" style="height:260px">
+                    <canvas id="chartFromAddr"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ENGAGEMENT ──────────────────────────────────────────────── -->
+    <div class="page-section" id="sec-engagement">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Engagement</div>
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+            <div class="chart-card" id="sec-channel">
+                <div class="chart-title">By Channel
+                    <span class="chart-sub">Open Rate · Click Rate · Delivery Rate</span>
+                </div>
+                <div class="chart-wrap" style="height:300px">
+                    <canvas id="chartChannel"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="sec-dayofweek">
+                <div class="chart-title">Best Day to Send
+                    <span class="chart-sub">Avg Open Rate · Click Rate by weekday</span>
+                </div>
+                <div class="chart-wrap" style="height:300px">
+                    <canvas id="chartDayOfWeek"></canvas>
+                </div>
+                <p class="footnote">Rates are weighted averages across all sends on that weekday.</p>
+            </div>
+        </div>
+        <!-- By Sender -->
+        <div class="chart-card" id="sec-sender" style="margin-bottom:20px">
+            <div class="chart-title">Engagement by Sender Address
+                <span class="chart-sub">Open Rate · Click Rate · top senders by volume</span>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+                <canvas id="chartSenderEngagement"></canvas>
+            </div>
+        </div>
+
+        <!-- Open Rate vs Click Rate scatter -->
+        <div class="chart-card" id="sec-scatter" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Open Rate vs Click Rate
+                    <span class="chart-sub" id="scatterSub">Each bubble = one email send · size = volume sent</span>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                    <select id="scatterLimitSel" onchange="setScatterLimit(this.value)" style="font-size:11px;padding:3px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer">
+                        <option value="20">Top 20</option>
+                        <option value="50">Top 50</option>
+                        <option value="100">Top 100</option>
+                        <option value="0">All</option>
+                    </select>
+                    <div style="display:flex;gap:4px">
+                        <button class="tab-btn active" id="btnScatterChannel" onclick="setScatterView('channel')">By Channel</button>
+                        <button class="tab-btn"         id="btnScatterSender"  onclick="setScatterView('sender')">By Sender</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:360px">
+                <canvas id="chartScatter"></canvas>
+            </div>
+            <p class="footnote">Bubble size proportional to messages sent. Top-right = best performers. Top-left = strong subject, weak CTA. Bottom-right = weak subject, strong body.</p>
+        </div>
+
+        <!-- Clicks vs Unique Clicks -->
+        <div class="chart-card" id="sec-clicks" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Clicks vs Unique Clicks
+                    <span class="chart-sub">Total clicks vs deduplicated clicks · ratio = repeat-click factor</span>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:4px">
+                    <button class="tab-btn active" id="btnClicksTime"    onclick="setClicksView('time')">Over Time</button>
+                    <button class="tab-btn"         id="btnClicksChannel" onclick="setClicksView('channel')">By Channel</button>
+                    <button class="tab-btn"         id="btnClicksSender"  onclick="setClicksView('sender')">By Sender</button>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+                <canvas id="chartClicks"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top:10px">
+                <span class="legend-chip"><span class="legend-dot" style="background:rgba(0,99,172,0.65)"></span>Total Clicks</span>
+                <span class="legend-chip"><span class="legend-dot" style="background:rgba(16,185,129,0.65)"></span>Unique Clicks</span>
+                <span class="legend-chip"><span class="legend-line" style="background:#F59E0B"></span>Repeat-Click Ratio (Total ÷ Unique)</span>
+            </div>
+            <p class="footnote">Repeat-Click Ratio &gt; 1 means recipients click multiple links or click multiple times. A ratio of 1.5 means every unique clicker clicked 1.5× on average.</p>
+        </div>
+
+        <!-- Subject line analysis -->
+        <div class="chart-card" id="sec-subjects">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="chart-title" style="margin-bottom:0">Top Subject Lines
+                    <span class="chart-sub">By open rate · min. 200 messages sent</span>
+                </div>
+                <span id="subjectCount" style="font-size:11px;color:#9ca3af;margin-left:auto"></span>
+            </div>
+            <div class="tbl-wrap">
+                <table class="email-table" id="subjectTable">
+                    <thead>
+                        <tr>
+                            <th style="min-width:260px">Subject Line</th>
+                            <th class="num-cell" style="width:70px"># Emails</th>
+                            <th class="num-cell" style="width:80px">Sent</th>
+                            <th class="num-cell" style="width:75px">Open %</th>
+                            <th class="num-cell" style="width:70px">Click %</th>
+                            <th class="num-cell" style="width:65px">CTO %</th>
+                            <th class="num-cell" style="width:75px">Bounce %</th>
+                            <th class="num-cell" style="width:75px">Unsub %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectTableBody"></tbody>
+                </table>
+            </div>
+            <p class="footnote" style="margin-top:10px">Only subjects with 200+ messages sent shown. Grouped across all emails sharing the same subject line.</p>
+        </div>
+    </div>
+
+    <!-- ── REPUTATION ──────────────────────────────────────────────── -->
+    <div class="page-section" id="sec-reputation">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Reputation</div>
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+            <div class="chart-card">
+                <div class="chart-title">Unsubscribe &amp; Bounce Rate Over Time
+                    <span class="chart-sub">Rates as % of delivered / sent</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartReputation"></canvas>
+                </div>
+                <div class="legend-row" style="margin-top:10px">
+                    <span class="legend-chip"><span class="legend-line" style="background:#EF4444"></span>Unsubscribe Rate</span>
+                    <span class="legend-chip"><span class="legend-line" style="background:#D97706"></span>Hard Bounce Rate</span>
+                    <span class="legend-chip"><span class="legend-line" style="background:#7C3AED"></span>Complaint Rate</span>
+                </div>
+                <p class="footnote">Unsubscribe &amp; Complaint rates = % of delivered. Bounce rate = % of sent.</p>
+            </div>
+            <div class="chart-card" id="sec-region">
+                <div class="chart-title">Send Volume by Region
+                    <span class="chart-sub">Total messages sent</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartRegion"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Reputation watchlist -->
+        <div class="chart-card" id="sec-watchlist">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="chart-title" style="margin-bottom:0">Reputation Watchlist
+                    <span class="chart-sub">Worst-performing emails · min. 100 sent</span>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:4px">
+                    <button class="tab-btn active" id="wlBtnBounce"      onclick="setWatchlist('bounce')">Hard Bounce</button>
+                    <button class="tab-btn"         id="wlBtnSoftBounce"  onclick="setWatchlist('softBounce')">Soft Bounce</button>
+                    <button class="tab-btn"         id="wlBtnUnsub"       onclick="setWatchlist('unsub')">Unsubscribe</button>
+                    <button class="tab-btn"         id="wlBtnComplaints"  onclick="setWatchlist('complaints')">Complaints ⚠</button>
+                </div>
+            </div>
+            <div class="tbl-wrap">
+                <table class="email-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width:160px">Program</th>
+                            <th style="min-width:140px">Email</th>
+                            <th style="width:90px">Sent Date</th>
+                            <th class="num-cell" style="width:70px">Sent</th>
+                            <th class="num-cell" style="width:85px">Hard Bnc %</th>
+                            <th class="num-cell" style="width:85px">Soft Bnc %</th>
+                            <th class="num-cell" style="width:80px">Unsub %</th>
+                            <th class="num-cell" style="width:90px">Complaints</th>
+                            <th class="num-cell" style="width:80px">Open %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlistBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:16px;padding:12px 14px;background:#f8f9fa;border-left:3px solid #e5e7eb;border-radius:0 4px 4px 0;font-size:11px;color:#6b7280;line-height:1.6">
+                <strong style="color:#374151;display:block;margin-bottom:6px">Metric definitions</strong>
+                <span style="color:#EF4444;font-weight:600">Hard Bounce</span> — Permanent delivery failure (invalid/non-existent address, domain does not exist). Marketo suppresses the address automatically. High rates indicate list quality issues.<br>
+                <span style="color:#D97706;font-weight:600">Soft Bounce</span> — Temporary failure (mailbox full, server unavailable, message too large). Marketo retries automatically; persistent soft bounces are eventually treated as hard bounces.<br>
+                <span style="color:#0063AC;font-weight:600">Unsubscribe</span> — Recipient opted out via the email's unsubscribe link. Marketo marks them as Marketing Suspended. Normal threshold: &lt; 0.5% of delivered.<br>
+                <span style="color:#7C3AED;font-weight:600">Complaint</span> — Recipient clicked "Mark as spam" in their mail client (reported via FBL). Even 1–2 complaints signals a deliverability risk; high complaint rates can damage sender reputation and trigger ISP filtering.
+            </div>
+        </div>
+    </div>
+
+    <!-- Email table -->
+    <div class="page-section" id="sec-table">
+    <div class="chart-card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+            <div class="chart-title" style="margin-bottom:0">All Emails</div>
+            <span id="tableCount" style="font-size:11px;color:#9ca3af"></span>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                <span style="font-size:11px;color:#9ca3af">Sort by:</span>
+                <button class="tab-btn active" id="sortBtnOpen"   onclick="setSortField('openRate')">Open Rate</button>
+                <button class="tab-btn"         id="sortBtnClick"  onclick="setSortField('clickRate')">Click Rate</button>
+                <button class="tab-btn"         id="sortBtnSent"   onclick="setSortField('sent')">Volume</button>
+                <button class="tab-btn"         id="sortBtnBounce" onclick="setSortField('bounceRate')">Bounce</button>
+            </div>
+        </div>
+        <div class="tbl-wrap">
+            <table class="email-table">
+                <thead>
+                    <tr id="tableHeaderRow">
+                        <th onclick="toggleSort('programName')" id="th-programName" style="min-width:180px">Program <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('emailName')"   id="th-emailName"   style="min-width:160px">Email <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('channel')"     id="th-channel"     style="width:100px">Channel <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('sentDate')"    id="th-sentDate"    style="width:90px">Sent Date <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('sent')"        id="th-sent"        class="num-cell sorted" style="width:70px">Sent <span class="sort-arrow">↓</span></th>
+                        <th onclick="toggleSort('deliveryRate')" id="th-deliveryRate" class="num-cell" style="width:80px">Delivery % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('openRate')"    id="th-openRate"    class="num-cell" style="width:75px">Open % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('clickRate')"   id="th-clickRate"   class="num-cell" style="width:70px">Click % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('ctoRate')"     id="th-ctoRate"     class="num-cell" style="width:65px">CTO % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('bounceRate')"  id="th-bounceRate"  class="num-cell" style="width:75px">Bounce % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('unsubRate')"   id="th-unsubRate"   class="num-cell" style="width:75px">Unsub % <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('complaints')"  id="th-complaints"  class="num-cell" style="width:80px">Complaints <span class="sort-arrow">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody id="emailTableBody"></tbody>
+            </table>
+        </div>
+        <p class="footnote" style="margin-top:10px">CTO = Click-to-Open (Unique Clicks / Opened). Rates calculated from delivered count. Nurture mode groups all sends of the same email into one row. Max 500 rows shown.</p>
+    </div>
+    </div><!-- /sec-table -->
+
+</main>
+</div><!-- /sections -->
+</div><!-- /pageLayout -->
+
+<div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Email Analytics</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS — program name parsing (kept in sync with marketo-analytics-program.html)
+// ═══════════════════════════════════════════════════════
+var PICKLIST_REGION  = new Set(['APAC','EMEA','EMAP','LAC','NA','GLOBAL']);
+var PICKLIST_CHANNEL = new Set([
+    'Chatbot','DandB','Email','Events','Highspot',
+    'Organic-social-FB','Organic-social-LN','Organic-social-WCH','Organic-social-other',
+    'Offline',
+    'Paid-display','Paid-list','Paid-msg','Paid-mix','Paid-search',
+    'Paid-social-FB','Paid-social-LN','Paid-social-other','Paid-video',
+    'Referral-INT','Sales','Telemarketing','Third-party',
+    'Web-form-AI','Web-form-ORG','Web-form-DIR',
+    'Webinar','Operational'
+]);
+var VERTICAL_LABELS = {
+    'AUTAF':'Auto Aftermarket','ACAD':'Academic Institutions','ACT':'Acute Care',
+    'AUTO':'Automotive','CHEM':'Chemicals','CONST':'Construction','DNT':'Dental',
+    'DISTR':'Distributor','ENERG':'Energy','FOOD':'Food','GOV':'Government',
+    'HC':'Healthcare','IND':'Industrial','INDEM':'Industrial Equipment & Machinery',
+    'LS':'Life Sciences','MET':'Metal Fabrication','ONA':'Other Non Acute Care Healthcare',
+    'PPC':'Post-Acute and Primary Care','RS':'Retail & Services','SMT':'Speciality Markets',
+    'UNK':'Unknown','VET':'Veterinary','WL':'Warehousing & Logistics','MULT':'Multi'
+};
+var PICKLIST_VERTICAL = new Set(Object.keys(VERTICAL_LABELS));
+var SUBREGION_LABELS = {
+    'AFR':'Africa','ANZ':'ANZ','ASIA':'Asia (excl. ANZ)','AU':'Australia',
+    'BNL':'Benelux','CEE':'Central and Eastern Europe','CIS':'CIS','CN':'China',
+    'DACH':'Germanic','FR':'France','IBER':'Iberia','IN':'India','IT':'Italy',
+    'JP':'Japan','KR':'Korea','ME':'Middle East','MED':'Mediterranean',
+    'NORD':'Nordic','SEA':'South East Asia','UKIR':'UK & Ireland','All':'All',
+    'BR':'Brazil','CO':'Colombia','MX':'Mexico','OLAC':'Latin America',
+    'PR':'Peru','CL':'Chile','CRI':'Costa Rica','AR':'Argentina','CA':'Canada','US':'United States'
+};
+var PICKLIST_SUBREGION = new Set(Object.keys(SUBREGION_LABELS));
+
+function buildCiLookup(arr) {
+    var m = {};
+    arr.forEach(function(v) { m[v.toLowerCase()] = v; });
+    return m;
+}
+var CI_REGION    = buildCiLookup([...PICKLIST_REGION]);
+CI_REGION['anz'] = 'APAC'; CI_REGION['asia'] = 'APAC';
+var CI_VERTICAL  = buildCiLookup(Object.keys(VERTICAL_LABELS));
+var CI_CHANNEL   = buildCiLookup([...PICKLIST_CHANNEL]);
+var CI_SUBREGION = buildCiLookup(Object.keys(SUBREGION_LABELS));
+var CHANNEL_REMAP = { 'web-form': 'Web-form-ORG' };
+
+function parseProgramName(name) {
+    if (!name || typeof name !== 'string') return null;
+    var parts = name.trim().split('_');
+    if (parts.length < 3) return null;
+    var region   = CI_REGION[parts[0].toLowerCase()]   || parts[0] || '';
+    var vertical = CI_VERTICAL[parts[1].toLowerCase()] || parts[1] || '';
+    var chanStage = parts[2] || '';
+    var lastDash  = chanStage.lastIndexOf('-');
+    var channel, progStage;
+    if (lastDash !== -1 && CI_CHANNEL[chanStage.slice(0, lastDash).toLowerCase()]) {
+        channel   = CI_CHANNEL[chanStage.slice(0, lastDash).toLowerCase()];
+        progStage = chanStage.slice(lastDash + 1);
+    } else {
+        channel   = CI_CHANNEL[chanStage.toLowerCase()] || chanStage;
+        progStage = '';
+    }
+    if (CHANNEL_REMAP[channel.toLowerCase()]) channel = CHANNEL_REMAP[channel.toLowerCase()];
+    var fy        = (parts[3] || '').toUpperCase();
+    var subRegion = CI_SUBREGION[(parts[4] || '').toLowerCase()] || parts[4] || '';
+    if (!PICKLIST_REGION.has(region))   region   = '(Non-standard)';
+    if (!PICKLIST_VERTICAL.has(vertical)) vertical = '(Non-standard)';
+    if (!PICKLIST_CHANNEL.has(channel)) channel  = '(Non-standard)';
+    if (subRegion && !PICKLIST_SUBREGION.has(subRegion)) subRegion = '';
+    return { region, vertical, channel, progStage, fy, subRegion };
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+var rawEmails    = [];
+var charts       = {};
+var timeScale        = 'month';
+var trendMetric      = 'open';
+var clicksView       = 'time';
+var scatterView      = 'channel';
+var scatterLimit     = 20;
+var emailTypeFilter  = 'all';
+var batchSizeFilter  = new Set(); // empty = All
+var watchlistMetric  = 'bounce';
+var sortField    = 'sent';
+var sortDir      = 'desc';
+var msState      = {
+    'f-region': new Set(), 'f-vertical': new Set(), 'f-channel': new Set(),
+    'f-fy': new Set(), 'f-subregion': new Set()
+};
+var MS_LABELS    = {
+    'f-region':'Region','f-vertical':'Vertical','f-channel':'Channel',
+    'f-fy':'FY','f-subregion':'Sub-region'
+};
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return Number(n).toLocaleString();
+}
+function fmtPct(n, decimals) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return n.toFixed(decimals !== undefined ? decimals : 1) + '%';
+}
+function pctClass(val, goodBelow, warnBelow) {
+    if (val === null || isNaN(val)) return '';
+    if (warnBelow !== undefined) {
+        if (val <= goodBelow) return 'good-pct';
+        if (val <= warnBelow) return 'warn-pct';
+        return 'bad-pct';
+    }
+    if (val >= goodBelow) return 'good-pct';
+    return '';
+}
+function parseNum(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    var n = parseFloat(String(v).replace(/,/g, ''));
+    return isNaN(n) ? 0 : n;
+}
+function parseDate(v) {
+    if (!v) return null;
+    if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+    if (typeof v === 'number') {
+        var d = new Date(Math.round((v - 25569) * 86400 * 1000));
+        return isNaN(d.getTime()) ? null : d;
+    }
+    var s = String(v).trim();
+    if (!s) return null;
+    var d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+}
+function getBucket(date, scale) {
+    if (!date) return null;
+    var y = date.getFullYear(), mo = date.getMonth();
+    if (scale === 'week') {
+        var jan1 = new Date(y, 0, 1);
+        var wk = Math.ceil(((date - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+        return y + '-W' + String(wk).padStart(2, '0');
+    }
+    if (scale === 'month')   return y + '-' + String(mo + 1).padStart(2, '0');
+    if (scale === 'quarter') return y + '-Q' + (Math.floor(mo / 3) + 1);
+    if (scale === 'year')    return String(y);
+    if (scale === 'fy') {
+        var fy = mo >= 6 ? y + 1 : y;
+        var qInFy = mo >= 6 ? Math.floor((mo - 6) / 3) + 1 : Math.floor((mo + 6) / 3) + 1;
+        return 'FY' + String(fy).slice(-2) + ' Q' + qInFy;
+    }
+    return null;
+}
+function computeRates(r) {
+    var s   = r.sent      || 0;
+    var del = r.delivered || 0;
+    var op  = r.opened    || 0;
+    var uc  = r.uniqueClicks || 0;
+    var hb  = r.hardBounced  || 0;
+    var sb  = r.softBounced  || 0;
+    var us  = r.unsubscribed || 0;
+    var co  = r.complaints   || 0;
+    r.deliveryRate    = del && s  ? (del / s  * 100) : (s ? 0 : null);
+    r.openRate        = op  && del? (op  / del* 100) : (del ? 0 : null);
+    r.clickRate       = uc  && del? (uc  / del* 100) : (del ? 0 : null);
+    r.ctoRate         = uc  && op ? (uc  / op * 100) : (op ? 0 : null);
+    r.bounceRate      = hb  && s  ? (hb  / s  * 100) : (s ? 0 : null);
+    r.softBounceRate  = sb  && s  ? (sb  / s  * 100) : (s ? 0 : null);
+    r.unsubRate       = us  && del? (us  / del* 100) : (del ? 0 : null);
+    r.complaintRate   = co  && del? (co  / del* 100) : (del ? 0 : null);
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE DETECTION + LOADING
+// ═══════════════════════════════════════════════════════
+async function detectLatestDate(suffix) {
+    var today = new Date();
+    for (var i = 0; i < 90; i++) {
+        var d = new Date(today);
+        d.setDate(d.getDate() - i);
+        var dateStr = d.toISOString().slice(0, 10);
+        var path = '../Reports/' + dateStr + ' ' + suffix;
+        try {
+            var r = await fetch(path, { method: 'HEAD' });
+            if (r.ok) return { dateStr, path };
+        } catch(e) {}
+    }
+    return null;
+}
+
+async function loadData() {
+    showLoading('Detecting latest Email export…');
+    var found = await detectLatestDate('Dashboard_Export_Emails.xlsx');
+    if (!found) { showEmpty(); return; }
+
+    showLoading('Loading ' + found.dateStr + ' Dashboard_Export_Emails.xlsx…');
+    try {
+        var buf = await fetch(found.path).then(r => r.arrayBuffer());
+        var wb  = XLSX.read(buf, { type: 'array', cellDates: true });
+        var raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+
+        raw = raw.filter(function(row) {
+            var prog = String(row['Program Name'] || '').trim();
+            if (prog.toLowerCase() === 'total') return false;
+            var firstVal = Object.values(row).map(v => String(v).trim()).find(v => v !== '');
+            if (firstVal && firstVal.toLowerCase().startsWith('applied filters')) return false;
+            return true;
+        });
+
+        rawEmails = raw.map(function(row) {
+            var progName      = String(row['Program Name'] || '').trim();
+            var emailNameFull = String(row['Email Name']   || '').trim();
+            // Strip program name prefix from email name (format: ProgramName.EmailSuffix)
+            var emailNameShort = emailNameFull;
+            if (emailNameFull.toLowerCase().startsWith(progName.toLowerCase() + '.')) {
+                emailNameShort = emailNameFull.slice(progName.length + 1);
+            }
+            var r = {
+                programName:   progName,
+                emailNameFull: emailNameFull,
+                emailName:     emailNameShort,
+                sentDate:     parseDate(row['Sent (Date)'] || row['Sent Date'] || row['SentDate']),
+                subject:      String(row['Email Subject'] || '').trim(),
+                fromAddr:     String(row['Email From Address'] || row['From Address'] || '').trim(),
+                sent:         parseNum(row['Sent']),
+                delivered:    parseNum(row['Delivered']),
+                opened:       parseNum(row['Opened']),
+                clicked:      parseNum(row['Clicked']),
+                uniqueClicks: parseNum(row['Unique Clicks']),
+                hardBounced:  parseNum(row['Hard Bounced']),
+                softBounced:  parseNum(row['Soft Bounced'] || row['Soft Bounce']),
+                unsubscribed: parseNum(row['Unsubscribed']),
+                complaints:   parseNum(row['Complaints'])
+            };
+            computeRates(r);
+            var parsed = parseProgramName(r.programName);
+            r.region    = parsed ? parsed.region    : '(Non-standard)';
+            r.vertical  = parsed ? parsed.vertical  : '(Non-standard)';
+            r.channel   = parsed ? parsed.channel   : '(Non-standard)';
+            r.progStage = parsed ? parsed.progStage : '';
+            r.fy        = parsed ? parsed.fy        : '';
+            r.subRegion = parsed ? parsed.subRegion : '';
+            return r;
+        }).filter(r => r.sent > 0 || r.delivered > 0);
+
+        // Classify batch vs nurture: count distinct sent dates per full email name
+        var emailDateSets = {};
+        rawEmails.forEach(function(r) {
+            var key = r.emailNameFull;
+            if (!emailDateSets[key]) emailDateSets[key] = new Set();
+            if (r.sentDate) emailDateSets[key].add(r.sentDate.toISOString().slice(0,10));
+        });
+        rawEmails.forEach(function(r) {
+            var dates = emailDateSets[r.emailNameFull] || new Set();
+            r.emailType = dates.size >= 2 ? 'nurture' : 'batch';
+            r.sendCount = dates.size;
+        });
+
+        // Compute batch/nurture split by unique email name and label the buttons
+        var allNames     = new Set(rawEmails.map(r => r.emailNameFull));
+        var nurtureNames = new Set(rawEmails.filter(r => r.emailType === 'nurture').map(r => r.emailNameFull));
+        var batchPct   = allNames.size ? Math.round((allNames.size - nurtureNames.size) / allNames.size * 100) : 0;
+        var nurturePct = 100 - batchPct;
+        var btnBatch   = document.getElementById('btnTypeBatch');
+        var btnNurture = document.getElementById('btnTypeNurture');
+        if (btnBatch)   btnBatch.textContent   = 'Batch '   + batchPct   + '%';
+        if (btnNurture) btnNurture.textContent  = 'Nurture ' + nurturePct + '%';
+
+        // Update file badge
+        var wrap = document.getElementById('fileBadgeWrap');
+        if (wrap) {
+            wrap.style.display = 'flex';
+            wrap.innerHTML = '<div style="display:flex;align-items:center;gap:5px;padding:1px 0"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00A28F;flex-shrink:0"></span><code style="font-size:10px;color:#444">' + found.dateStr + ' Dashboard_Export_Emails.xlsx</code></div>';
+        }
+
+        initFilters();
+        showDash();
+        renderAll();
+    } catch(e) {
+        console.error(e);
+        showEmpty();
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTER INIT
+// ═══════════════════════════════════════════════════════
+function initFilters() {
+    populateMs('f-region',   rawEmails, r => r.region   !== '(Non-standard)' ? r.region    : null, v => v);
+    populateMs('f-vertical', rawEmails, r => r.vertical !== '(Non-standard)' ? r.vertical  : null, v => VERTICAL_LABELS[v] ? v + ' — ' + VERTICAL_LABELS[v] : v);
+    populateMs('f-channel',  rawEmails, r => r.channel  !== '(Non-standard)' ? r.channel   : null, v => v);
+    populateMs('f-fy',       rawEmails, r => r.fy || null, v => v);
+    populateMs('f-subregion',rawEmails, r => r.subRegion || null, v => SUBREGION_LABELS[v] ? v + ' — ' + SUBREGION_LABELS[v] : v);
+}
+
+function populateMs(id, data, keyFn, labelFn) {
+    var counts = {};
+    data.forEach(function(r) { var k = keyFn(r); if (k) counts[k] = (counts[k]||0) + 1; });
+    var sorted = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    var list = document.getElementById('ms-' + id + '-list');
+    if (!list) return;
+    list.innerHTML = sorted.map(function(v) {
+        return '<label class="ms-item"><input type="checkbox" value="' + v + '" onchange="toggleMsOption(\'' + id + '\',this.value,this.checked)"> <span>' + labelFn(v) + '</span><span class="ms-count">' + counts[v] + '</span></label>';
+    }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTER APPLY
+// ═══════════════════════════════════════════════════════
+function applyFilters() {
+    var search = (document.getElementById('emailSearch').value || '').toLowerCase();
+    return rawEmails.filter(function(r) {
+        if (emailTypeFilter !== 'all' && r.emailType !== emailTypeFilter) return false;
+        if (batchSizeFilter.size > 0) {
+            var s = r.sent;
+            var ok = (batchSizeFilter.has('lt100')  && s < 100)
+                  || (batchSizeFilter.has('lt1k')   && s >= 100   && s < 1000)
+                  || (batchSizeFilter.has('lt10k')  && s >= 1000  && s < 10000)
+                  || (batchSizeFilter.has('lt20k')  && s >= 10000 && s < 20000)
+                  || (batchSizeFilter.has('gt20k')  && s >= 20000);
+            if (!ok) return false;
+        }
+        if (msState['f-region'].size   && !msState['f-region'].has(r.region))     return false;
+        if (msState['f-vertical'].size && !msState['f-vertical'].has(r.vertical)) return false;
+        if (msState['f-channel'].size  && !msState['f-channel'].has(r.channel))   return false;
+        if (msState['f-fy'].size       && !msState['f-fy'].has(r.fy))             return false;
+        if (msState['f-subregion'].size&& !msState['f-subregion'].has(r.subRegion)) return false;
+        if (search) {
+            var haystack = (r.emailName + ' ' + r.emailNameFull + ' ' + r.programName + ' ' + r.subject + ' ' + r.fromAddr).toLowerCase();
+            if (haystack.indexOf(search) === -1) return false;
+        }
+        return true;
+    });
+}
+
+function updateFilterCount() {
+    var n = 0;
+    Object.values(msState).forEach(s => n += s.size);
+    var search = (document.getElementById('emailSearch').value || '').trim();
+    if (search) n++;
+    var el = document.getElementById('filterCount');
+    if (el) el.textContent = n ? n + ' filter' + (n > 1 ? 's' : '') + ' active' : '';
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════
+function renderAll() {
+    var data = applyFilters();
+    updateFilterCount();
+    renderKPIs(data);
+    renderTrend(data);
+    renderHealth(data);
+    renderFromAddr(data);
+    renderChannel(data);
+    renderDayOfWeek(data);
+    renderSenderEngagement(data);
+    renderScatter(data);
+    renderClicks(data);
+    renderSubjectLines(data);
+    renderReputation(data);
+    renderRegion(data);
+    renderWatchlist(data);
+    renderTable(data);
+}
+
+// ═══════════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════════
+function renderKPIs(data) {
+    var totSent      = data.reduce((s,r)=>s+r.sent,0);
+    var totDel       = data.reduce((s,r)=>s+r.delivered,0);
+    var totOpened    = data.reduce((s,r)=>s+r.opened,0);
+    var totUC        = data.reduce((s,r)=>s+r.uniqueClicks,0);
+    var totBounced   = data.reduce((s,r)=>s+r.hardBounced,0);
+    var totUnsub     = data.reduce((s,r)=>s+r.unsubscribed,0);
+
+    var delivRate = totSent ? (totDel   / totSent * 100) : null;
+    var openRate  = totDel  ? (totOpened/ totDel  * 100) : null;
+    var clickRate = totDel  ? (totUC    / totDel  * 100) : null;
+    var ctoRate   = totOpened?(totUC/totOpened*100)       : null;
+    var bounceRate= totSent ? (totBounced/totSent* 100)   : null;
+    var unsubRate = totDel  ? (totUnsub / totDel  * 100)  : null;
+
+    var uniqueEmails = new Set(data.map(r => r.emailNameFull)).size;
+    setText('kpiSent',     fmt(totSent));
+    setText('kpiSentSub',  fmt(data.length) + ' sends · ' + fmt(uniqueEmails) + ' unique emails');
+    setText('kpiDelivery', fmtPct(delivRate));
+    setText('kpiDeliverySub', fmt(totDel) + ' delivered');
+    setText('kpiOpen',  fmtPct(openRate));
+    setText('kpiClick', fmtPct(clickRate));
+    setText('kpiCTO',   fmtPct(ctoRate));
+    setText('kpiBounce',fmtPct(bounceRate));
+    setText('kpiBounceSub', fmt(totBounced) + ' bounced');
+    setText('kpiUnsub', fmtPct(unsubRate));
+    setText('kpiCount', fmt(data.length));
+    var totalUnique = new Set(rawEmails.map(r => r.emailNameFull)).size;
+    var uniquePrograms = new Set(data.map(r => r.programName)).size;
+    setText('kpiCountSub', fmt(uniqueEmails) + ' unique emails · ' + fmt(uniquePrograms) + ' programs');
+}
+function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+
+// ═══════════════════════════════════════════════════════
+// TRENDLINE
+// ═══════════════════════════════════════════════════════
+function renderTrend(data) {
+    var buckets = {};
+    data.forEach(function(r) {
+        var k = getBucket(r.sentDate, timeScale);
+        if (!k) return;
+        if (!buckets[k]) buckets[k] = { sent:0, delivered:0, opened:0, uniqueClicks:0, hardBounced:0, unsubscribed:0 };
+        buckets[k].sent        += r.sent;
+        buckets[k].delivered   += r.delivered;
+        buckets[k].opened      += r.opened;
+        buckets[k].uniqueClicks+= r.uniqueClicks;
+        buckets[k].hardBounced += r.hardBounced;
+        buckets[k].unsubscribed+= r.unsubscribed;
+    });
+    var labels   = Object.keys(buckets).sort();
+    var delVals  = labels.map(k => buckets[k].delivered);
+    var gapVals  = labels.map(k => Math.max(0, buckets[k].sent - buckets[k].delivered));
+
+    var metricVals, metricColor, metricLabel;
+    if (trendMetric === 'open') {
+        metricVals  = labels.map(k => buckets[k].delivered ? buckets[k].opened / buckets[k].delivered * 100 : null);
+        metricColor = '#F59E0B'; metricLabel = 'Open Rate (%)';
+    } else if (trendMetric === 'click') {
+        metricVals  = labels.map(k => buckets[k].delivered ? buckets[k].uniqueClicks / buckets[k].delivered * 100 : null);
+        metricColor = '#10B981'; metricLabel = 'Unique Click Rate (%)';
+    } else {
+        metricVals  = labels.map(k => buckets[k].sent ? buckets[k].hardBounced / buckets[k].sent * 100 : null);
+        metricColor = '#EF4444'; metricLabel = 'Hard Bounce Rate (%)';
+    }
+    setText('legendTrendMetric', metricLabel.replace(' (%)', ''));
+
+    if (charts['trend']) { charts['trend'].destroy(); }
+    var ctx = document.getElementById('chartTrend').getContext('2d');
+    charts['trend'] = new Chart(ctx, {
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type:'bar', label:'Sent', data: delVals,
+                    backgroundColor:'rgba(0,162,143,0.55)', stack:'vol', yAxisID:'y', order:2
+                },
+                {
+                    type:'bar', label:'Not delivered', data: gapVals,
+                    backgroundColor:'rgba(220,38,38,0.22)', stack:'vol', yAxisID:'y', order:2
+                },
+                {
+                    type:'line', label: metricLabel, data: metricVals,
+                    borderColor: metricColor, backgroundColor: metricColor+'22',
+                    tension:.3, pointRadius:3, yAxisID:'y2', order:1
+                }
+            ]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{
+                legend:{ display:false },
+                tooltip:{
+                    callbacks:{
+                        afterBody: function(items) {
+                            var i = items[0];
+                            if (!i) return;
+                            var k = labels[i.dataIndex];
+                            var b = buckets[k];
+                            var pct = b.sent ? (b.delivered / b.sent * 100).toFixed(1) : '—';
+                            return ['Sent: ' + b.sent.toLocaleString(), 'Delivery rate: ' + pct + '%'];
+                        }
+                    }
+                }
+            },
+            scales:{
+                y:  { stacked:true, beginAtZero:true, ticks:{ font:{size:10} }, grid:{ color:'#f0f0f0' }, title:{ display:true, text:'Sent', font:{size:10} } },
+                y2: { beginAtZero:true, position:'right', ticks:{ font:{size:10}, callback: v => v.toFixed(1)+'%' }, grid:{ drawOnChartArea:false }, title:{ display:true, text:'Rate (%)', font:{size:10} } },
+                x:  { stacked:true, ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// CHANNEL CHART
+// ═══════════════════════════════════════════════════════
+function renderChannel(data) {
+    var byChannel = {};
+    data.forEach(function(r) {
+        var ch = r.channel || '(Non-standard)';
+        if (!byChannel[ch]) byChannel[ch] = { sent:0, delivered:0, opened:0, uniqueClicks:0, hardBounced:0 };
+        byChannel[ch].sent        += r.sent;
+        byChannel[ch].delivered   += r.delivered;
+        byChannel[ch].opened      += r.opened;
+        byChannel[ch].uniqueClicks+= r.uniqueClicks;
+        byChannel[ch].hardBounced += r.hardBounced;
+    });
+    var channels = Object.keys(byChannel).sort((a,b) => byChannel[b].sent - byChannel[a].sent).slice(0,12);
+    var openRates  = channels.map(ch => byChannel[ch].delivered ? byChannel[ch].opened / byChannel[ch].delivered * 100 : 0);
+    var clickRates = channels.map(ch => byChannel[ch].delivered ? byChannel[ch].uniqueClicks / byChannel[ch].delivered * 100 : 0);
+    var delivRates = channels.map(ch => byChannel[ch].sent ? byChannel[ch].delivered / byChannel[ch].sent * 100 : 0);
+
+    if (charts['channel']) { charts['channel'].destroy(); }
+    var ctx = document.getElementById('chartChannel').getContext('2d');
+    charts['channel'] = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels: channels,
+            datasets:[
+                { label:'Open Rate (%)',    data:openRates,  backgroundColor:'rgba(245,158,11,0.7)',  borderColor:'#F59E0B', borderWidth:1 },
+                { label:'Click Rate (%)',   data:clickRates, backgroundColor:'rgba(16,185,129,0.7)', borderColor:'#10B981', borderWidth:1 },
+                { label:'Delivery Rate (%)',data:delivRates, backgroundColor:'rgba(0,99,172,0.5)',   borderColor:'#0063AC', borderWidth:1 }
+            ]
+        },
+        options:{
+            indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                x:{ beginAtZero:true, max:100, ticks:{ font:{size:10}, callback: v=>v+'%' }, grid:{ color:'#f0f0f0' } },
+                y:{ ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// REGION CHART
+// ═══════════════════════════════════════════════════════
+function renderRegion(data) {
+    var byRegion = {};
+    data.forEach(function(r) {
+        var rg = r.region || '(Non-standard)';
+        byRegion[rg] = (byRegion[rg] || 0) + r.sent;
+    });
+    var regions = Object.keys(byRegion).sort((a,b) => byRegion[b] - byRegion[a]);
+    var palette = ['#0063AC','#00A28F','#F59E0B','#7C3AED','#EF4444','#10B981','#6366F1','#D97706'];
+
+    if (charts['region']) { charts['region'].destroy(); }
+    var ctx = document.getElementById('chartRegion').getContext('2d');
+    charts['region'] = new Chart(ctx, {
+        type:'doughnut',
+        data:{
+            labels: regions,
+            datasets:[{ data: regions.map(r=>byRegion[r]), backgroundColor: regions.map((_,i)=>palette[i%palette.length]), borderWidth:2, borderColor:'#fff' }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+                legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:12 } },
+                tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' sent' } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// FROM ADDRESS CHART
+// ═══════════════════════════════════════════════════════
+function renderFromAddr(data) {
+    var byAddr = {};
+    data.forEach(function(r) {
+        var addr = r.fromAddr || '(unknown)';
+        byAddr[addr] = (byAddr[addr] || 0) + r.sent;
+    });
+    var addrs = Object.keys(byAddr).sort((a,b)=>byAddr[b]-byAddr[a]).slice(0,10);
+    var vals  = addrs.map(a=>byAddr[a]);
+
+    if (charts['fromAddr']) { charts['fromAddr'].destroy(); }
+    var ctx = document.getElementById('chartFromAddr').getContext('2d');
+    charts['fromAddr'] = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels: addrs,
+            datasets:[{ label:'Sent', data:vals, backgroundColor:'rgba(0,99,172,0.6)', borderColor:'#0063AC', borderWidth:1 }]
+        },
+        options:{
+            indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ display:false } },
+            scales:{
+                x:{ beginAtZero:true, ticks:{ font:{size:10} }, grid:{ color:'#f0f0f0' } },
+                y:{ ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// HEALTH BREAKDOWN CHART
+// ═══════════════════════════════════════════════════════
+function renderHealth(data) {
+    var totSent    = data.reduce((s,r)=>s+r.sent,0);
+    var totDel     = data.reduce((s,r)=>s+r.delivered,0);
+    var totBounced = data.reduce((s,r)=>s+r.hardBounced,0);
+    var totUnsub   = data.reduce((s,r)=>s+r.unsubscribed,0);
+    var totComp    = data.reduce((s,r)=>s+r.complaints,0);
+    var unaccounted= Math.max(0, totSent - totDel - totBounced);
+
+    if (charts['health']) { charts['health'].destroy(); }
+    var ctx = document.getElementById('chartHealth').getContext('2d');
+    charts['health'] = new Chart(ctx, {
+        type:'doughnut',
+        data:{
+            labels:['Delivered','Hard Bounced','Unsubscribed','Complaints','Other / Soft'],
+            datasets:[{
+                data:[totDel, totBounced, totUnsub, totComp, unaccounted],
+                backgroundColor:['#00A28F','#EF4444','#D97706','#7C3AED','#D1D5DB'],
+                borderWidth:2, borderColor:'#fff'
+            }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+                legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:12 } },
+                tooltip:{ callbacks:{
+                    label: ctx => {
+                        var pct = totSent ? (ctx.parsed / totSent * 100).toFixed(1) : '0';
+                        return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                    }
+                }}
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════════════
+var _currentSortField = 'sent';
+var _currentSortDir   = 'desc';
+
+function setSortField(field) {
+    if (_currentSortField === field) {
+        _currentSortDir = _currentSortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+        _currentSortField = field;
+        _currentSortDir   = 'desc';
+    }
+    ['sortBtnOpen','sortBtnClick','sortBtnSent','sortBtnBounce'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+    });
+    var map = { openRate:'sortBtnOpen', clickRate:'sortBtnClick', sent:'sortBtnSent', bounceRate:'sortBtnBounce' };
+    if (map[field]) document.getElementById(map[field]).classList.add('active');
+    renderAll();
+}
+
+function toggleSort(field) {
+    if (_currentSortField === field) {
+        _currentSortDir = _currentSortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+        _currentSortField = field;
+        _currentSortDir   = 'desc';
+    }
+    renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// DAY OF WEEK
+// ═══════════════════════════════════════════════════════
+function renderDayOfWeek(data) {
+    var byDay = {};
+    data.forEach(function(r) {
+        if (!r.sentDate) return;
+        var d = r.sentDate.getDay(); // 0=Sun
+        if (!byDay[d]) byDay[d] = { sent:0, delivered:0, opened:0, uniqueClicks:0 };
+        byDay[d].sent        += r.sent;
+        byDay[d].delivered   += r.delivered;
+        byDay[d].opened      += r.opened;
+        byDay[d].uniqueClicks+= r.uniqueClicks;
+    });
+    var order  = [1,2,3,4,5,6,0]; // Mon→Sun
+    var labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    var openRates  = order.map(d => byDay[d] && byDay[d].delivered ? byDay[d].opened / byDay[d].delivered * 100 : 0);
+    var clickRates = order.map(d => byDay[d] && byDay[d].delivered ? byDay[d].uniqueClicks / byDay[d].delivered * 100 : 0);
+    var volumes    = order.map(d => byDay[d] ? byDay[d].sent : 0);
+
+    if (charts['dayOfWeek']) charts['dayOfWeek'].destroy();
+    var ctx = document.getElementById('chartDayOfWeek').getContext('2d');
+    charts['dayOfWeek'] = new Chart(ctx, {
+        data: {
+            labels: labels,
+            datasets: [
+                { type:'bar',  label:'Open Rate (%)',        data: openRates,  backgroundColor:'rgba(245,158,11,0.7)', borderColor:'#F59E0B', borderWidth:1, yAxisID:'y', order:2 },
+                { type:'bar',  label:'Unique Click Rate (%)',data: clickRates, backgroundColor:'rgba(16,185,129,0.7)', borderColor:'#10B981', borderWidth:1, yAxisID:'y', order:2 },
+                { type:'line', label:'Volume (Sent)',         data: volumes,    borderColor:'rgba(0,99,172,0.5)', backgroundColor:'rgba(0,99,172,0.08)', tension:.3, pointRadius:4, yAxisID:'y2', order:1 }
+            ]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                y:  { beginAtZero:true, ticks:{ font:{size:10}, callback: v => v.toFixed(1)+'%' }, grid:{ color:'#f0f0f0' }, title:{ display:true, text:'Rate (%)', font:{size:10} } },
+                y2: { beginAtZero:true, position:'right', ticks:{ font:{size:10} }, grid:{ drawOnChartArea:false }, title:{ display:true, text:'Sent', font:{size:10} } },
+                x:  { ticks:{ font:{size:11} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// SCATTER: OPEN RATE vs CLICK RATE
+// ═══════════════════════════════════════════════════════
+var SCATTER_PALETTE = ['#0063AC','#00A28F','#F59E0B','#7C3AED','#EF4444','#10B981','#6366F1','#D97706','#EC4899','#14B8A6','#8B5CF6','#F97316'];
+
+function renderScatter(data) {
+    var valid = data.filter(function(r) {
+        return r.openRate !== null && r.clickRate !== null && r.sent > 0;
+    });
+
+    var datasets;
+
+
+    if (scatterView === 'channel') {
+        var sorted = valid.slice().sort(function(a,b){ return b.sent - a.sent; });
+        var shown  = scatterLimit > 0 ? sorted.slice(0, scatterLimit) : sorted;
+        var maxSent = Math.max(1, Math.max.apply(null, shown.map(function(r){ return r.sent; })));
+        var byChannel = {};
+        shown.forEach(function(r) {
+            var ch = r.channel || '(Non-standard)';
+            if (!byChannel[ch]) byChannel[ch] = [];
+            byChannel[ch].push(r);
+        });
+        var channels = Object.keys(byChannel).sort(function(a,b){ return byChannel[b].length - byChannel[a].length; });
+        datasets = channels.map(function(ch, i) {
+            var col = SCATTER_PALETTE[i % SCATTER_PALETTE.length];
+            return {
+                label: ch,
+                data: byChannel[ch].map(function(r) {
+                    return { x: r.openRate, y: r.clickRate, r: Math.max(3, Math.sqrt(r.sent / maxSent) * 18), _r: r };
+                }),
+                backgroundColor: col + '88', borderColor: col, borderWidth: 1
+            };
+        });
+        var shownLabel = scatterLimit > 0 && sorted.length > scatterLimit
+            ? 'Top ' + scatterLimit + ' of ' + sorted.length + ' sends by volume'
+            : shown.length + ' sends';
+        setText('scatterSub', shownLabel + ' · size = volume sent · colour = channel');
+    } else {
+        var bySender = {};
+        valid.forEach(function(r) {
+            var addr = (r.fromAddr || '(unknown)').trim();
+            if (!bySender[addr]) bySender[addr] = { sent:0, delivered:0, opened:0, uniqueClicks:0, count:0 };
+            var s = bySender[addr];
+            s.sent += r.sent; s.delivered += r.delivered;
+            s.opened += r.opened; s.uniqueClicks += r.uniqueClicks; s.count++;
+        });
+        var maxSent = Math.max(1, Math.max.apply(null, Object.values(bySender).map(function(s){ return s.sent; })));
+        var allSenders = Object.keys(bySender).sort(function(a,b){ return bySender[b].sent - bySender[a].sent; });
+        var senders = scatterLimit > 0 ? allSenders.slice(0, scatterLimit) : allSenders;
+        setText('scatterSub', (scatterLimit > 0 && allSenders.length > scatterLimit
+            ? 'Top ' + scatterLimit + ' of ' + allSenders.length + ' senders by volume'
+            : senders.length + ' senders') + ' · size = total volume sent');
+        datasets = senders.map(function(addr, i) {
+            var s = bySender[addr];
+            var or = s.delivered ? s.opened       / s.delivered * 100 : 0;
+            var cr = s.delivered ? s.uniqueClicks / s.delivered * 100 : 0;
+            var col = SCATTER_PALETTE[i % SCATTER_PALETTE.length];
+            return {
+                label: addr,
+                data: [{ x: or, y: cr, r: Math.max(6, Math.sqrt(s.sent / maxSent) * 28), _sent: s.sent, _count: s.count }],
+                backgroundColor: col + 'bb', borderColor: col, borderWidth: 2
+            };
+        });
+    }
+
+    if (charts['scatter']) charts['scatter'].destroy();
+    var ctx = document.getElementById('chartScatter').getContext('2d');
+    charts['scatter'] = new Chart(ctx, {
+        type: 'bubble',
+        data: { datasets: datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font:{size:10}, boxWidth:10, usePointStyle:true } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            var d = ctx.raw;
+                            var lines = ['  ' + ctx.dataset.label];
+                            if (scatterView === 'channel') {
+                                var r = d._r;
+                                lines.push('  ' + (r.emailName || r.emailNameFull));
+                                lines.push('  Open: ' + fmtPct(d.x) + '   Click: ' + fmtPct(d.y));
+                                lines.push('  Sent: ' + fmt(r.sent));
+                            } else {
+                                lines.push('  Open: ' + fmtPct(d.x) + '   Click: ' + fmtPct(d.y));
+                                lines.push('  Total sent: ' + fmt(d._sent) + ' (' + d._count + ' sends)');
+                            }
+                            return lines;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { beginAtZero: true, title:{ display:true, text:'Open Rate (%)', font:{size:11}, color:'#6b7280' }, ticks:{ font:{size:10}, callback: function(v){ return v+'%'; } }, grid:{ color:'#f0f0f0' } },
+                y: { beginAtZero: true, title:{ display:true, text:'Click Rate (%)', font:{size:11}, color:'#6b7280' }, ticks:{ font:{size:10}, callback: function(v){ return v+'%'; } }, grid:{ color:'#f0f0f0' } }
+            }
+        }
+    });
+}
+
+function setScatterView(v) {
+    scatterView = v;
+    document.getElementById('btnScatterChannel').classList.toggle('active', v === 'channel');
+    document.getElementById('btnScatterSender').classList.toggle('active',  v === 'sender');
+    renderScatter(applyFilters());
+}
+
+function setScatterLimit(val) {
+    scatterLimit = parseInt(val, 10);
+    renderScatter(applyFilters());
+}
+
+// ═══════════════════════════════════════════════════════
+// CLICKS vs UNIQUE CLICKS
+// ═══════════════════════════════════════════════════════
+function renderClicks(data) {
+    var labels, totalClicks, uniqueClicks, ratios;
+
+    if (clicksView === 'time') {
+        var buckets = {};
+        data.forEach(function(r) {
+            var k = getBucket(r.sentDate, timeScale);
+            if (!k) return;
+            if (!buckets[k]) buckets[k] = { clicked:0, uniqueClicks:0 };
+            buckets[k].clicked      += r.clicked;
+            buckets[k].uniqueClicks += r.uniqueClicks;
+        });
+        labels       = Object.keys(buckets).sort();
+        totalClicks  = labels.map(k => buckets[k].clicked);
+        uniqueClicks = labels.map(k => buckets[k].uniqueClicks);
+        ratios       = labels.map(k => buckets[k].uniqueClicks > 0 ? buckets[k].clicked / buckets[k].uniqueClicks : null);
+    } else if (clicksView === 'channel') {
+        var byChannel = {};
+        data.forEach(function(r) {
+            var ch = r.channel || '(Non-standard)';
+            if (!byChannel[ch]) byChannel[ch] = { clicked:0, uniqueClicks:0 };
+            byChannel[ch].clicked      += r.clicked;
+            byChannel[ch].uniqueClicks += r.uniqueClicks;
+        });
+        labels = Object.keys(byChannel).sort((a,b) => byChannel[b].clicked - byChannel[a].clicked).slice(0,12);
+        totalClicks  = labels.map(ch => byChannel[ch].clicked);
+        uniqueClicks = labels.map(ch => byChannel[ch].uniqueClicks);
+        ratios       = labels.map(ch => byChannel[ch].uniqueClicks > 0 ? byChannel[ch].clicked / byChannel[ch].uniqueClicks : null);
+    } else {
+        var bySender = {};
+        data.forEach(function(r) {
+            var addr = (r.fromAddr || '(unknown)').trim();
+            if (!bySender[addr]) bySender[addr] = { clicked:0, uniqueClicks:0 };
+            bySender[addr].clicked      += r.clicked;
+            bySender[addr].uniqueClicks += r.uniqueClicks;
+        });
+        labels = Object.keys(bySender).sort((a,b) => bySender[b].clicked - bySender[a].clicked).slice(0,12);
+        totalClicks  = labels.map(s => bySender[s].clicked);
+        uniqueClicks = labels.map(s => bySender[s].uniqueClicks);
+        ratios       = labels.map(s => bySender[s].uniqueClicks > 0 ? bySender[s].clicked / bySender[s].uniqueClicks : null);
+    }
+
+    var isHorizontal = clicksView !== 'time';
+    if (charts['clicks']) charts['clicks'].destroy();
+    var ctx = document.getElementById('chartClicks').getContext('2d');
+    charts['clicks'] = new Chart(ctx, {
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type: 'bar', label: 'Total Clicks', data: totalClicks,
+                    backgroundColor: 'rgba(0,99,172,0.65)', borderColor: '#0063AC', borderWidth: 1,
+                    yAxisID: 'y', order: 2
+                },
+                {
+                    type: 'bar', label: 'Unique Clicks', data: uniqueClicks,
+                    backgroundColor: 'rgba(16,185,129,0.65)', borderColor: '#10B981', borderWidth: 1,
+                    yAxisID: 'y', order: 2
+                },
+                {
+                    type: 'line', label: 'Repeat-Click Ratio', data: ratios,
+                    borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.12)',
+                    tension: .3, pointRadius: 3, yAxisID: 'y2', order: 1
+                }
+            ]
+        },
+        options: {
+            indexAxis: isHorizontal ? 'y' : 'x',
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterBody: function(items) {
+                            var i = items[0];
+                            if (!i) return;
+                            var tc = totalClicks[i.dataIndex], uc = uniqueClicks[i.dataIndex];
+                            var ratio = uc > 0 ? (tc / uc).toFixed(2) : '—';
+                            return ['Ratio (Total÷Unique): ' + ratio];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y:  { beginAtZero: true, ticks: { font:{size:10} }, grid: { color:'#f0f0f0' }, title: { display: !isHorizontal, text: 'Clicks', font:{size:10} } },
+                y2: { beginAtZero: true, position: 'right', ticks: { font:{size:10}, callback: v => v.toFixed(2)+'×' }, grid: { drawOnChartArea: false }, title: { display: !isHorizontal, text: 'Ratio', font:{size:10} } },
+                x:  { ticks: { font:{size:10}, maxRotation: isHorizontal ? 0 : 45 }, grid: { display: isHorizontal } }
+            }
+        }
+    });
+}
+
+function setClicksView(v) {
+    clicksView = v;
+    document.getElementById('btnClicksTime').classList.toggle('active',    v === 'time');
+    document.getElementById('btnClicksChannel').classList.toggle('active', v === 'channel');
+    document.getElementById('btnClicksSender').classList.toggle('active',  v === 'sender');
+    renderClicks(applyFilters());
+}
+
+// ═══════════════════════════════════════════════════════
+// SUBJECT LINE ANALYSIS
+// ═══════════════════════════════════════════════════════
+function renderSubjectLines(data) {
+    var MIN_SENT = 200;
+    var bySubject = {};
+    data.forEach(function(r) {
+        var s = (r.subject || '').trim() || '(no subject)';
+        if (!bySubject[s]) bySubject[s] = { subject:s, sent:0, delivered:0, opened:0, uniqueClicks:0, hardBounced:0, unsubscribed:0, emailCount:0 };
+        var b = bySubject[s];
+        b.sent += r.sent; b.delivered += r.delivered; b.opened += r.opened;
+        b.uniqueClicks += r.uniqueClicks; b.hardBounced += r.hardBounced;
+        b.unsubscribed += r.unsubscribed; b.emailCount++;
+    });
+    var rows = Object.values(bySubject)
+        .filter(function(s) { return s.sent >= MIN_SENT; })
+        .map(function(s) { computeRates(s); return s; })
+        .sort(function(a,b) { return (b.openRate||0) - (a.openRate||0); })
+        .slice(0, 30);
+
+    var tbody = document.getElementById('subjectTableBody');
+    var maxSent = Math.max(1, ...rows.map(r=>r.sent));
+    tbody.innerHTML = rows.map(function(s) {
+        var orCls = s.openRate >= 25 ? 'good-pct' : s.openRate >= 15 ? '' : 'warn-pct';
+        var crCls = s.clickRate >= 2 ? 'good-pct' : '';
+        var brCls = s.bounceRate <= 0.5 ? '' : s.bounceRate <= 2 ? 'warn-pct' : 'bad-pct';
+        var urCls = s.unsubRate <= 0.1 ? '' : s.unsubRate <= 0.5 ? 'warn-pct' : 'bad-pct';
+        var barW  = Math.round(s.sent / maxSent * 100);
+        var subjectDisp = escHtml(s.subject.length > 80 ? s.subject.slice(0,78)+'…' : s.subject);
+        return '<tr>' +
+            '<td title="' + escHtml(s.subject) + '" style="font-size:12px">' + subjectDisp + '</td>' +
+            '<td class="num-cell" style="color:#6b7280">' + s.emailCount + '</td>' +
+            '<td class="num-cell"><div class="rate-bar"><div class="rate-bar-track"><div class="rate-bar-fill" style="width:' + barW + '%"></div></div>' + fmt(s.sent) + '</div></td>' +
+            '<td class="pct-cell ' + orCls + '">' + fmtPct(s.openRate) + '</td>' +
+            '<td class="pct-cell ' + crCls + '">' + fmtPct(s.clickRate) + '</td>' +
+            '<td class="pct-cell">' + fmtPct(s.ctoRate) + '</td>' +
+            '<td class="pct-cell ' + brCls + '">' + fmtPct(s.bounceRate, 2) + '</td>' +
+            '<td class="pct-cell ' + urCls + '">' + fmtPct(s.unsubRate, 3) + '</td>' +
+        '</tr>';
+    }).join('');
+    var el = document.getElementById('subjectCount');
+    if (el) el.textContent = rows.length + ' subjects shown';
+}
+
+// ═══════════════════════════════════════════════════════
+// SENDER ENGAGEMENT
+// ═══════════════════════════════════════════════════════
+function renderSenderEngagement(data) {
+    var bySender = {};
+    data.forEach(function(r) {
+        var addr = (r.fromAddr || '(unknown)').trim();
+        if (!bySender[addr]) bySender[addr] = { sent:0, delivered:0, opened:0, uniqueClicks:0 };
+        bySender[addr].sent        += r.sent;
+        bySender[addr].delivered   += r.delivered;
+        bySender[addr].opened      += r.opened;
+        bySender[addr].uniqueClicks+= r.uniqueClicks;
+    });
+    var senders = Object.keys(bySender).sort(function(a,b){ return bySender[b].sent - bySender[a].sent; }).slice(0,12);
+    var openRates  = senders.map(s => bySender[s].delivered ? bySender[s].opened / bySender[s].delivered * 100 : 0);
+    var clickRates = senders.map(s => bySender[s].delivered ? bySender[s].uniqueClicks / bySender[s].delivered * 100 : 0);
+
+    if (charts['senderEng']) charts['senderEng'].destroy();
+    var ctx = document.getElementById('chartSenderEngagement').getContext('2d');
+    charts['senderEng'] = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels: senders,
+            datasets:[
+                { label:'Open Rate (%)',         data:openRates,  backgroundColor:'rgba(245,158,11,0.7)', borderColor:'#F59E0B', borderWidth:1 },
+                { label:'Unique Click Rate (%)', data:clickRates, backgroundColor:'rgba(16,185,129,0.7)', borderColor:'#10B981', borderWidth:1 }
+            ]
+        },
+        options:{
+            indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                x:{ beginAtZero:true, max:100, ticks:{ font:{size:10}, callback: v=>v+'%' }, grid:{ color:'#f0f0f0' } },
+                y:{ ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// REPUTATION WATCHLIST
+// ═══════════════════════════════════════════════════════
+function renderWatchlist(data) {
+    var MIN_SENT = 100;
+    var rows = data.filter(function(r) { return r.sent >= MIN_SENT; });
+
+    rows.sort(function(a, b) {
+        if (watchlistMetric === 'bounce')      return (b.bounceRate     || 0) - (a.bounceRate     || 0);
+        if (watchlistMetric === 'softBounce')  return (b.softBounceRate || 0) - (a.softBounceRate || 0);
+        if (watchlistMetric === 'unsub')       return (b.unsubRate      || 0) - (a.unsubRate      || 0);
+        if (watchlistMetric === 'complaints')  return (b.complaints     || 0) - (a.complaints     || 0);
+        return 0;
+    });
+
+    var tbody = document.getElementById('watchlistBody');
+    tbody.innerHTML = rows.slice(0, 20).map(function(r) {
+        var dateStr  = r.sentDate ? r.sentDate.toISOString().slice(0,10) : '—';
+        var hbCls = r.bounceRate     >= 5   ? 'bad-pct' : r.bounceRate     >= 2   ? 'warn-pct' : '';
+        var sbCls = r.softBounceRate >= 5   ? 'bad-pct' : r.softBounceRate >= 2   ? 'warn-pct' : '';
+        var urCls = r.unsubRate      >= 1   ? 'bad-pct' : r.unsubRate      >= 0.5 ? 'warn-pct' : '';
+        var hasComplaints = r.complaints > 0;
+        var complaintCell = hasComplaints
+            ? '<td class="num-cell bad-pct" style="font-weight:700">⚠ ' + fmt(r.complaints) + '</td>'
+            : '<td class="num-cell" style="color:#ccc">—</td>';
+        var orCls = r.openRate >= 20 ? 'good-pct' : r.openRate >= 10 ? '' : 'warn-pct';
+        var sbVal = r.softBounced > 0 ? fmtPct(r.softBounceRate, 2) : '<span style="color:#ccc">—</span>';
+        return '<tr' + (hasComplaints ? ' style="background:#fff9f0"' : '') + '>' +
+            '<td class="prog-name-cell"  title="' + escHtml(r.programName)+ '">' + escHtml(r.programName || '—') + '</td>' +
+            '<td class="email-name-cell" title="' + escHtml(r.emailName)  + '">' + escHtml(r.emailName   || '—') + '</td>' +
+            '<td style="white-space:nowrap;color:#6b7280;font-size:11px">' + dateStr + '</td>' +
+            '<td class="num-cell">' + fmt(r.sent) + '</td>' +
+            '<td class="pct-cell ' + hbCls + '">' + fmtPct(r.bounceRate, 2) + '</td>' +
+            '<td class="pct-cell ' + sbCls + '">' + sbVal + '</td>' +
+            '<td class="pct-cell ' + urCls + '">' + fmtPct(r.unsubRate,  3) + '</td>' +
+            complaintCell +
+            '<td class="pct-cell ' + orCls + '">' + fmtPct(r.openRate) + '</td>' +
+        '</tr>';
+    }).join('');
+}
+
+function setWatchlist(metric) {
+    watchlistMetric = metric;
+    ['Bounce','SoftBounce','Unsub','Complaints'].forEach(function(m) {
+        var btn = document.getElementById('wlBtn' + m);
+        if (btn) btn.classList.toggle('active', m.charAt(0).toLowerCase() + m.slice(1) === metric);
+    });
+    renderWatchlist(applyFilters());
+}
+
+// ═══════════════════════════════════════════════════════
+// REPUTATION TREND
+// ═══════════════════════════════════════════════════════
+function renderReputation(data) {
+    var buckets = {};
+    data.forEach(function(r) {
+        var k = getBucket(r.sentDate, timeScale);
+        if (!k) return;
+        if (!buckets[k]) buckets[k] = { delivered:0, sent:0, unsubscribed:0, hardBounced:0, complaints:0 };
+        buckets[k].delivered   += r.delivered;
+        buckets[k].sent        += r.sent;
+        buckets[k].unsubscribed+= r.unsubscribed;
+        buckets[k].hardBounced += r.hardBounced;
+        buckets[k].complaints  += r.complaints;
+    });
+    var labels    = Object.keys(buckets).sort();
+    var unsubVals = labels.map(k => buckets[k].delivered ? buckets[k].unsubscribed / buckets[k].delivered * 100 : null);
+    var bounceVals= labels.map(k => buckets[k].sent      ? buckets[k].hardBounced  / buckets[k].sent      * 100 : null);
+    var compVals  = labels.map(k => buckets[k].delivered ? buckets[k].complaints   / buckets[k].delivered * 100 : null);
+
+    if (charts['reputation']) charts['reputation'].destroy();
+    var ctx = document.getElementById('chartReputation').getContext('2d');
+    charts['reputation'] = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: labels,
+            datasets:[
+                { label:'Unsubscribe Rate (%)', data:unsubVals,  borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,0.08)',  tension:.3, pointRadius:3 },
+                { label:'Hard Bounce Rate (%)', data:bounceVals, borderColor:'#D97706', backgroundColor:'rgba(217,119,6,0.08)',  tension:.3, pointRadius:3 },
+                { label:'Complaint Rate (%)',   data:compVals,   borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,0.08)', tension:.3, pointRadius:3 }
+            ]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                y:{ beginAtZero:true, ticks:{ font:{size:10}, callback: v => v.toFixed(2)+'%' }, grid:{ color:'#f0f0f0' } },
+                x:{ ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+function renderTableRow(r, maxSent, dateCol) {
+    var barW  = Math.round(r.sent / maxSent * 100);
+    var orCls = r.openRate   !== null ? (r.openRate   >= 20  ? 'good-pct' : r.openRate  >= 10  ? '' : 'warn-pct') : '';
+    var crCls = r.clickRate  !== null ? (r.clickRate  >= 2   ? 'good-pct' : '') : '';
+    var brCls = r.bounceRate !== null ? (r.bounceRate <= 0.5 ? 'good-pct' : r.bounceRate <= 2 ? 'warn-pct' : 'bad-pct') : '';
+    var urCls = r.unsubRate  !== null ? (r.unsubRate  <= 0.1 ? 'good-pct' : r.unsubRate <= 0.5 ? 'warn-pct' : 'bad-pct') : '';
+    var drCls = r.deliveryRate >= 98 ? 'good-pct' : r.deliveryRate >= 90 ? '' : 'warn-pct';
+    var chBadge = r.channel !== '(Non-standard)'
+        ? '<span class="ch-badge">' + r.channel + '</span>'
+        : '<span style="color:#ccc;font-size:10px">—</span>';
+    return '<tr>' +
+        '<td class="prog-name-cell" title="' + escHtml(r.programName) + '">' + escHtml(r.programName || '—') + '</td>' +
+        '<td class="email-name-cell" title="' + escHtml(r.emailNameFull || r.emailName) + '">' + escHtml(r.emailName || '—') + '</td>' +
+        '<td>' + chBadge + '</td>' +
+        '<td style="white-space:nowrap;color:#6b7280;font-size:11px">' + dateCol + '</td>' +
+        '<td class="num-cell"><div class="rate-bar"><div class="rate-bar-track"><div class="rate-bar-fill" style="width:' + barW + '%"></div></div>' + fmt(r.sent) + '</div></td>' +
+        '<td class="pct-cell ' + drCls + '">' + fmtPct(r.deliveryRate) + '</td>' +
+        '<td class="pct-cell ' + orCls + '">' + fmtPct(r.openRate) + '</td>' +
+        '<td class="pct-cell ' + crCls + '">' + fmtPct(r.clickRate) + '</td>' +
+        '<td class="pct-cell">' + fmtPct(r.ctoRate) + '</td>' +
+        '<td class="pct-cell ' + brCls + '">' + fmtPct(r.bounceRate, 2) + '</td>' +
+        '<td class="pct-cell ' + urCls + '">' + fmtPct(r.unsubRate, 3) + '</td>' +
+        '<td class="num-cell">' + fmt(r.complaints) + '</td>' +
+    '</tr>';
+}
+
+function renderTable(data) {
+    // ── Nurture grouped mode ───────────────────────────────────────────
+    if (emailTypeFilter === 'nurture') {
+        // Aggregate rows by emailNameFull
+        var groups = {};
+        data.forEach(function(r) {
+            var key = r.emailNameFull;
+            if (!groups[key]) {
+                groups[key] = {
+                    programName: r.programName, emailName: r.emailName,
+                    emailNameFull: r.emailNameFull, channel: r.channel,
+                    sent:0, delivered:0, opened:0, uniqueClicks:0,
+                    hardBounced:0, unsubscribed:0, complaints:0,
+                    dates: [], sendCount: 0
+                };
+            }
+            var g = groups[key];
+            g.sent         += r.sent;
+            g.delivered    += r.delivered;
+            g.opened       += r.opened;
+            g.uniqueClicks += r.uniqueClicks;
+            g.hardBounced  += r.hardBounced;
+            g.unsubscribed += r.unsubscribed;
+            g.complaints   += r.complaints;
+            g.sendCount++;
+            if (r.sentDate) g.dates.push(r.sentDate);
+        });
+        // Compute rates for each group
+        Object.values(groups).forEach(function(g) {
+            computeRates(g);
+            g.dates.sort(function(a,b){return a-b;});
+            var first = g.dates[0], last = g.dates[g.dates.length-1];
+            g.dateRange = (first ? first.toISOString().slice(0,10) : '—') +
+                          (last && last !== first ? ' → ' + last.toISOString().slice(0,10) : '');
+            g.sentDate  = g.dates[0] || null;
+        });
+
+        // Update header for grouped view
+        var header = document.getElementById('th-sentDate');
+        if (header) header.innerHTML = 'Date Range <span class="sort-arrow">↕</span>';
+        var sendCountTh = document.getElementById('th-sendCount');
+        if (!sendCountTh) {
+            var th = document.createElement('th');
+            th.id = 'th-sendCount';
+            th.style.width = '65px';
+            th.innerHTML = '# Sends <span class="sort-arrow">↕</span>';
+            th.onclick = function(){ toggleSort('sendCount'); };
+            var sentTh = document.getElementById('th-sent');
+            if (sentTh) sentTh.parentNode.insertBefore(th, sentTh);
+        }
+
+        var sorted = Object.values(groups).sort(function(a,b) {
+            var av = a[_currentSortField], bv = b[_currentSortField];
+            if (av === null || av === undefined) av = -Infinity;
+            if (bv === null || bv === undefined) bv = -Infinity;
+            if (typeof av === 'string') return _currentSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            return _currentSortDir === 'asc' ? av - bv : bv - av;
+        });
+
+        var maxSent = Math.max(1, ...sorted.map(g=>g.sent));
+        var tbody   = document.getElementById('emailTableBody');
+        tbody.innerHTML = sorted.slice(0, 500).map(function(g) {
+            var row = renderTableRow(g, maxSent, g.dateRange);
+            // Insert send count cell after date range cell (4th position → splice in)
+            var insertPos = row.indexOf('</td>', row.indexOf(g.dateRange)) + 5;
+            var sendBadge = '<td class="num-cell" style="font-weight:600;color:#7C3AED">' + g.sendCount + '</td>';
+            return row.slice(0, insertPos) + sendBadge + row.slice(insertPos);
+        }).join('');
+
+        var el = document.getElementById('tableCount');
+        if (el) el.textContent = sorted.length > 500
+            ? 'Showing top 500 of ' + fmt(sorted.length) + ' nurture emails (grouped)'
+            : fmt(sorted.length) + ' unique nurture email' + (sorted.length !== 1 ? 's' : '') + ' · ' + fmt(data.length) + ' total sends';
+
+    } else {
+        // ── Standard row-per-send mode ─────────────────────────────────
+        // Remove grouped header additions if switching back
+        var scTh = document.getElementById('th-sendCount');
+        if (scTh) scTh.remove();
+        var header = document.getElementById('th-sentDate');
+        if (header) header.innerHTML = 'Sent Date <span class="sort-arrow">↕</span>';
+
+        var sorted = data.slice().sort(function(a,b) {
+            var av = a[_currentSortField], bv = b[_currentSortField];
+            if (av === null || av === undefined) av = -Infinity;
+            if (bv === null || bv === undefined) bv = -Infinity;
+            if (typeof av === 'string') return _currentSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            return _currentSortDir === 'asc' ? av - bv : bv - av;
+        });
+
+        var maxSent = Math.max(1, ...sorted.map(r=>r.sent));
+        var tbody   = document.getElementById('emailTableBody');
+        tbody.innerHTML = sorted.slice(0, 500).map(function(r) {
+            var dateStr = r.sentDate ? r.sentDate.toISOString().slice(0,10) : '—';
+            return renderTableRow(r, maxSent, dateStr);
+        }).join('');
+
+        var el = document.getElementById('tableCount');
+        if (el) el.textContent = sorted.length > 500
+            ? 'Showing top 500 of ' + fmt(sorted.length) + ' emails'
+            : fmt(sorted.length) + ' email' + (sorted.length !== 1 ? 's' : '');
+    }
+
+    // Update sort arrows
+    document.querySelectorAll('.email-table th').forEach(function(th) {
+        th.classList.remove('sorted');
+        var arr = th.querySelector('.sort-arrow');
+        if (arr) arr.textContent = '↕';
+    });
+    var thEl = document.getElementById('th-' + _currentSortField);
+    if (thEl) {
+        thEl.classList.add('sorted');
+        var arr = thEl.querySelector('.sort-arrow');
+        if (arr) arr.textContent = _currentSortDir === 'desc' ? '↓' : '↑';
+    }
+}
+
+function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════
+// UI CONTROLS
+// ═══════════════════════════════════════════════════════
+function setTimeScale(s) {
+    timeScale = s;
+    ['Week','Month','Quarter','Year','FY'].forEach(function(x) {
+        var btn = document.getElementById('btnTs' + x);
+        if (btn) btn.classList.toggle('active', x.toLowerCase() === s);
+    });
+    var _f = applyFilters();
+    renderTrend(_f);
+    renderReputation(_f);
+    if (clicksView === 'time') renderClicks(_f);
+}
+
+var BS_BTNS = { lt100:'btnBs100', lt1k:'btnBs1k', lt10k:'btnBs10k', lt20k:'btnBs20k', gt20k:'btnBs20kp' };
+
+function toggleBatchSize(s) {
+    if (s === 'all') {
+        batchSizeFilter.clear();
+    } else {
+        if (batchSizeFilter.has(s)) batchSizeFilter.delete(s);
+        else batchSizeFilter.add(s);
+    }
+    var anyActive = batchSizeFilter.size > 0;
+    document.getElementById('btnBsAll').classList.toggle('active', !anyActive);
+    Object.keys(BS_BTNS).forEach(function(k) {
+        document.getElementById(BS_BTNS[k]).classList.toggle('active', batchSizeFilter.has(k));
+    });
+    renderAll();
+}
+
+function setEmailType(t) {
+    emailTypeFilter = t;
+    document.getElementById('btnTypeAll').classList.toggle('active',     t === 'all');
+    document.getElementById('btnTypeBatch').classList.toggle('active',   t === 'batch');
+    document.getElementById('btnTypeNurture').classList.toggle('active', t === 'nurture');
+    renderAll();
+}
+
+function setTrendMetric(m) {
+    trendMetric = m;
+    document.getElementById('btnMetricOpen').classList.toggle('active',   m === 'open');
+    document.getElementById('btnMetricClick').classList.toggle('active',  m === 'click');
+    document.getElementById('btnMetricBounce').classList.toggle('active', m === 'bounce');
+    renderTrend(applyFilters());
+}
+
+function resetFilters() {
+    Object.keys(msState).forEach(function(id) {
+        document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => cb.checked = false);
+        msState[id].clear();
+        updateMsBtn(id);
+    });
+    document.getElementById('emailSearch').value = '';
+    emailTypeFilter = 'all';
+    document.getElementById('btnTypeAll').classList.add('active');
+    document.getElementById('btnTypeBatch').classList.remove('active');
+    document.getElementById('btnTypeNurture').classList.remove('active');
+    batchSizeFilter.clear();
+    document.getElementById('btnBsAll').classList.add('active');
+    Object.values(BS_BTNS).forEach(function(id) { document.getElementById(id).classList.remove('active'); });
+    onMsChange();
+}
+
+function toggleMs(id, e) {
+    e.stopPropagation();
+    var panel = document.getElementById('ms-' + id + '-panel');
+    var isOpen = panel.style.display !== 'none';
+    document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+        panel.style.display = 'block';
+        document.getElementById('ms-' + id).querySelector('.ms-btn').classList.add('open');
+    }
+}
+
+function toggleMsOption(id, val, checked) {
+    if (checked) msState[id].add(val); else msState[id].delete(val);
+    updateMsBtn(id);
+    onMsChange();
+}
+
+function updateMsBtn(id) {
+    var n  = msState[id].size;
+    var el = document.getElementById('ms-' + id + '-label');
+    if (el) el.textContent = n ? MS_LABELS[id] + ' (' + n + ')' : MS_LABELS[id];
+    var btn = document.querySelector('#ms-' + id + ' .ms-btn');
+    if (btn) btn.classList.toggle('has-selection', n > 0);
+}
+
+function selectAllMs(id) {
+    document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => { cb.checked = true; msState[id].add(cb.value); });
+    updateMsBtn(id); onMsChange();
+}
+
+function clearMs(id) {
+    document.querySelectorAll('#ms-' + id + '-list input').forEach(cb => cb.checked = false);
+    msState[id].clear(); updateMsBtn(id); onMsChange();
+}
+
+function onMsChange() { renderAll(); }
+
+document.addEventListener('click', function() {
+    document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+});
+
+// ═══════════════════════════════════════════════════════
+// PAGE STATE
+// ═══════════════════════════════════════════════════════
+function showLoading(msg) {
+    document.getElementById('emptyState').style.display   = 'none';
+    document.getElementById('dashContent').style.display  = 'none';
+    document.getElementById('filterBar').style.display    = 'none';
+    document.getElementById('footerEl').style.display     = 'none';
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('loadingMsg').textContent     = msg || 'Loading…';
+}
+function showEmpty() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('dashContent').style.display  = 'none';
+    document.getElementById('filterBar').style.display    = 'none';
+    document.getElementById('footerEl').style.display     = 'none';
+    document.getElementById('emptyState').style.display   = 'block';
+}
+function showDash() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display   = 'none';
+    document.getElementById('dashContent').style.display  = 'block';
+    document.getElementById('filterBar').style.display    = 'block';
+    document.getElementById('footerEl').style.display     = 'block';
+    initNavObserver();
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDENAV
+// ═══════════════════════════════════════════════════════
+function navSearchFn(q) {
+    q = q.trim().toLowerCase();
+    document.querySelectorAll('#sidenav .nav-group').forEach(function(grp) {
+        var anyVisible = false;
+        grp.querySelectorAll('.nav-link, .nav-sub-link').forEach(function(a) {
+            var match = !q || a.textContent.toLowerCase().includes(q);
+            a.style.display = match ? '' : 'none';
+            if (match) anyVisible = true;
+        });
+        grp.querySelector('.nav-group-label').style.display = anyVisible ? '' : 'none';
+    });
+}
+
+var _navObserver = null;
+function initNavObserver() {
+    if (_navObserver) _navObserver.disconnect();
+    var targets = document.querySelectorAll('.page-section[id]');
+    var links   = document.querySelectorAll('#sidenav .nav-link[href^="#"], #sidenav .nav-sub-link[href^="#"]');
+    _navObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var id = entry.target.id;
+                links.forEach(function(a) {
+                    a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                });
+            }
+        });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    targets.forEach(function(t) { _navObserver.observe(t); });
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+loadData();
+</script>
+</body>
+</html>

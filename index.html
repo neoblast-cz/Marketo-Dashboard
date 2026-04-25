@@ -151,6 +151,21 @@
                     <code id="dqFileLabel">Dashboard_Export.csv</code>
                 </div>
             </a>
+            <a href="pages/marketo-db-consent.html" class="dash-card green">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                        <polyline points="16 11 18 13 22 9"/>
+                    </svg>
+                </div>
+                <h2>Consent Analysis</h2>
+                <p>Consent status breakdown, opt-in trends over time, top programs driving opt-ins, re-consent tracking, and cohort analysis by creation year.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotConsent"></span>
+                    <code id="consentFileLabel">Dashboard_Export_Consent.csv</code>
+                </div>
+            </a>
         </div>
 
         <!-- Analytics -->
@@ -187,6 +202,21 @@
                 </div>
             </a>
 
+            <a href="pages/marketo-analytics-email.html" class="dash-card blue">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                </div>
+                <h2>Email Analytics</h2>
+                <p>Email performance by program — delivery rate, open rate, click rate, click-to-open, bounce rate, unsubscribes, and complaints across all sending channels.</p>
+                <div class="data-file">
+                    <span class="status-dot" id="dotEmail"></span>
+                    <code id="emailFileLabel">Dashboard_Export_Emails.xlsx</code>
+                </div>
+            </a>
+
             <a href="pages/marketo-analytics-program.html" class="dash-card blue">
                 <div class="dash-card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -201,72 +231,12 @@
                 <div class="data-file" style="display:flex;flex-direction:column;gap:4px">
                     <div><span class="status-dot" id="dotAn1"></span><code id="anFile1">Supermetrics - Membership v2.xlsx</code></div>
                     <div><span class="status-dot" id="dotAn2"></span><code id="anFile2">Supermetrics - Qualified v3.xlsx</code></div>
-                    <div><span class="status-dot" id="dotAn3"></span><code id="anFile3">Supermetrics - Opp Create v8.xlsx</code></div>
+                    <div><span class="status-dot" id="dotAn3"></span><code id="anFile3">Supermetrics - Opps Create v8.xlsx</code></div>
                     <div><span class="status-dot" id="dotAn4"></span><code id="anFile4">Supermetrics - Opps Won v10.xlsx</code></div>
-                    <div><span class="status-dot" id="dotAn7"></span><code id="anFile7">umt-builder-cost.xlsx</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
+                    <div><span class="status-dot" id="dotAn7"></span><code id="anFile7">utm-builder-cost.xlsx</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
+                    <div><span class="status-dot" id="dotAn8"></span><code id="anFile8">Salesforce - Opps with Primary Campaign Src.xlsx</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                     <div><span class="status-dot" id="dotAn5"></span><code id="anFile5">iCapture Events.csv</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                     <div><span class="status-dot" id="dotAn6"></span><code id="anFile6">iCapture Users.csv</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Tools -->
-        <div class="section-title">Tools</div>
-        <div class="dashboard-grid">
-            <a href="pages/marketo-tools-landing-pages.html" class="dash-card orange">
-                <div class="dash-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                    </svg>
-                </div>
-                <h2>Landing Pages</h2>
-                <p>Live inventory of all Marketo landing pages via API — status, workspace, folder, URL, and last updated.</p>
-                <div class="data-file">
-                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
-                </div>
-            </a>
-
-            <a href="pages/marketo-tools-forms.html" class="dash-card orange">
-                <div class="dash-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M8 12h8M8 8h8M8 16h5"/>
-                    </svg>
-                </div>
-                <h2>Forms</h2>
-                <p>Live inventory of all Marketo forms via API — status, folder, language, theme, progressive profiling, and last updated.</p>
-                <div class="data-file">
-                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
-                </div>
-            </a>
-
-            <a href="pages/marketo-tools-programs.html" class="dash-card orange">
-                <div class="dash-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M9 3v18M3 9h18M3 15h18"/>
-                    </svg>
-                </div>
-                <h2>Programs</h2>
-                <p>Live inventory of all Marketo programs via API — type, channel, workspace, folder, tags, and last updated.</p>
-                <div class="data-file">
-                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
-                </div>
-            </a>
-
-
-            <a href="pages/marketo-tools-smartcampaigns.html" class="dash-card orange">
-                <div class="dash-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                    </svg>
-                </div>
-                <h2>Smart Campaigns</h2>
-                <p>Live inventory of all Marketo smart campaigns via API — type (batch/trigger), active status, program, workspace, and last updated.</p>
-                <div class="data-file">
-                    <span style="font-size:11px;color:#aaa;font-style:italic">Loaded live via Marketo REST API</span>
                 </div>
             </a>
         </div>
@@ -319,6 +289,8 @@
         findLatest('Dashboard_Export.csv',           'dotDB',       'exportFileLabel');
         findLatest('Dashboard_Export.csv',           'dotDQ',       'dqFileLabel');
         findLatest('Dashboard_Export.csv',           'dotLeadGen',  'leadGenFileLabel');
+        findLatest('Dashboard_Export_Consent.csv',   'dotConsent',  'consentFileLabel');
+        findLatest('Dashboard_Export_Emails.xlsx',   'dotEmail',    'emailFileLabel');
         findLatest('iCapture Events.csv',            'dotEvt1',     'evtFile1');
         findLatest('iCapture Users.csv',             'dotEvt2',     'evtFile2');
         findLatest('iCapture Membership.xlsx',       'dotEvt3',     'evtFile3');
@@ -344,9 +316,10 @@
         }
         findLatestOmni('Supermetrics - Membership v2.xlsx',    'dotAn1', 'anFile1');
         findLatestOmni('Supermetrics - Qualified v3.xlsx',    'dotAn2', 'anFile2');
-        findLatestOmni('Supermetrics - Opp Create v8.xlsx',   'dotAn3', 'anFile3');
-        findLatestOmni('Supermetrics - Opps Won v10.xlsx',    'dotAn4', 'anFile4');
-        findLatestOmni('umt-builder-cost.xlsx',               'dotAn7', 'anFile7');
+        findLatestOmni('Supermetrics - Opps Create v8.xlsx',  'dotAn3', 'anFile3');
+        findLatestOmni('Supermetrics - Opps Won v10.xlsx',   'dotAn4', 'anFile4');
+        findLatestOmni('utm-builder-cost.xlsx',              'dotAn7', 'anFile7');
+        findLatestOmni('Salesforce - Opps with Primary Campaign Src.xlsx', 'dotAn8', 'anFile8');
 
         // iCapture files — live in Reports/ (not omnichannel/), share same date prefix
         (async function() {

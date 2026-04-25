@@ -316,8 +316,6 @@ body {
 
 /* ── LAYOUT ── */
 .main {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 30px 30px 50px;
 }
 
