@@ -72,6 +72,40 @@
             margin-right: 4px;
             flex-shrink: 0;
         }
+
+        /* ── Hour stats panel ── */
+        .hour-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f0f0f0; }
+        .hour-stats-col-title { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .hour-stats-col-title span { font-size: 10px; font-weight: 400; color: #9ca3af; }
+        .hour-user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .hour-user-name { font-size: 11px; font-weight: 600; color: #374151; width: 130px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hour-profile { display: flex; gap: 1px; flex: 1; height: 18px; align-items: flex-end; }
+        .hour-profile-bar { flex: 1; border-radius: 1px 1px 0 0; min-height: 2px; }
+        .hour-user-meta { font-size: 10px; color: #9ca3af; white-space: nowrap; width: 72px; text-align: right; flex-shrink: 0; }
+
+        /* ── User Roster table ── */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .user-table th {
+            position: sticky; top: 0; background: white; z-index: 1;
+            text-align: left; padding: 9px 12px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--ansell-gray);
+            border-bottom: 2px solid #e8e8e8; white-space: nowrap;
+        }
+        .user-table td { padding: 7px 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+        .user-table tr:last-child td { border-bottom: none; }
+        .user-table tr:hover td { background: #fafafa; }
+        .ur-chip {
+            display: inline-block; padding: 2px 7px; border-radius: 3px;
+            font-size: 10px; font-weight: 600; white-space: nowrap;
+        }
+        .ur-chip-active   { background: #d1fae5; color: #065f46; }
+        .ur-chip-inactive { background: #fee2e2; color: #991b1b; }
+        .ur-chip-api      { background: #e0e7ff; color: #3730a3; }
     </style>
 </head>
 <body>
@@ -291,10 +325,18 @@
                     </div>
                 </div>
                 <div class="chart-card">
-                    <div class="chart-title">Activity by Hour of Day (CET)</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+                        <div class="chart-title" style="margin:0">Activity by Hour of Day</div>
+                        <div style="display:flex;gap:4px">
+                            <button id="btnHourCET"   class="quick-filter-btn active" onclick="setHourMode('cet')"   style="margin:0;font-size:10px;padding:3px 9px">CET/CEST</button>
+                            <button id="btnHourLocal" class="quick-filter-btn"        onclick="setHourMode('local')" style="margin:0;font-size:10px;padding:3px 9px">User Local</button>
+                        </div>
+                    </div>
+                    <div id="hourLocalNote" style="display:none;font-size:10px;color:#9ca3af;margin-bottom:8px"></div>
                     <div class="chart-wrap" style="height:220px">
                         <canvas id="chartHour"></canvas>
                     </div>
+                    <div id="hourLocalStats" style="display:none"></div>
                 </div>
             </div>
 
@@ -304,6 +346,31 @@
                 <div class="chart-title">Parent Program — Top 15 (excludes blank)</div>
                 <div class="chart-wrap" style="position:relative">
                     <canvas id="chartParents"></canvas>
+                </div>
+            </div>
+
+            <!-- User Roster -->
+            <div class="section-label">User Roster</div>
+            <div id="rosterKpiWrap" class="kpi-grid" style="margin-bottom:16px"></div>
+            <div class="chart-card" style="padding:0">
+                <div style="padding:14px 24px 12px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                    <span class="chart-title" style="margin:0">All Marketo Users</span>
+                    <span style="font-size:11px;color:#9ca3af">Last Login and Last Activity sorted newest first · inactive users at bottom · API accounts at bottom</span>
+                </div>
+                <div class="table-wrap" style="max-height:520px">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th>Last Activity (Audit Trail)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userRosterTbody"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -332,6 +399,9 @@
 
         </div>
     </div>
+
+    <!-- Loaded files strip -->
+    <div id="loadedFilesStrip" style="display:none;padding:10px 30px;background:#f8f9fa;border-top:1px solid #e5e7eb;font-size:11px;color:#6b7280"></div>
 
     <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo User Activity</div>
 
@@ -368,6 +438,9 @@
     let allData = [];
     let charts = {};
     let exportDateStr = '';
+    let activityMinDate = '';  // YYYY-MM-DD earliest activity in loaded data
+    let activityMaxDate = '';  // YYYY-MM-DD latest activity in loaded data
+    let userListData = [];     // parsed rows from User_List.csv
 
     // ═══════════════════════════════════════════════════════════
     //  HELPERS
@@ -398,28 +471,33 @@
     function parseCETDate(str) {
         if (!str || !str.trim()) return null;
         const s = str.trim();
+        let yyyy, mo, dd, hh, mm;
+
         // DD-MM-YY HH:MM
         let m = s.match(/^(\d{2})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})/);
         if (m) {
-            const [, dd, mo, yy, hh] = m;
-            const year = 2000 + parseInt(yy);
-            return {
-                date: `${year}-${mo}-${dd}`,
-                hour: parseInt(hh),
-                dayOfWeek: new Date(year, parseInt(mo) - 1, parseInt(dd)).getDay()
-            };
+            dd = m[1]; mo = m[2]; yyyy = String(2000 + parseInt(m[3]));
+            hh = m[4]; mm = m[5];
+        } else {
+            // YYYY-MM-DD HH:MM[:SS]
+            m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})/);
+            if (!m) return null;
+            yyyy = m[1]; mo = m[2]; dd = m[3]; hh = m[4]; mm = m[5];
         }
-        // YYYY-MM-DD HH:MM
-        m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})/);
-        if (m) {
-            const [, yyyy, mo, dd, hh] = m;
-            return {
-                date: `${yyyy}-${mo}-${dd}`,
-                hour: parseInt(hh),
-                dayOfWeek: new Date(parseInt(yyyy), parseInt(mo) - 1, parseInt(dd)).getDay()
-            };
-        }
-        return null;
+
+        // CET = UTC+1 (Nov–Mar), CEST = UTC+2 (Apr–Oct) — simple month heuristic
+        const monthNum = parseInt(mo);
+        const offsetHours = (monthNum >= 4 && monthNum <= 10) ? 2 : 1;
+        const sign = offsetHours >= 0 ? '+' : '-';
+        const isoStr = `${yyyy}-${mo}-${String(dd).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${mm}:00${sign}0${Math.abs(offsetHours)}:00`;
+        const utcDate = new Date(isoStr);
+
+        return {
+            date:      `${yyyy}-${mo}-${String(dd).padStart(2,'0')}`,
+            hour:      parseInt(hh),
+            dayOfWeek: new Date(parseInt(yyyy), monthNum - 1, parseInt(dd)).getDay(),
+            utcDate:   isNaN(utcDate.getTime()) ? null : utcDate
+        };
     }
 
     function getActionCategory(action) {
@@ -476,50 +554,70 @@
     //  FILE DETECTION & LOADING
     // ═══════════════════════════════════════════════════════════
     async function detectAllExports() {
-        const results = [];
+        // Fire all HEAD requests in parallel (local Live Server — no network penalty)
         const today = new Date();
-        for (let i = 0; i < 365; i++) {
+        const candidates = [];
+        for (let i = 0; i < 730; i++) {   // scan 2 years back
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            const y = d.getFullYear();
+            const y  = d.getFullYear();
             const mo = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
             const dateStr = `${y}-${mo}-${dd}`;
-            const path = `../Reports/${dateStr} Audit_Trail_Asset.csv`;
-            try {
-                const r = await fetch(path, { method: 'HEAD' });
-                if (r.ok) results.push({ path, dateStr });
-            } catch {}
+            candidates.push({ path: `../Reports/${dateStr} Audit_Trail_Asset.csv`, dateStr });
         }
-        return results; // newest first
+        const hits = await Promise.all(
+            candidates.map(async c => {
+                try {
+                    const r = await fetch(c.path, { method: 'HEAD' });
+                    return r.ok ? c : null;
+                } catch { return null; }
+            })
+        );
+        // Return found files ordered newest → oldest (candidates array is already newest-first)
+        return hits.filter(Boolean);
     }
+
+    // Tracks which source files were loaded (shown at bottom of page)
+    let loadedSourceFiles = [];
 
     async function loadAllExports(files) {
         if (!files.length) { showEmpty(); return; }
         showLoading('Loading ' + files.length + ' file(s)...');
-        const allRows = await Promise.all(
-            files.map(async ({ path }) => {
+        const results = await Promise.all(
+            files.map(async ({ path, dateStr }) => {
                 try {
                     const resp = await fetch(path);
-                    if (!resp.ok) return [];
+                    if (!resp.ok) return { dateStr, rows: [], rowCount: 0, ok: false };
                     const text = await resp.text();
-                    return Papa.parse(text, {
+                    const rows = Papa.parse(text, {
                         header: true, skipEmptyLines: true,
                         transformHeader: h => h.trim()
                     }).data;
-                } catch (e) { return []; }
+                    return { dateStr, rows, rowCount: rows.length, ok: true };
+                } catch { return { dateStr, rows: [], rowCount: 0, ok: false }; }
             })
         );
-        // Merge with dedup by Id
+
+        // Merge with dedup: use Id when present, else fall back to composite key
         const seen = new Set();
         const combined = [];
-        allRows.forEach(rows => rows.forEach(r => {
+        let dupCount = 0;
+        results.forEach(({ rows }) => rows.forEach(r => {
             const id = (r['Id'] || '').trim();
-            if (id && !seen.has(id)) { seen.add(id); combined.push(r); }
+            // Composite fallback key so rows without Id are still deduplicated
+            const key = id || [
+                r['Date/Time (CET)'] || '', r['User'] || '',
+                r['Action'] || '', r['Asset Name'] || ''
+            ].join('|');
+            if (!seen.has(key)) { seen.add(key); combined.push(r); }
+            else dupCount++;
         }));
-        // Use the newest file's date as the export date label
+
+        // Record which files were loaded for the info strip
+        loadedSourceFiles = results.map(({ dateStr, rowCount, ok }) => ({ dateStr, rowCount, ok }));
         exportDateStr = files[0].dateStr;
-        processData(combined);
+        processData(combined, dupCount);
     }
 
     function handleFileInput(e) {
@@ -527,12 +625,16 @@
         if (!file) return;
         const match = file.name.match(/^(\d{4}-\d{2}-\d{2})/);
         exportDateStr = match ? match[1] : '';
+        loadedSourceFiles = [{ dateStr: exportDateStr || file.name, rowCount: 0, ok: true }];
         showLoading(`Parsing ${file.name}…`);
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
             transformHeader: h => h.trim(),
-            complete: res => processData(res.data),
+            complete: res => {
+                loadedSourceFiles[0].rowCount = res.data.length;
+                processData(res.data);
+            },
             error: () => showEmpty()
         });
         e.target.value = '';
@@ -554,12 +656,17 @@
     // ═══════════════════════════════════════════════════════════
     //  DATA PROCESSING
     // ═══════════════════════════════════════════════════════════
-    function processData(raw) {
+    let _loadDupCount = 0;
+    function processData(raw, dupCount) {
+        _loadDupCount = dupCount || 0;
         allData = raw.map(r => {
-            const dt = parseCETDate(r['Date/Time (CET)']);
+            // Column is "Date/Time (CET)" in winter, "Date/Time (CEST)" in summer (DST) — accept both
+            const rawDT = (r['Date/Time (CET)'] || r['Date/Time (CEST)'] || '').trim();
+            const dt = parseCETDate(rawDT);
             return {
                 id:         parseInt(r['Id']) || 0,
-                dateTime:   (r['Date/Time (CET)'] || '').trim(),
+                dateTime:   rawDT,
+                utcDate:    dt ? dt.utcDate : null,
                 date:       dt ? dt.date : '',
                 hour:       dt ? dt.hour : null,
                 dayOfWeek:  dt ? dt.dayOfWeek : null,
@@ -573,6 +680,11 @@
                 workspace:  (r['Workspace'] || '').trim()
             };
         }).filter(r => r.name || r.id);
+
+        // Compute actual activity date range from the records
+        const dates = allData.map(r => r.date).filter(Boolean).sort();
+        activityMinDate = dates[0] || '';
+        activityMaxDate = dates[dates.length - 1] || '';
 
         initMultiSelects();
         renderAll(allData);
@@ -711,23 +823,36 @@
     // ═══════════════════════════════════════════════════════════
     //  RENDER ALL
     // ═══════════════════════════════════════════════════════════
+
+    // Returns a Set of lowercased names for users whose Type contains 'api'
+    function getApiUserNames() {
+        return new Set(
+            userListData
+                .filter(u => (u['Type'] || '').toLowerCase().includes('api'))
+                .map(u => (u['User Name'] || '').trim().toLowerCase())
+        );
+    }
+
     function renderAll(data) {
-        renderKPIs(data);
-        renderTimeline(data);
-        renderUsers(data);
-        renderActions(data);
-        renderAssetTypes(data);
-        renderWorkspace(data);
-        renderDow(data);
-        renderHour(data);
-        renderParents(data);
-        renderRecentActivity(data);
+        const apiNames = getApiUserNames();
+        const humanData = apiNames.size > 0 ? data.filter(r => !apiNames.has((r.name || '').toLowerCase())) : data;
+        renderKPIs(humanData, apiNames.size);
+        renderTimeline(humanData);
+        renderUsers(humanData);
+        renderActions(humanData);
+        renderAssetTypes(humanData);
+        renderWorkspace(humanData);
+        renderDow(humanData);
+        renderHour(humanData);
+        renderParents(humanData);
+        renderRecentActivity(humanData);
+        renderUserRoster(data);
     }
 
     // ═══════════════════════════════════════════════════════════
     //  KPIs
     // ═══════════════════════════════════════════════════════════
-    function renderKPIs(data) {
+    function renderKPIs(data, apiCount = 0) {
         const total = data.length;
         const userCounts = {};
         for (const r of data) if (r.name) userCounts[r.name] = (userCounts[r.name] || 0) + 1;
@@ -736,9 +861,10 @@
         const topEntry     = Object.entries(userCounts).sort((a, b) => b[1] - a[1])[0];
 
         document.getElementById('kpiTotal').textContent = fmt(total);
-        document.getElementById('kpiTotalSub').textContent = exportDateStr
-            ? `as of ${formatExportDate(exportDateStr)}`
-            : 'audit trail entries';
+        const baseSub = exportDateStr ? `as of ${formatExportDate(exportDateStr)}` : 'audit trail entries';
+        document.getElementById('kpiTotalSub').textContent = apiCount > 0
+            ? `${baseSub} · excl. ${apiCount} API account${apiCount > 1 ? 's' : ''}`
+            : baseSub;
         document.getElementById('kpiUsers').textContent = fmt(uniqueUsers);
         document.getElementById('kpiAssets').textContent = fmt(uniqueAssets);
 
@@ -868,11 +994,141 @@
         makeVBar('chartDow', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], orderedCounts, '#00A28F');
     }
 
+    let _hourMode = 'cet';
+    let _hourData = [];
+
+    function setHourMode(mode) {
+        _hourMode = mode;
+        document.getElementById('btnHourCET').classList.toggle('active', mode === 'cet');
+        document.getElementById('btnHourLocal').classList.toggle('active', mode === 'local');
+        renderHour(_hourData);
+    }
+
     function renderHour(data) {
+        _hourData = data;
         const counts = Array(24).fill(0);
-        for (const r of data) if (r.hour != null) counts[r.hour]++;
-        const labels = Array.from({length: 24}, (_, i) => `${String(i).padStart(2,'0')}h`);
+        const labels  = Array.from({length: 24}, (_, i) => `${String(i).padStart(2,'0')}h`);
+        const statsEl = document.getElementById('hourLocalStats');
+        const noteEl  = document.getElementById('hourLocalNote');
+
+        if (_hourMode === 'cet') {
+            for (const r of data) if (r.hour != null) counts[r.hour]++;
+            if (noteEl)  noteEl.style.display  = 'none';
+            if (statsEl) statsEl.style.display = 'none';
+        } else {
+            // Build name → IANA timezone map from User_List
+            const tzMap = {};
+            for (const u of userListData) {
+                const name = (u['User Name'] || '').trim();
+                const tz   = (u['Time Zone'] || '').trim();
+                if (name && tz) tzMap[name] = tz;
+            }
+
+            // Per-user hour distribution (for stats panel)
+            const perUser = {};  // name → Array(24)
+
+            let covered = 0, fallback = 0;
+            for (const r of data) {
+                if (!r.utcDate) continue;
+                const tz = r.name ? tzMap[r.name] : null;
+                if (tz) {
+                    try {
+                        const localHour = parseInt(
+                            new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: tz })
+                                .format(r.utcDate)
+                        );
+                        if (localHour >= 0 && localHour < 24) {
+                            counts[localHour]++;
+                            if (!perUser[r.name]) perUser[r.name] = Array(24).fill(0);
+                            perUser[r.name][localHour]++;
+                            covered++;
+                        }
+                    } catch { if (r.hour != null) { counts[r.hour]++; fallback++; } }
+                } else {
+                    if (r.hour != null) { counts[r.hour]++; fallback++; }
+                }
+            }
+
+            if (noteEl) {
+                noteEl.style.display = 'block';
+                noteEl.textContent = `${covered.toLocaleString()} actions shown in user's local timezone`
+                    + (fallback > 0 ? ` · ${fallback.toLocaleString()} fell back to CET/CEST (user not in roster or no timezone)` : '');
+            }
+
+            renderHourStats(perUser, statsEl);
+        }
+
         makeVBar('chartHour', labels, counts, '#7030A0');
+    }
+
+    function renderHourStats(perUser, el) {
+        if (!el) return;
+
+        // Minimum 20 local-hour actions to be included
+        const qualified = Object.entries(perUser)
+            .map(([name, hours]) => {
+                const total    = hours.reduce((s, v) => s + v, 0);
+                if (total < 20) return null;
+                const earlyPct = hours.slice(0, 8).reduce((s, v) => s + v, 0) / total * 100;   // before 08:00
+                const latePct  = hours.slice(21).reduce((s, v) => s + v, 0) / total * 100;     // from 21:00
+                const peakHour = hours.indexOf(Math.max(...hours));
+                const avgHour  = hours.reduce((s, v, i) => s + v * i, 0) / total;
+                return { name, hours, total, earlyPct, latePct, peakHour, avgHour };
+            })
+            .filter(Boolean);
+
+        if (!qualified.length) { el.style.display = 'none'; return; }
+
+        const earlyBirds = [...qualified].sort((a, b) => b.earlyPct - a.earlyPct).slice(0, 5)
+            .filter(u => u.earlyPct >= 5);
+        const nightOwls  = [...qualified].sort((a, b) => b.latePct  - a.latePct ).slice(0, 5)
+            .filter(u => u.latePct  >= 5);
+
+        if (!earlyBirds.length && !nightOwls.length) { el.style.display = 'none'; return; }
+
+        function profileBar(hours, highlightRange, color, dimColor) {
+            const max = Math.max(...hours, 1);
+            return hours.map((v, i) => {
+                const h   = Math.round(v / max * 18);
+                const inRange = i >= highlightRange[0] && i < highlightRange[1];
+                const bg  = inRange ? color : dimColor;
+                return `<div class="hour-profile-bar" style="height:${Math.max(h, 2)}px;background:${bg}"></div>`;
+            }).join('');
+        }
+
+        function fmtHour(h) {
+            return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h % 1) * 60)).padStart(2,'0')}`;
+        }
+
+        function userRow(u, type) {
+            const pct       = type === 'early' ? u.earlyPct : u.latePct;
+            const range     = type === 'early' ? [0, 8] : [21, 24];
+            const color     = type === 'early' ? '#f59e0b' : '#7C3AED';
+            const dimColor  = '#e5e7eb';
+            const metaLabel = type === 'early'
+                ? `avg ${fmtHour(u.avgHour)}`
+                : `peak ${String(u.peakHour).padStart(2,'0')}h`;
+            return `<div class="hour-user-row">
+                <div class="hour-user-name" title="${u.name}">${u.name.split(' ')[0]}</div>
+                <div class="hour-profile">${profileBar(u.hours, range, color, dimColor)}</div>
+                <div class="hour-user-meta">${pct.toFixed(0)}% · ${metaLabel}</div>
+            </div>`;
+        }
+
+        const earlyHtml = earlyBirds.length ? `
+            <div>
+                <div class="hour-stats-col-title">🌅 Early Birds <span>most activity before 8am</span></div>
+                ${earlyBirds.map(u => userRow(u, 'early')).join('')}
+            </div>` : '<div></div>';
+
+        const nightHtml = nightOwls.length ? `
+            <div>
+                <div class="hour-stats-col-title">🌙 Night Owls <span>most activity after 21:00</span></div>
+                ${nightOwls.map(u => userRow(u, 'night')).join('')}
+            </div>` : '<div></div>';
+
+        el.innerHTML = `<div class="hour-stats-grid">${earlyHtml}${nightHtml}</div>`;
+        el.style.display = 'block';
     }
 
     function renderParents(data) {
@@ -896,6 +1152,177 @@
                 <td>${workspaceCell(r.workspace)}</td>
             </tr>`
         ).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  USER ROSTER
+    // ═══════════════════════════════════════════════════════════
+    function parseUserListDate(str) {
+        // "15 Apr 2026" or "Never" or blank
+        if (!str || !str.trim() || str.trim().toLowerCase() === 'never') return null;
+        const months = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+        const m = str.trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+        if (!m) return null;
+        const mo = months[m[2].toLowerCase().slice(0,3)];
+        if (mo === undefined) return null;
+        return new Date(parseInt(m[3]), mo, parseInt(m[1]));
+    }
+
+    function formatUserDate(d) {
+        if (!d) return '—';
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function daysSince(d) {
+        if (!d) return null;
+        return Math.floor((Date.now() - d.getTime()) / 86400000);
+    }
+
+    function renderUserRoster(activityData) {
+        const tbody = document.getElementById('userRosterTbody');
+        if (!tbody) return;
+
+        // Build activity index from audit trail: name → { lastDate, count }
+        const activityByName = {};
+        for (const r of activityData) {
+            if (!r.name) continue;
+            const key = r.name.toLowerCase().trim();
+            if (!activityByName[key]) activityByName[key] = { lastDate: '', count: 0 };
+            activityByName[key].count++;
+            if (r.date > activityByName[key].lastDate) activityByName[key].lastDate = r.date;
+        }
+
+        // Build rows — use User_List if available, else synthesise from audit trail
+        let rows;
+        if (userListData.length) {
+            rows = userListData.map(u => {
+                const name        = (u['User Name'] || '').trim();
+                const email       = (u['Email'] || '').trim();
+                const status      = (u['Status'] || '').trim();
+                const lastLoginRaw = (u['Last Login Date'] || '').trim();
+                const lastLoginD  = parseUserListDate(lastLoginRaw);
+                const expiry      = (u['Expiry Date'] || '').trim();
+                const type        = (u['Type'] || '').trim();
+                const roleRaw     = (u['Role (Workspace)'] || '').trim();
+                // Simplify role: take first role name before " ("
+                const roleShort   = roleRaw.split(',')[0].replace(/\s*\(.*$/, '').trim();
+                const act         = activityByName[name.toLowerCase()] || { lastDate: '', count: 0 };
+                const lastActD    = act.lastDate ? new Date(act.lastDate) : null;
+                return { name, email, status, lastLoginD, lastLoginRaw, expiry, type, roleShort, roleRaw,
+                         lastActDate: act.lastDate, lastActD, actCount: act.count };
+            });
+        } else {
+            // No user list — synthesise from audit trail names
+            const seen = {};
+            for (const r of activityData) {
+                if (!r.name) continue;
+                const k = r.name.toLowerCase();
+                if (!seen[k]) seen[k] = { name: r.name, email: r.email, status: 'User', lastLoginD: null,
+                    lastLoginRaw: '', expiry: '', type: '', roleShort: '', roleRaw: '',
+                    lastActDate: '', lastActD: null, actCount: 0 };
+                seen[k].actCount++;
+                if (r.date > seen[k].lastActDate) { seen[k].lastActDate = r.date; seen[k].lastActD = new Date(r.date); }
+            }
+            rows = Object.values(seen);
+        }
+
+        // Sort: API accounts last, then active before inactive, then by last activity desc
+        rows.sort((a, b) => {
+            const aApi = !!(a.type && a.type.toLowerCase().includes('api'));
+            const bApi = !!(b.type && b.type.toLowerCase().includes('api'));
+            if (aApi !== bApi) return aApi ? 1 : -1;
+            const aInactive = a.status.toLowerCase() !== 'user';
+            const bInactive = b.status.toLowerCase() !== 'user';
+            if (aInactive !== bInactive) return aInactive ? 1 : -1;
+            const aAct = a.lastActDate || '';
+            const bAct = b.lastActDate || '';
+            if (bAct !== aAct) return bAct > aAct ? 1 : -1;
+            const aLogin = a.lastLoginD ? a.lastLoginD.getTime() : 0;
+            const bLogin = b.lastLoginD ? b.lastLoginD.getTime() : 0;
+            return bLogin - aLogin;
+        });
+
+        // KPI: human users only (exclude API service accounts)
+        const humanRows     = rows.filter(r => !(r.type && r.type.toLowerCase().includes('api')));
+        const apiRows       = rows.filter(r => r.type && r.type.toLowerCase().includes('api'));
+        const totalUsers    = humanRows.length;
+        const activeUsers   = humanRows.filter(r => r.status.toLowerCase() === 'user').length;
+        const neverLoggedIn = humanRows.filter(r => !r.lastLoginD && r.type !== 'Local User').length;
+        const el = document.getElementById('rosterKpiWrap');
+        if (el) {
+            const apiNote = apiRows.length > 0
+                ? `<div style="grid-column:1/-1;font-size:11px;color:#9ca3af;margin-top:2px">
+                    + ${apiRows.length} API service account${apiRows.length > 1 ? 's' : ''} (${apiRows.map(r => r.name).join(', ')}) — listed at the bottom of the table, excluded from counts above
+                   </div>`
+                : '';
+            el.innerHTML = [
+                { label: 'Total Users', val: totalUsers, cls: 'blue' },
+                { label: 'Active',      val: activeUsers, cls: 'teal' },
+                { label: 'Inactive / Disabled', val: totalUsers - activeUsers, cls: 'amber' },
+                { label: 'Never Logged In', val: neverLoggedIn, cls: 'purple' }
+            ].map(k => `<div class="kpi-card ${k.cls}" style="min-width:140px;flex:1">
+                <div class="kpi-label">${k.label}</div>
+                <div class="kpi-value">${k.val}</div>
+            </div>`).join('') + apiNote;
+        }
+
+        tbody.innerHTML = rows.map(r => {
+            const isActive   = r.status.toLowerCase() === 'user';
+            const isApi      = r.type && r.type.toLowerCase().includes('api');
+            const daysSinceAct   = daysSince(r.lastActD);
+            const daysSinceLogin = daysSince(r.lastLoginD);
+
+            // Status chip
+            const statusChip = isApi
+                ? `<span class="ur-chip ur-chip-api">API</span>`
+                : isActive
+                    ? `<span class="ur-chip ur-chip-active">Active</span>`
+                    : `<span class="ur-chip ur-chip-inactive">${r.status || 'Inactive'}</span>`;
+
+            // Last activity cell
+            let actCell;
+            if (!r.lastActDate) {
+                actCell = '<span style="color:#d1d5db">No activity</span>';
+            } else {
+                const age = daysSinceAct === 0 ? 'today'
+                    : daysSinceAct === 1 ? '1 day ago'
+                    : daysSinceAct < 30 ? `${daysSinceAct}d ago`
+                    : daysSinceAct < 365 ? `${Math.round(daysSinceAct/30)}mo ago`
+                    : `${(daysSinceAct/365).toFixed(1)}y ago`;
+                const ageColor = daysSinceAct < 30 ? '#00A28F' : daysSinceAct < 90 ? '#374151' : '#9ca3af';
+                actCell = `<span style="color:#374151">${r.lastActDate}</span>
+                    <span style="color:${ageColor};font-size:10px;margin-left:5px">${age}</span>
+                    <span style="color:#9ca3af;font-size:10px;margin-left:5px">(${fmt(r.actCount)} actions)</span>`;
+            }
+
+            // Last login cell
+            let loginCell;
+            if (!r.lastLoginD && !r.lastLoginRaw) {
+                loginCell = isApi ? '<span style="color:#9ca3af;font-size:10px">API only</span>'
+                    : '<span style="color:#d1d5db">Never</span>';
+            } else if (!r.lastLoginD) {
+                loginCell = `<span style="color:#d1d5db">Never</span>`;
+            } else {
+                const loginAge = daysSinceLogin === 0 ? 'today'
+                    : daysSinceLogin < 30 ? `${daysSinceLogin}d ago`
+                    : daysSinceLogin < 365 ? `${Math.round(daysSinceLogin/30)}mo ago`
+                    : `${(daysSinceLogin/365).toFixed(1)}y ago`;
+                const loginColor = daysSinceLogin < 30 ? '#00A28F' : daysSinceLogin < 180 ? '#374151' : '#ef4444';
+                loginCell = `<span style="color:#374151">${formatUserDate(r.lastLoginD)}</span>
+                    <span style="color:${loginColor};font-size:10px;margin-left:5px">${loginAge}</span>`;
+            }
+
+            const rowBg = !isActive ? 'background:#fafafa;opacity:.75' : '';
+            return `<tr style="${rowBg}">
+                <td style="font-weight:500">${r.name || '—'}</td>
+                <td style="color:#6b7280;font-size:11px">${r.email || '—'}</td>
+                <td>${statusChip}</td>
+                <td style="font-size:11px;color:#374151;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${r.roleRaw}">${r.roleShort || '—'}</td>
+                <td>${loginCell}</td>
+                <td>${actCell}</td>
+            </tr>`;
+        }).join('');
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -924,11 +1351,41 @@
         document.getElementById('filterBar').style.display    = 'flex';
         document.getElementById('footerEl').style.display     = 'block';
         document.getElementById('dashContent').style.display  = 'block';
-        if (exportDateStr) {
-            document.getElementById('exportDateLabel').textContent = 'Last Export: ' + formatExportDate(exportDateStr);
+        if (activityMinDate && activityMaxDate) {
+            const label = activityMinDate === activityMaxDate
+                ? formatExportDate(activityMinDate)
+                : formatExportDate(activityMinDate) + ' – ' + formatExportDate(activityMaxDate);
+            document.getElementById('exportDateLabel').textContent = 'Activities: ' + label;
+            document.getElementById('exportBadge').style.display = 'inline-flex';
+        } else if (exportDateStr) {
+            document.getElementById('exportDateLabel').textContent = 'Activities: ' + formatExportDate(exportDateStr);
             document.getElementById('exportBadge').style.display = 'inline-flex';
         }
         updateFilterCount(allData.length);
+        renderLoadedFilesStrip();
+    }
+
+    function renderLoadedFilesStrip() {
+        const el = document.getElementById('loadedFilesStrip');
+        if (!el) return;
+        if (!loadedSourceFiles.length) { el.style.display = 'none'; return; }
+        const fileChips = loadedSourceFiles.map(f => {
+            const icon  = f.ok ? '✓' : '✗';
+            const color = f.ok ? '#00A28F' : '#ef4444';
+            const label = f.ok ? f.rowCount.toLocaleString() + ' rows' : 'failed';
+            return `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;padding:2px 8px;background:#fff;border:1px solid #e5e7eb;border-radius:4px">
+                <span style="color:${color};font-weight:700">${icon}</span>
+                <span style="color:#374151;font-weight:600">${f.dateStr}</span>
+                <span style="color:#9ca3af">Audit_Trail_Asset.csv</span>
+                <span style="color:${color}">${label}</span>
+            </span>`;
+        }).join('');
+        const total = allData.length;
+        const dupNote = _loadDupCount > 0
+            ? ` &nbsp;·&nbsp; <span style="color:#f59e0b">${_loadDupCount.toLocaleString()} duplicate rows removed</span>`
+            : '';
+        el.innerHTML = `<span style="font-weight:600;color:#374151;margin-right:10px">Loaded files:</span>${fileChips}<span style="color:#9ca3af">${total.toLocaleString()} unique records total${dupNote}</span>`;
+        el.style.display = 'block';
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -943,9 +1400,25 @@
     //  INIT
     // ═══════════════════════════════════════════════════════════
     window.addEventListener('load', async () => {
-        const files = await detectAllExports();
+        // Load User_List.csv in parallel with audit trail detection
+        const [files] = await Promise.all([
+            detectAllExports(),
+            loadUserList()
+        ]);
         loadAllExports(files);
     });
+
+    async function loadUserList() {
+        try {
+            const resp = await fetch('../Reports/User_List.csv');
+            if (!resp.ok) return;
+            const text = await resp.text();
+            userListData = Papa.parse(text, {
+                header: true, skipEmptyLines: true,
+                transformHeader: h => h.trim()
+            }).data;
+        } catch {}
+    }
     </script>
 </body>
 </html>

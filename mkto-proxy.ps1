@@ -2,10 +2,42 @@
 # Run: powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1
 # Keep this window open while using the DQ Fix feature in the dashboard.
 
+# ── Admin check ─────────────────────────────────────────────────────────────
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator
+)
+if (-not $isAdmin) {
+    Write-Host ""
+    Write-Host "  [ERROR] This proxy must be run as Administrator." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  Fix: right-click PowerShell → 'Run as Administrator', then re-run:" -ForegroundColor Yellow
+    Write-Host "  powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  (Alternatively, register the URL once without admin rights:)" -ForegroundColor DarkGray
+    Write-Host "  netsh http add urlacl url=http://localhost:3791/ user=Everyone" -ForegroundColor DarkGray
+    Write-Host ""
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
 $port = 3791
-$listener = [System.Net.HttpListener]::new()
-$listener.Prefixes.Add("http://localhost:$port/")
-$listener.Start()
+
+# ── Create listener ──────────────────────────────────────────────────────────
+try {
+    $listener = New-Object System.Net.HttpListener
+    $listener.Prefixes.Add("http://localhost:$port/")
+    $listener.Start()
+} catch {
+    Write-Host ""
+    Write-Host "  [ERROR] Could not start listener on port $port" -ForegroundColor Red
+    Write-Host "  $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  The port may already be in use. Check with:" -ForegroundColor Yellow
+    Write-Host "  netstat -ano | findstr :$port" -ForegroundColor Yellow
+    Write-Host ""
+    Read-Host "Press Enter to exit"
+    exit 1
+}
 
 Write-Host ""
 Write-Host "  ==============================================" -ForegroundColor Cyan

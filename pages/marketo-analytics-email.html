@@ -51,7 +51,7 @@
         .warn-pct  { color: #D97706; font-weight: 600; }
         .bad-pct   { color: #c62828; font-weight: 600; }
         .email-name-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .prog-name-cell  { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 11px; }
+        .prog-name-cell  { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 11px; }
         .ch-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #e8f0fb; color: #1565c0; white-space: nowrap; }
         .rate-bar { display: flex; align-items: center; gap: 6px; }
         .rate-bar-track { flex: 1; height: 5px; background: #e5e7eb; border-radius: 3px; min-width: 40px; }
@@ -89,6 +89,77 @@
         /* ── Footnote ── */
         .footnote { font-size: 10px; color: #b0b7c3; margin-top: 8px; }
 
+        /* ── Section narrative ── */
+        .sec-narrative { padding: 44px 0 32px; max-width: 660px; }
+        .sec-narrative-row { display:flex; gap:48px; align-items:flex-start; padding:44px 0 32px; }
+        .sec-narrative-row .sec-narrative { padding:0; flex:1; min-width:0; }
+        .sec-narrative-kpis { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; padding-top:10px; }
+        .sec-narrative-kpis::before { content:'KPIs to pay attention to'; flex-basis:100%; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:-2px; }
+        .sec-narrative-kpis .kpi-card { border-radius:12px; border-top-width:4px; width:180px; flex-shrink:0; }
+        @media (max-width:860px) { .sec-narrative-row { flex-direction:column; } }
+
+        /* ── Flip KPI cards ── */
+        .kpi-flip { width:180px; flex-shrink:0; perspective:1100px; cursor:default; }
+        .kpi-flip-inner {
+            position:relative; width:100%;
+            transform-style:preserve-3d;
+        }
+        @keyframes kpiNudge {
+            0%,70%,100% { transform:rotateY(0deg); }
+            78%          { transform:rotateY(-18deg); }
+            86%          { transform:rotateY(10deg); }
+            93%          { transform:rotateY(-6deg); }
+        }
+        /* True card-snap: ease-in to 90° edge, ease-out from 90° to face */
+        @keyframes kpiFlipIn {
+            0%   { transform:rotateY(0deg);    animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+            50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+            100% { transform:rotateY(-180deg); }
+        }
+        @keyframes kpiFlipOut {
+            0%   { transform:rotateY(-180deg); animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+            50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+            100% { transform:rotateY(0deg); }
+        }
+        .kpi-front, .kpi-back {
+            backface-visibility:hidden; -webkit-backface-visibility:hidden;
+        }
+        .kpi-front { border-radius:12px; border-top-width:4px !important; width:100%; }
+        .kpi-back {
+            position:absolute; inset:0;
+            transform:rotateY(180deg);
+            border-radius:12px;
+            border-top:4px solid var(--ansell-blue);
+            background:#fff;
+            box-shadow:0 1px 4px rgba(0,0,0,.07);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center; text-align:center;
+            padding:16px 14px; gap:4px;
+        }
+        .kpi-back.teal   { border-top-color:#00A28F; }
+        .kpi-back.orange { border-top-color:#D97706; }
+        .kpi-back.red    { border-top-color:#c62828; }
+        .kpi-back.purple { border-top-color:#7C3AED; }
+        .kpi-back.green  { border-top-color:#2e7d32; }
+        .kpi-back.dark   { border-top-color:#7f1d1d; }
+        .kpi-back-eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:2px; }
+        .kpi-back-val { font-size:26px; font-weight:700; color:var(--ansell-dark); line-height:1.1; }
+        .kpi-back-note { font-size:10px; color:#6b7280; line-height:1.35; margin-top:4px; }
+        .sec-narrative-eyebrow {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .11em; color: var(--ansell-dark); margin-bottom: 10px;
+        }
+        .sec-narrative-title {
+            font-size: 22px; font-weight: 700; color: var(--ansell-teal);
+            line-height: 1.25; margin: 0 0 14px;
+            text-transform:uppercase;
+        }
+        .sec-narrative-body {
+            font-size: 14px; line-height: 1.85; color: #4b5563; margin: 0;
+        }
+        .sec-narrative-body strong { color: #1a2230; }
+        .sec-narrative-body em { font-style: normal; color: #0063AC; font-weight: 600; }
+
         /* ── Info tooltip ── */
         .info-tip {
             display: inline-flex; align-items: center; justify-content: center;
@@ -121,7 +192,7 @@
             flex-shrink: 0; width: 190px;
             border-right: 1px solid #e5e7eb; background: #fff;
             padding: 14px 0 16px; box-sizing: border-box;
-            position: sticky; top: 0; height: 100vh; overflow-y: auto;
+            position: sticky; top: 71px; height: calc(100vh - 71px); overflow-y: auto;
         }
         #navSearch {
             display: block; width: calc(100% - 20px); margin: 0 10px 10px;
@@ -131,25 +202,28 @@
         #navSearch:focus { border-color: #0063AC; }
         #navSearch::placeholder { color: #b0b7c3; }
         .nav-group-label {
-            font-size: 9px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: .09em; color: #b0b7c3; padding: 10px 12px 3px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; font-weight: bold; letter-spacing: .09em; color: #b0b7c3; padding: 10px 12px 3px;
         }
         .nav-link {
             display: flex; align-items: center; gap: 6px;
-            padding: 5px 12px 5px 15px; font-size: 12px;
-            color: #4b5563; text-decoration: none; border-left: 3px solid transparent;
+            padding: 5px 12px 5px 15px; font-size: 10px;
+            color: #b0b7c3; text-decoration: none; border-left: 3px solid transparent;
             line-height: 1.35; transition: background .1s, color .1s;
         }
         .nav-link:hover { background: #f4f7fb; color: #0063AC; }
         .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; font-weight: 600; }
         .nav-sub-link {
             display: flex; align-items: center;
-            padding: 3px 12px 3px 26px; font-size: 11px; color: #9ca3af;
+            padding: 3px 12px 3px 26px; font-size: 11px; color: #4b5563;
             text-decoration: none; border-left: 3px solid transparent;
             line-height: 1.3; transition: background .1s, color .1s;
         }
-        .nav-sub-link:hover { background: #f4f7fb; color: #0063AC; }
-        .nav-sub-link.active { border-left-color: #93c5fd; background: #f0f5fc; color: #0063AC; }
+        .nav-sub-link:hover { background: #f4f7fb; color: #0063AC; font-weight:bold;}
+        .sec-sub-heading {
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+            color: #9ca3af; margin: 24px 0 12px; padding-bottom: 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
         #sections { flex: 1; min-width: 0; }
         .page-section { margin-bottom: 36px; scroll-margin-top: 95px; }
     </style>
@@ -280,6 +354,24 @@
             </div>
         </div>
 
+        <div class="ms-wrap" id="ms-f-contenttype" style="display:none">
+            <button class="ms-btn" onclick="toggleMs('f-contenttype',event)">
+                <span id="ms-f-contenttype-label">Email Type</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-contenttype-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-contenttype')">Select All</button><button onclick="clearMs('f-contenttype')">Clear</button></div>
+                <div class="ms-list" id="ms-f-contenttype-list"></div>
+            </div>
+        </div>
+
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+        <span class="filter-label">Date:</span>
+        <input type="date" id="dateFrom" onchange="onMsChange()" style="font-size:11px;padding:4px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer">
+        <span style="font-size:11px;color:#9ca3af">→</span>
+        <input type="date" id="dateTo"   onchange="onMsChange()" style="font-size:11px;padding:4px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer">
+
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
         <input type="search" class="search-input" id="emailSearch" placeholder="Search email or program…" oninput="onMsChange()">
     </div>
 </div>
@@ -291,7 +383,7 @@
 </div>
 
 <div id="emptyState">
-    <p>No <code>Dashboard_Export_Emails.xlsx</code> file found in <code>Reports/</code>.</p>
+    <p>No <code>Dashboard_Emails_Performance.xlsx</code> file found in <code>Reports/</code>.</p>
     <p style="margin-top:8px;font-size:12px">Place the file (date-prefixed) in the Reports folder and reload.</p>
 </div>
 
@@ -301,39 +393,59 @@
 <nav id="sidenav">
     <input id="navSearch" type="search" placeholder="Search…" oninput="navSearchFn(this.value)">
     <div class="nav-group">
-        <div class="nav-group-label">Overview</div>
-        <a class="nav-link" href="#sec-kpis">KPIs</a>
-        <a class="nav-sub-link" href="#sec-kpis">Messages · Rates summary</a>
-        <a class="nav-link" href="#sec-trend">Trends Over Time</a>
-        <a class="nav-sub-link" href="#sec-trend">Sent / Not Delivered</a>
-        <a class="nav-sub-link" href="#sec-trend">Open · Click · Bounce rate</a>
+        <a class="nav-group-label" href="#sec-kpis">Big Picture</a>
+        <a class="nav-sub-link" href="#sec-kpis">KPIs summary</a>
+        <a class="nav-sub-link" href="#sec-trend">Volume &amp; Engagement</a>
+        <a class="nav-sub-link" href="#sec-region">Send Volume by Region</a>
     </div>
     <div class="nav-group">
-        <div class="nav-group-label">Delivery &amp; Health</div>
-        <a class="nav-link" href="#sec-delivery">Delivery &amp; Health</a>
+        <a class="nav-group-label" href="#sec-delivery">Delivery &amp; Health</a>
         <a class="nav-sub-link" href="#sec-health">Deliverability Breakdown</a>
+    </div>
+    <div class="nav-group">
+        <a class="nav-group-label" href="#sec-engagement">First Impressions</a>
+        <div class="nav-link">Sender</div>
         <a class="nav-sub-link" href="#sec-senders">Sending Addresses</a>
-    </div>
-    <div class="nav-group">
-        <div class="nav-group-label">Engagement</div>
-        <a class="nav-link" href="#sec-engagement">Engagement</a>
-        <a class="nav-sub-link" href="#sec-channel">By Channel</a>
-        <a class="nav-sub-link" href="#sec-dayofweek">Best Day to Send</a>
-        <a class="nav-sub-link" href="#sec-sender">By Sender Address</a>
-        <a class="nav-sub-link" href="#sec-scatter">Open Rate vs Click Rate</a>
-        <a class="nav-sub-link" href="#sec-clicks">Clicks vs Unique Clicks</a>
+        <div class="nav-link">Subject Line</div>
         <a class="nav-sub-link" href="#sec-subjects">Top Subject Lines</a>
+        <div class="nav-link">Opens</div>
+        <a class="nav-sub-link" href="#sec-device">Device Used</a>
+        <div class="nav-link">Timing</div>
+        <a class="nav-sub-link" href="#sec-dayofweek">Best Day to Send</a>
+        <a class="nav-sub-link" href="#sec-hourofday">Best Hour to Send</a>
+        <a class="nav-sub-link" href="#sec-heatmap">Day × Hour Heatmap</a>
     </div>
     <div class="nav-group">
-        <div class="nav-group-label">Reputation</div>
-        <a class="nav-link" href="#sec-reputation">Reputation</a>
+        <a class="nav-group-label" href="#sec-engagement-content">Content</a>
+        <div class="nav-link">Templates</div>
+        <a class="nav-sub-link" href="#sec-template">Email Templates</a>
+        <div class="nav-link">Content</div>
+        <a class="nav-sub-link" href="#sec-contenttype">By Email Type</a>
+        <a class="nav-sub-link" href="#sec-topics" id="nav-sec-topics" style="display:none">Content Topics</a>
+        <div class="nav-link">Clicks</div>
+        <a class="nav-sub-link" href="#sec-domains">Top Clicked Domains</a>
+        <a class="nav-sub-link" href="#sec-links" id="nav-sec-links" style="display:none">Top Clicked Links</a>
+        <a class="nav-sub-link" href="#sec-clicks">Clicks vs Unique Clicks</a>
+        <a class="nav-sub-link" href="#sec-country-map" id="nav-sec-country-map">Clicks by Country</a>
+        <div class="nav-link">Timing</div>
+        <a class="nav-sub-link" href="#sec-clickhour" id="nav-sec-clickhour">Click Hour Distribution</a>
+        <a class="nav-sub-link" href="#sec-velocity" id="nav-sec-velocity">Click Velocity</a>
+    </div>
+    
+    <div class="nav-group">
+        <a class="nav-group-label" href="#sec-reputation">Reputation</a>
         <a class="nav-sub-link" href="#sec-reputation">Unsub &amp; Bounce Trends</a>
-        <a class="nav-sub-link" href="#sec-region">By Region</a>
+        <a class="nav-sub-link" href="#sec-region-rep">By Region</a>
         <a class="nav-sub-link" href="#sec-watchlist">Watchlist</a>
     </div>
     <div class="nav-group">
-        <div class="nav-group-label">Detail</div>
-        <a class="nav-link" href="#sec-table">All Emails</a>
+        <a class="nav-group-label" href="#sec-analysis">Other Analysis</a>
+        <a class="nav-sub-link" href="#sec-timescatter">Performance over Time</a>
+        <a class="nav-sub-link" href="#sec-scatter">Open Rate vs Click Rate</a>
+        <a class="nav-sub-link" href="#sec-channel">By Channel</a>
+    </div>
+    <div class="nav-group">
+        <a class="nav-group-label" href="#sec-table">Detail</a>
         <a class="nav-sub-link" href="#sec-table">Sortable per-send table</a>
     </div>
 </nav>
@@ -343,6 +455,17 @@
 
     <!-- KPIs -->
     <div class="page-section" id="sec-kpis">
+    <div class="sec-narrative">
+        <div class="sec-narrative-eyebrow">Email Analytics</div>
+        <div class="sec-narrative-title">Your email programs at a glance.</div>
+        <p class="sec-narrative-body">
+            Use the filters above to slice by region, channel, fiscal year, or date range —
+            every chart and number below updates in real time.
+            The KPIs summarise the current selection; the trend line beneath shows whether
+            performance is <strong>improving over time or drifting</strong>.
+            A healthy program shows stable delivery, rising engagement, and a flat or falling bounce rate.
+        </p>
+    </div>
     <div class="kpi-grid" id="kpiGrid">
         <div class="kpi-card">
             <div class="kpi-label">Messages Sent</div>
@@ -411,12 +534,92 @@
         </div>
         <p class="footnote">Teal = Sent (delivered portion). Red sliver = not delivered. Full bar height = total attempted sends. Hover for exact counts and delivery rate.</p>
     </div>
+
+    <div class="chart-row" style="grid-template-columns:1fr;margin-top:20px">
+            <div class="chart-card" id="sec-region">
+                <div class="chart-title">Send Volume by Region
+                    <span class="chart-sub">Bubble size = total sends</span>
+                </div>
+                <div style="position:relative">
+                    <svg viewBox="0 0 2000 857" style="width:100%;height:auto;display:block;border-radius:4px">
+                        <rect width="2000" height="857" fill="#DBEAFE" rx="4"/>
+                        <image href="../resources/world.svg" x="0" y="0" width="2000" height="857" preserveAspectRatio="xMidYMid meet"/>
+                        <g id="regionBubbles"></g>
+                    </svg>
+                    <div id="regionMapTip" style="position:absolute;display:none;background:#1a2230;color:#fff;font-size:12px;line-height:1.5;padding:8px 12px;border-radius:6px;pointer-events:none;white-space:nowrap;z-index:10;transform:translateY(-100%)"></div>
+                </div>
+                <p class="footnote" id="regionMapNote" style="margin-top:8px"></p>
+            </div>
+        </div>
+
     </div><!-- /sec-trend -->
 
     <!-- ── DELIVERY & HEALTH ───────────────────────────────────────── -->
     <div class="page-section" id="sec-delivery">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Delivery &amp; Health</div>
-        <div class="chart-row cols-2">
+        <div class="sec-narrative-row">
+            <div class="sec-narrative">
+                <div class="sec-narrative-eyebrow">Delivery &amp; Health</div>
+                <div class="sec-narrative-title">Before engagement, there's delivery.</div>
+                <p class="sec-narrative-body">
+                    A message that doesn't arrive can't be read.
+                    <strong>Hard bounces</strong> are permanent delivery failures — the address doesn't exist
+                    or the domain has rejected the message outright. Marketo suppresses these automatically,
+                    so a climbing hard bounce rate is usually a sign that recent acquisition brought in
+                    lower-quality contacts or that the list hasn't been refreshed in a while.
+                    <strong>Soft bounces</strong> are temporary — a full mailbox, an overloaded mail server,
+                    or a transient network issue. Marketo will retry soft bounces automatically over the
+                    following days, so a single elevated spike is usually self-correcting.
+                    If the same address soft-bounces repeatedly across multiple sends, Marketo will eventually
+                    convert it to a hard bounce. Reputation metrics — complaints and unsubscribes —
+                    are covered in their own section below.
+                </p>
+            </div>
+            <div class="sec-narrative-kpis">
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card teal kpi-front">
+                            <div class="kpi-label">Delivery Rate</div>
+                            <div class="kpi-val" id="kpiDelivery2">—</div>
+                            <div class="kpi-sub" id="kpiDelivery2Sub"></div>
+                        </div>
+                        <div class="kpi-back teal">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&gt;95%</div>
+                            <div class="kpi-back-note">Below 95% suggests list hygiene or domain reputation issues</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card orange kpi-front">
+                            <div class="kpi-label">Hard Bounce Rate</div>
+                            <div class="kpi-val" id="kpiBounce2">—</div>
+                            <div class="kpi-sub" id="kpiBounce2Sub">of sent</div>
+                        </div>
+                        <div class="kpi-back orange">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&lt;2%</div>
+                            <div class="kpi-back-note">Above 2% risks ISP blocking and reputation damage</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card purple kpi-front">
+                            <div class="kpi-label">Soft Bounce Rate</div>
+                            <div class="kpi-val" id="kpiSoftBounce">—</div>
+                            <div class="kpi-sub" id="kpiSoftBounceSub">of sent</div>
+                        </div>
+                        <div class="kpi-back purple">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&lt;5%</div>
+                            <div class="kpi-back-note">Often full inboxes or policy blocks — recurring soft bounces convert to hard</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-row cols-2" style="margin-bottom:20px">
             <div class="chart-card" id="sec-health">
                 <div class="chart-title">Deliverability Breakdown
                     <span class="chart-sub">Delivered · Bounced · Unsubscribed · Complaints</span>
@@ -425,6 +628,54 @@
                     <canvas id="chartHealth"></canvas>
                 </div>
             </div>
+            <div class="chart-card">
+                <div class="chart-title">Delivery Rate Over Time
+                    <span class="chart-sub">% delivered of sent</span>
+                </div>
+                <div class="chart-wrap" style="height:260px">
+                    <canvas id="chartDeliveryTrend"></canvas>
+                </div>
+            </div>
+        </div>
+
+    <!-- ── ENGAGEMENT · FIRST IMPRESSIONS ─────────────────────────── -->
+    <div class="page-section" id="sec-engagement">
+        <div class="sec-narrative-row">
+            <div class="sec-narrative">
+                <div class="sec-narrative-eyebrow">First Impressions</div>
+                <div class="sec-narrative-title">The open is won<br>before the email is opened.</div>
+                <p class="sec-narrative-body">
+                    Your audience decides in under two seconds — based on <strong>sender name</strong>,
+                    <strong>subject line</strong>, and the time the email landed in their inbox.
+                    Open rate is the clearest signal of how well those three elements align with
+                    your audience's expectations.
+                    The day-of-week and hour breakdowns reveal your programme's natural rhythm;
+                    the heatmap shows where sends and opens cluster together.
+                    When open rate is low, look at subject lines and sender address
+                    before assuming a content problem.
+                </p>
+            </div>
+            <div class="sec-narrative-kpis">
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card teal kpi-front">
+                            <div class="kpi-label">Open Rate</div>
+                            <div class="kpi-val" id="kpiOpenS">—</div>
+                            <div class="kpi-sub">of delivered</div>
+                        </div>
+                        <div class="kpi-back teal">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">15–25%</div>
+                            <div class="kpi-back-note">B2B average. Above 25% is excellent sender-audience fit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sender -->
+        <div class="sec-sub-heading">Sender</div>
+        <div class="chart-row cols-2" style="margin-bottom:20px">
             <div class="chart-card" id="sec-senders">
                 <div class="chart-title">Top Sending Addresses
                     <span class="chart-sub">By volume sent</span>
@@ -433,91 +684,19 @@
                     <canvas id="chartFromAddr"></canvas>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- ── ENGAGEMENT ──────────────────────────────────────────────── -->
-    <div class="page-section" id="sec-engagement">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Engagement</div>
-        <div class="chart-row cols-2" style="margin-bottom:20px">
-            <div class="chart-card" id="sec-channel">
-                <div class="chart-title">By Channel
-                    <span class="chart-sub">Open Rate · Click Rate · Delivery Rate</span>
+            <div class="chart-card">
+                <div class="chart-title">Open Rate by Sender
+                    <span class="chart-sub">Avg open rate per sending address · min. 100 sent</span>
                 </div>
-                <div class="chart-wrap" style="height:300px">
-                    <canvas id="chartChannel"></canvas>
+                <div class="chart-wrap" style="height:260px">
+                    <canvas id="chartFromAddrOpen"></canvas>
                 </div>
-            </div>
-            <div class="chart-card" id="sec-dayofweek">
-                <div class="chart-title">Best Day to Send
-                    <span class="chart-sub">Avg Open Rate · Click Rate by weekday</span>
-                </div>
-                <div class="chart-wrap" style="height:300px">
-                    <canvas id="chartDayOfWeek"></canvas>
-                </div>
-                <p class="footnote">Rates are weighted averages across all sends on that weekday.</p>
-            </div>
-        </div>
-        <!-- By Sender -->
-        <div class="chart-card" id="sec-sender" style="margin-bottom:20px">
-            <div class="chart-title">Engagement by Sender Address
-                <span class="chart-sub">Open Rate · Click Rate · top senders by volume</span>
-            </div>
-            <div class="chart-wrap" style="height:280px">
-                <canvas id="chartSenderEngagement"></canvas>
             </div>
         </div>
 
-        <!-- Open Rate vs Click Rate scatter -->
-        <div class="chart-card" id="sec-scatter" style="margin-bottom:20px">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-                <div class="chart-title" style="margin-bottom:0">Open Rate vs Click Rate
-                    <span class="chart-sub" id="scatterSub">Each bubble = one email send · size = volume sent</span>
-                </div>
-                <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-                    <select id="scatterLimitSel" onchange="setScatterLimit(this.value)" style="font-size:11px;padding:3px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer">
-                        <option value="20">Top 20</option>
-                        <option value="50">Top 50</option>
-                        <option value="100">Top 100</option>
-                        <option value="0">All</option>
-                    </select>
-                    <div style="display:flex;gap:4px">
-                        <button class="tab-btn active" id="btnScatterChannel" onclick="setScatterView('channel')">By Channel</button>
-                        <button class="tab-btn"         id="btnScatterSender"  onclick="setScatterView('sender')">By Sender</button>
-                    </div>
-                </div>
-            </div>
-            <div class="chart-wrap" style="height:360px">
-                <canvas id="chartScatter"></canvas>
-            </div>
-            <p class="footnote">Bubble size proportional to messages sent. Top-right = best performers. Top-left = strong subject, weak CTA. Bottom-right = weak subject, strong body.</p>
-        </div>
-
-        <!-- Clicks vs Unique Clicks -->
-        <div class="chart-card" id="sec-clicks" style="margin-bottom:20px">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-                <div class="chart-title" style="margin-bottom:0">Clicks vs Unique Clicks
-                    <span class="chart-sub">Total clicks vs deduplicated clicks · ratio = repeat-click factor</span>
-                </div>
-                <div style="margin-left:auto;display:flex;gap:4px">
-                    <button class="tab-btn active" id="btnClicksTime"    onclick="setClicksView('time')">Over Time</button>
-                    <button class="tab-btn"         id="btnClicksChannel" onclick="setClicksView('channel')">By Channel</button>
-                    <button class="tab-btn"         id="btnClicksSender"  onclick="setClicksView('sender')">By Sender</button>
-                </div>
-            </div>
-            <div class="chart-wrap" style="height:280px">
-                <canvas id="chartClicks"></canvas>
-            </div>
-            <div class="legend-row" style="margin-top:10px">
-                <span class="legend-chip"><span class="legend-dot" style="background:rgba(0,99,172,0.65)"></span>Total Clicks</span>
-                <span class="legend-chip"><span class="legend-dot" style="background:rgba(16,185,129,0.65)"></span>Unique Clicks</span>
-                <span class="legend-chip"><span class="legend-line" style="background:#F59E0B"></span>Repeat-Click Ratio (Total ÷ Unique)</span>
-            </div>
-            <p class="footnote">Repeat-Click Ratio &gt; 1 means recipients click multiple links or click multiple times. A ratio of 1.5 means every unique clicker clicked 1.5× on average.</p>
-        </div>
-
-        <!-- Subject line analysis -->
-        <div class="chart-card" id="sec-subjects">
+        <!-- Subject Line -->
+        <div class="sec-sub-heading">Subject Line</div>
+        <div class="chart-card" id="sec-subjects" style="margin-bottom:20px">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
                 <div class="chart-title" style="margin-bottom:0">Top Subject Lines
                     <span class="chart-sub">By open rate · min. 200 messages sent</span>
@@ -543,33 +722,405 @@
             </div>
             <p class="footnote" style="margin-top:10px">Only subjects with 200+ messages sent shown. Grouped across all emails sharing the same subject line.</p>
         </div>
+
+        <!-- Opens -->
+        <div class="sec-sub-heading">Opens</div>
+        
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+            <div class="chart-card" id="sec-device">
+                <div class="chart-title">Device Used
+                    <span class="chart-sub">Opens by device type</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartDevice"></canvas>
+                </div>
+                <p class="footnote" id="deviceNote"></p>
+            </div>
+        </div>
+
+        <!-- Timing -->
+        <div class="sec-sub-heading">Timing</div>
+
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+            <div class="chart-card" id="sec-dayofweek">
+                <div class="chart-title">Best Day to Send
+                    <span class="chart-sub">Avg Open Rate · Click Rate by weekday</span>
+                </div>
+                <div class="chart-wrap" style="height:300px">
+                    <canvas id="chartDayOfWeek"></canvas>
+                </div>
+                <p class="footnote">Rates are weighted averages across all sends on that weekday.</p>
+            </div>
+            <div class="chart-card" id="sec-hourofday">
+                <div class="chart-title">Best Hour to Send
+                    <span class="chart-sub">Avg Open Rate · Click Rate by hour of day</span>
+                </div>
+                <div class="chart-wrap" style="height:280px">
+                    <canvas id="chartHourOfDay"></canvas>
+                </div>
+                <p class="footnote">Rates are weighted averages across all sends at that hour.</p>
+            </div>
+        </div>
+
+        <div class="chart-card" id="sec-heatmap" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Send &amp; Click Heatmap
+                    <span class="chart-sub">Day of week × hour of day</span>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:4px">
+                    <button class="tab-btn active" id="btnHmOpen"      onclick="setHeatmapMetric('openRate')">Open Rate</button>
+                    <button class="tab-btn"         id="btnHmClick"     onclick="setHeatmapMetric('clickRate')">Click Rate</button>
+                    <button class="tab-btn"         id="btnHmClickTime" onclick="setHeatmapMetric('clickTiming')">Click Timing</button>
+                </div>
+            </div>
+            <div id="heatmapGrid" style="overflow-x:auto"></div>
+            <div id="heatmapLegend" style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:0 36px 0 40px"></div>
+            <p class="footnote" style="margin-top:6px">Open Rate / Click Rate: weighted by send volume · cells with &lt; 200 delivered shown blank · darkest cell = peak. Click Timing uses URL activity file (actual click timestamps).</p>
+        </div>
+    </div>
+
+    <!-- ── ENGAGEMENT · CONTENT ──────────────────────────────────────── -->
+    <div class="page-section" id="sec-engagement-content">
+        <div class="sec-narrative-row">
+            <div class="sec-narrative">
+                <div class="sec-narrative-eyebrow">Content</div>
+                <div class="sec-narrative-title">Once they open,<br>the content does the work.</div>
+                <p class="sec-narrative-body">
+                    <strong>Click rate</strong> and <strong>click-to-open</strong> tell you whether the body
+                    of the email delivers on the promise of its subject line.
+                    A high open rate paired with a low CTO is a content problem —
+                    the message didn't fulfil what it implied.
+                    Dig into which <strong>content types</strong> and <strong>templates</strong>
+                    drive the most engagement, and use the top-links table to understand
+                    what destinations your audience actually wants to reach.
+                </p>
+            </div>
+            <div class="sec-narrative-kpis">
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card kpi-front">
+                            <div class="kpi-label">Click Rate</div>
+                            <div class="kpi-val" id="kpiClickS">—</div>
+                            <div class="kpi-sub">unique clicks / delivered</div>
+                        </div>
+                        <div class="kpi-back">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">2–5%</div>
+                            <div class="kpi-back-note">B2B average. Above 5% indicates highly relevant content</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card purple kpi-front">
+                            <div class="kpi-label">Click-to-Open</div>
+                            <div class="kpi-val" id="kpiCTOS">—</div>
+                            <div class="kpi-sub">of openers who clicked</div>
+                        </div>
+                        <div class="kpi-back purple">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">10–20%</div>
+                            <div class="kpi-back-note">Measures content relevance — low CTO with high open = content mismatch</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Templates -->
+        <div class="sec-sub-heading">Templates</div>
+        <div class="chart-card" id="sec-template" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="chart-title" style="margin-bottom:0">Email Templates
+                    <span class="chart-sub">Performance by template · min. 200 sent</span>
+                </div>
+                <span id="templateCount" style="font-size:11px;color:#9ca3af;margin-left:auto"></span>
+            </div>
+            <div class="tbl-wrap">
+                <table class="email-table" id="templateTable">
+                    <thead>
+                        <tr>
+                            <th style="min-width:220px">Template</th>
+                            <th class="num-cell" style="width:70px"># Sends</th>
+                            <th class="num-cell" style="width:80px">Sent</th>
+                            <th class="num-cell" style="width:75px">Open %</th>
+                            <th class="num-cell" style="width:70px">Click %</th>
+                            <th class="num-cell" style="width:65px">CTO %</th>
+                            <th class="num-cell" style="width:80px">Delivery %</th>
+                            <th class="num-cell" style="width:75px">Bounce %</th>
+                            <th class="num-cell" style="width:75px">Unsub %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templateTableBody"></tbody>
+                </table>
+            </div>
+            <p class="footnote" style="margin-top:10px">Grouped across all sends using the same template. Sorted by open rate.</p>
+        </div>
+
+        <!-- Content -->
+        <div class="sec-sub-heading">Content</div>
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+            <div class="chart-card" id="sec-contenttype">
+                <div class="chart-title">By Email Type
+                    <span class="chart-sub">Open Rate · Click Rate · Click-to-Open per content type</span>
+                </div>
+                <div class="chart-wrap" style="height:280px">
+                    <canvas id="chartContentType"></canvas>
+                </div>
+                <p class="footnote">Emails with no Email Type set are grouped as "Not Specified".</p>
+            </div>
+            
+        </div>
+
+        <div class="chart-card" id="sec-topics" style="margin-bottom:20px;display:none">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="chart-title" style="margin-bottom:0">Content Topics
+                    <span class="chart-sub">What subjects are your emails linking to · reach vs impressions</span>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:4px">
+                    <button class="tab-btn active" id="topicBtnClicks"  onclick="setTopicSort('clicks')">By Clicks</button>
+                    <button class="tab-btn"         id="topicBtnReach"   onclick="setTopicSort('reach')">By Reach</button>
+                    <button class="tab-btn"         id="topicBtnOpen"    onclick="setTopicSort('openRate')">By Open Rate</button>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:380px">
+                <canvas id="chartTopics"></canvas>
+            </div>
+            <p class="footnote" style="margin-top:8px">
+                Each topic = a group of links classified by URL pattern. Excluded: social, homepage, unsubscribe, view-in-browser.
+                <strong>Reach</strong> = total sends from emails that contained links to this topic.
+                <strong>Impressions</strong> = opens from those emails.
+                <strong>Clicks</strong> = unique URL clicks to that topic. Click a bar to see the top URLs.
+            </p>
+            <div id="topicDrillDown" style="display:none;margin-top:16px;padding:12px 16px;background:#f8f9fa;border-radius:8px;border:1px solid #e5e7eb">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                    <strong id="topicDrillTitle" style="font-size:13px;color:#374151;flex:1"></strong>
+                    <button onclick="clearTopicDrill()" style="background:none;border:none;cursor:pointer;font-size:16px;color:#9ca3af;padding:0 2px;line-height:1" title="Close">×</button>
+                </div>
+                <div id="topicDrillList"></div>
+            </div>
+        </div>
+
+        
+
+        <!-- Clicks -->
+        <div class="sec-sub-heading">Clicks</div>
+        
+
+        <div class="chart-row cols-2" style="margin-bottom:20px">
+        <div class="chart-card" id="sec-domains">
+                <div class="chart-title">Top Clicked Domains
+                    <span class="chart-sub">Click share by domain · from URL activity file</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartDomainPie"></canvas>
+                </div>
+                <p class="footnote" id="domainPieNote">Load the URL activity file to see click data.</p>
+            </div>
+        </div>
+
+
+        <div class="chart-card" id="sec-links" style="margin-bottom:20px;display:none">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="chart-title" style="margin-bottom:0">Top Clicked Links
+                    <span class="chart-sub">Most-clicked URLs · matched to current filters</span>
+                </div>
+                <span id="linksCount" style="font-size:11px;color:#9ca3af;margin-left:auto"></span>
+            </div>
+            <div style="position:relative;margin-bottom:12px">
+                <svg id="linkTypeTreemap" viewBox="0 0 800 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block;border-radius:6px;cursor:pointer"></svg>
+                <div id="linkTreemapTip" style="position:absolute;display:none;background:#1a2230;color:#fff;font-size:12px;line-height:1.5;padding:8px 12px;border-radius:6px;pointer-events:none;white-space:nowrap;z-index:10;transform:translateY(-100%)"></div>
+            </div>
+            <div id="linkDrillDown" style="display:none;margin-bottom:14px;padding:12px 14px;background:#f8f9fa;border-radius:6px;border:1px solid #e5e7eb">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                    <strong id="linkDrillTitle" style="font-size:13px;color:#374151"></strong>
+                    <button onclick="clearLinkDrill()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:0 4px" title="Clear selection">✕</button>
+                </div>
+                <div id="linkDrillList"></div>
+            </div>
+            <div class="tbl-wrap">
+                <table class="email-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width:240px">URL</th>
+                            <th style="width:130px">Domain</th>
+                            <th style="width:100px">Type</th>
+                            <th class="num-cell" style="width:80px">Clicks</th>
+                            <th class="num-cell" style="width:70px">% Share</th>
+                            <th class="num-cell" style="width:70px"># Emails</th>
+                            <th class="num-cell" style="width:80px">Avg / Email</th>
+                            <th style="min-width:180px">Top Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linksTableBody"></tbody>
+                </table>
+            </div>
+            <p class="footnote" style="margin-top:10px">Top 50 URLs by total clicks. Filtered to emails matching current selection. "Unsubscribe" and "View in browser" links included — filter by Type badge to exclude.</p>
+        </div>
+        
+        <div class="chart-card" id="sec-clicks" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Clicks vs Unique Clicks
+                    <span class="chart-sub">Total clicks vs deduplicated clicks · ratio = repeat-click factor</span>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:280px">
+                <canvas id="chartClicks"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top:10px">
+                <span class="legend-chip"><span class="legend-dot" style="background:rgba(0,99,172,0.65)"></span>Total Clicks</span>
+                <span class="legend-chip"><span class="legend-dot" style="background:rgba(16,185,129,0.65)"></span>Unique Clicks</span>
+                <span class="legend-chip"><span class="legend-line" style="background:#F59E0B"></span>Repeat-Click Ratio (Total ÷ Unique)</span>
+            </div>
+            <p class="footnote">Repeat-Click Ratio &gt; 1 means recipients click multiple links or click multiple times. A ratio of 1.5 means every unique clicker clicked 1.5× on average.</p>
+        </div>
+
+
+        
+
+        <!-- Country Clicks Map -->
+        <div class="chart-card" id="sec-country-map" style="margin-bottom:20px;display:none">
+            <div class="chart-title">Click Engagement by Country
+                <span class="chart-sub">Choropleth · shade intensity = click volume · click a country for detail</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <input type="text" id="countryMapFilter"
+                    placeholder="Filter by URL keyword…"
+                    oninput="_filterMapByUrl(this.value)"
+                    style="height:30px;padding:0 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:inherit;width:280px;box-sizing:border-box">
+                <button id="countryMapFilterClear"
+                    onclick="document.getElementById('countryMapFilter').value='';_filterMapByUrl('');"
+                    style="display:none;height:30px;padding:0 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;background:#fff;cursor:pointer;color:#6b7280">Clear</button>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;margin-top:4px">
+                <div id="countryMapContainer" style="flex:1;min-width:0;position:relative;border-radius:4px;overflow:hidden;background:#DBEAFE"></div>
+                <div id="countryMapPanel" style="width:210px;flex-shrink:0;display:none;padding:14px;background:#f8f9fa;border-radius:8px;border:1px solid #e5e7eb;align-self:flex-start">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+                        <strong id="countryMapPanelTitle" style="font-size:14px;color:#374151;flex:1"></strong>
+                        <button onclick="clearCountrySelection()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#9ca3af;padding:0;line-height:1">×</button>
+                    </div>
+                    <div id="countryMapPanelBody"></div>
+                </div>
+            </div>
+            <p class="footnote" id="countryMapNote" style="margin-top:8px"></p>
+            <p class="footnote" id="countryMapSkipped" style="margin-top:4px;display:none"></p>
+            <div id="countryMapDebug" style="display:none;margin-top:16px;padding:14px 16px;background:#f8f9fa;border-radius:8px;border:1px solid #e5e7eb"></div>
+        </div>
+
+        <!-- Timing -->
+        <div id="sec-content-timing-group" style="display:none">
+        <div class="sec-sub-heading">Timing</div>
+        <div class="chart-row cols-2" id="sec-url-timing" style="margin-bottom:20px">
+            <div class="chart-card" id="sec-clickhour">
+                <div class="chart-title">Click Hour Distribution
+                    <span class="chart-sub">When recipients actually click · by hour of day</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartClickHour"></canvas>
+                </div>
+                <p class="footnote">From URL activity report. Complements "Best Hour to Send" with actual recipient engagement time rather than send time.</p>
+            </div>
+            <div class="chart-card" id="sec-velocity">
+                <div class="chart-title">Click Velocity
+                    <span class="chart-sub">Days from send date to click</span>
+                </div>
+                <div class="chart-wrap" style="height:240px">
+                    <canvas id="chartClickVelocity"></canvas>
+                </div>
+                <p class="footnote">How long email links stay active. "Same day" = clicked on the send date. Longer tails suggest evergreen content or slow-browsing audiences.</p>
+            </div>
+        </div>
+        </div><!-- /sec-content-timing-group -->
+
     </div>
 
     <!-- ── REPUTATION ──────────────────────────────────────────────── -->
     <div class="page-section" id="sec-reputation">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:14px">Reputation</div>
+        <div class="sec-narrative-row">
+            <div class="sec-narrative">
+                <div class="sec-narrative-eyebrow">Reputation</div>
+                <div class="sec-narrative-title">Sender reputation is cumulative<br>and slow to recover.</div>
+                <p class="sec-narrative-body">
+                    <strong>Unsubscribes are healthy</strong> — they keep your active list clean
+                    and reflect honest intent from someone who's moved on.
+                    Complaints are a different matter: even a small cluster can trigger inbox filtering
+                    at major providers, and that filtering affects future sends to everyone on that domain,
+                    not just the person who complained.
+                    The watchlist below surfaces individual sends sitting above normal thresholds.
+                    <em>Investigate the audience and content</em> before sending to that segment again —
+                    a poorly-targeted send that looks fine in aggregate can quietly erode your deliverability.
+                </p>
+            </div>
+            <div class="sec-narrative-kpis">
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card orange kpi-front">
+                            <div class="kpi-label">Unsubscribe Rate</div>
+                            <div class="kpi-val" id="kpiUnsubS">—</div>
+                            <div class="kpi-sub">of delivered</div>
+                        </div>
+                        <div class="kpi-back orange">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&lt;0.5%</div>
+                            <div class="kpi-back-note">Above 0.5% suggests audience-content mismatch or over-sending</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card red kpi-front">
+                            <div class="kpi-label">Hard Bounce Rate</div>
+                            <div class="kpi-val" id="kpiBounceS">—</div>
+                            <div class="kpi-sub">of sent</div>
+                        </div>
+                        <div class="kpi-back red">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&lt;2%</div>
+                            <div class="kpi-back-note">ISPs may throttle or block senders exceeding this threshold</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-flip">
+                    <div class="kpi-flip-inner">
+                        <div class="kpi-card kpi-front" style="border-top-color:#7f1d1d">
+                            <div class="kpi-label">Complaint Rate ⚠</div>
+                            <div class="kpi-val" id="kpiComplaintS">—</div>
+                            <div class="kpi-sub" id="kpiComplaintSSub">of delivered</div>
+                        </div>
+                        <div class="kpi-back dark">
+                            <div class="kpi-back-eyebrow">Industry Benchmark</div>
+                            <div class="kpi-back-val">&lt;0.08%</div>
+                            <div class="kpi-back-note">Google & Yahoo enforce a 0.08–0.1% threshold before inbox filtering kicks in</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="chart-row cols-2" style="margin-bottom:20px">
             <div class="chart-card">
-                <div class="chart-title">Unsubscribe &amp; Bounce Rate Over Time
-                    <span class="chart-sub">Rates as % of delivered / sent</span>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                    <div class="chart-title" style="margin-bottom:0">Unsubscribes &amp; Bounces Over Time
+                        <span class="chart-sub">Count by region · stacked</span>
+                    </div>
+                    <div style="margin-left:auto;display:flex;gap:4px">
+                        <button class="tab-btn active" id="repBtnUnsub"      onclick="setRepMetric('unsub')">Unsubscribe</button>
+                        <button class="tab-btn"         id="repBtnBounce"     onclick="setRepMetric('bounce')">Hard Bounce</button>
+                        <button class="tab-btn"         id="repBtnComplaints" onclick="setRepMetric('complaints')">Complaints</button>
+                    </div>
                 </div>
                 <div class="chart-wrap" style="height:240px">
                     <canvas id="chartReputation"></canvas>
                 </div>
-                <div class="legend-row" style="margin-top:10px">
-                    <span class="legend-chip"><span class="legend-line" style="background:#EF4444"></span>Unsubscribe Rate</span>
-                    <span class="legend-chip"><span class="legend-line" style="background:#D97706"></span>Hard Bounce Rate</span>
-                    <span class="legend-chip"><span class="legend-line" style="background:#7C3AED"></span>Complaint Rate</span>
-                </div>
-                <p class="footnote">Unsubscribe &amp; Complaint rates = % of delivered. Bounce rate = % of sent.</p>
+                <p class="footnote" id="repFootnote">Showing unsubscribe count per region. Switch tabs to view hard bounce or complaint counts.</p>
             </div>
-            <div class="chart-card" id="sec-region">
-                <div class="chart-title">Send Volume by Region
-                    <span class="chart-sub">Total messages sent</span>
+            <div class="chart-card" id="sec-region-rep">
+                <div class="chart-title">Reputation by Region
+                    <span class="chart-sub">Unsub · Hard Bounce · Complaint rates</span>
                 </div>
                 <div class="chart-wrap" style="height:240px">
-                    <canvas id="chartRegion"></canvas>
+                    <canvas id="chartRegionReputation"></canvas>
                 </div>
+                <p class="footnote">Rates weighted by delivered / sent volume per region.</p>
             </div>
         </div>
         <!-- Reputation watchlist -->
@@ -613,8 +1164,96 @@
         </div>
     </div>
 
+    <!-- ── ANALYSIS ──────────────────────────────────────────────────── -->
+    <div class="page-section" id="sec-analysis">
+        <div class="sec-narrative">
+            <div class="sec-narrative-eyebrow">Analysis</div>
+            <div class="sec-narrative-title">Patterns reveal themselves<br>when you zoom out.</div>
+            <p class="sec-narrative-body">
+                Individual sends tell you what happened. These charts tell you <strong>why</strong>.
+                The time scatter surfaces seasonal and day-of-week patterns across your entire programme —
+                useful for spotting channels that consistently outperform or underperform at certain times of year.
+                The open vs click scatter exposes the relationship between subject-line performance
+                and content quality: <em>top-right = everything working</em>,
+                top-left = strong subject but weak body,
+                bottom-right = compelling content hidden behind a poor subject line.
+            </p>
+        </div>
+
+        <div class="chart-card" id="sec-timescatter" style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Performance over Time
+                    <span class="chart-sub">Color = channel · bubble size = volume sent</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap">
+                    <div style="display:flex;gap:2px">
+                        <button class="tab-btn active" id="btnTsY_openRate"  onclick="setTScatterY('openRate')">Open Rate</button>
+                        <button class="tab-btn"         id="btnTsY_clickRate" onclick="setTScatterY('clickRate')">Click Rate</button>
+                    </div>
+                    <span style="width:1px;background:#e5e7eb;align-self:stretch"></span>
+                    <div style="display:flex;gap:2px">
+                        <button class="tab-btn active" id="btnTsX_month" onclick="setTScatterX('month')">Month</button>
+                        <button class="tab-btn"         id="btnTsX_dow"   onclick="setTScatterX('dow')">Day of Week</button>
+                        <button class="tab-btn"         id="btnTsX_hour"  onclick="setTScatterX('hour')">Hour</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:340px">
+                <canvas id="chartTimeScatter"></canvas>
+            </div>
+            <p class="footnote" style="margin-top:10px">Each bubble = one (time slot, type) group · Y = weighted average rate · size = total recipients · groups with &lt; 200 delivered hidden.</p>
+        </div>
+
+        <div class="chart-card" id="sec-scatter" style="margin-bottom: 20px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                <div class="chart-title" style="margin-bottom:0">Open Rate vs Click Rate
+                    <span class="chart-sub" id="scatterSub">Each bubble = one email send · size = volume sent</span>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                    <select id="scatterLimitSel" onchange="setScatterLimit(this.value)" style="font-size:11px;padding:3px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer">
+                        <option value="20">Top 20</option>
+                        <option value="50">Top 50</option>
+                        <option value="100">Top 100</option>
+                        <option value="0">All</option>
+                    </select>
+                    <div style="display:flex;gap:4px">
+                        <button class="tab-btn active" id="btnScatterChannel" onclick="setScatterView('channel')">By Channel</button>
+                        <button class="tab-btn"         id="btnScatterSender"  onclick="setScatterView('sender')">By Sender</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:360px">
+                <canvas id="chartScatter"></canvas>
+            </div>
+            <p class="footnote">Bubble size proportional to messages sent. Top-right = best performers. Top-left = strong subject, weak CTA. Bottom-right = weak subject, strong body.</p>
+        </div>
+
+        <div class="chart-row cols-2" style="margin-bottom:20px;">
+            <div class="chart-card" id="sec-channel" style="margin-bottom:20px">
+                <div class="chart-title">By Channel
+                    <span class="chart-sub">Open Rate · Click Rate · Delivery Rate</span>
+                </div>
+                <div class="chart-wrap" style="height:300px">
+                    <canvas id="chartChannel"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Email table -->
     <div class="page-section" id="sec-table">
+    <div class="sec-narrative">
+        <div class="sec-narrative-eyebrow">Detail</div>
+        <div class="sec-narrative-title">Every send, in one place.</div>
+        <p class="sec-narrative-body">
+            The full list of email sends matching your current filters.
+            Sort by <strong>bounce rate</strong> to find segments worth cleaning,
+            by <strong>open rate</strong> to surface your strongest-performing content,
+            or by <strong>volume</strong> to understand what's driving the aggregate numbers above.
+            Switch to Nurture view in the filter bar to collapse repeat sends of the same email
+            into a single lifetime-performance row.
+        </p>
+    </div>
     <div class="chart-card">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
             <div class="chart-title" style="margin-bottom:0">All Emails</div>
@@ -626,12 +1265,13 @@
                 <button class="tab-btn"         id="sortBtnSent"   onclick="setSortField('sent')">Volume</button>
                 <button class="tab-btn"         id="sortBtnBounce" onclick="setSortField('bounceRate')">Bounce</button>
             </div>
+            <button class="tab-btn" onclick="exportTableCsv()" title="Download visible rows as CSV" style="margin-left:4px">↓ Export CSV</button>
         </div>
         <div class="tbl-wrap">
             <table class="email-table">
                 <thead>
                     <tr id="tableHeaderRow">
-                        <th onclick="toggleSort('programName')" id="th-programName" style="min-width:180px">Program <span class="sort-arrow">↕</span></th>
+                        <th onclick="toggleSort('programName')" id="th-programName" style="min-width:300px">Program <span class="sort-arrow">↕</span></th>
                         <th onclick="toggleSort('emailName')"   id="th-emailName"   style="min-width:160px">Email <span class="sort-arrow">↕</span></th>
                         <th onclick="toggleSort('channel')"     id="th-channel"     style="width:100px">Channel <span class="sort-arrow">↕</span></th>
                         <th onclick="toggleSort('sentDate')"    id="th-sentDate"    style="width:90px">Sent Date <span class="sort-arrow">↕</span></th>
@@ -736,6 +1376,8 @@ function parseProgramName(name) {
 // STATE
 // ═══════════════════════════════════════════════════════
 var rawEmails    = [];
+var rawUrlClicks = [];
+var sendDateLookup = {};
 var charts       = {};
 var timeScale        = 'month';
 var trendMetric      = 'open';
@@ -745,15 +1387,22 @@ var scatterLimit     = 20;
 var emailTypeFilter  = 'all';
 var batchSizeFilter  = new Set(); // empty = All
 var watchlistMetric  = 'bounce';
+var repMetric        = 'unsub';
+var _tableRows       = [];
+var _linkRows        = [];
+var _currentLinkType = null;
+var heatmapMetric    = 'openRate';
+var tScatterX        = 'month';
+var tScatterY        = 'openRate';
 var sortField    = 'sent';
 var sortDir      = 'desc';
 var msState      = {
     'f-region': new Set(), 'f-vertical': new Set(), 'f-channel': new Set(),
-    'f-fy': new Set(), 'f-subregion': new Set()
+    'f-fy': new Set(), 'f-subregion': new Set(), 'f-contenttype': new Set()
 };
 var MS_LABELS    = {
     'f-region':'Region','f-vertical':'Vertical','f-channel':'Channel',
-    'f-fy':'FY','f-subregion':'Sub-region'
+    'f-fy':'FY','f-subregion':'Sub-region','f-contenttype':'Email Type'
 };
 
 // ═══════════════════════════════════════════════════════
@@ -782,15 +1431,134 @@ function parseNum(v) {
     var n = parseFloat(String(v).replace(/,/g, ''));
     return isNaN(n) ? 0 : n;
 }
+function parseHour12(v) {
+    if (v === null || v === undefined || v === '') return NaN;
+    var s = String(v).trim().toUpperCase();
+    var m = s.match(/^(\d{1,2})\s*(AM|PM)$/);
+    if (m) {
+        var h = parseInt(m[1], 10);
+        if (m[2] === 'PM' && h !== 12) h += 12;
+        if (m[2] === 'AM' && h === 12) h = 0;
+        return h;
+    }
+    var n = parseInt(s, 10);
+    return isNaN(n) ? NaN : n; // fallback: plain 0-23 integer
+}
+function fmtDate(d) {
+    if (!d) return '—';
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function getDomain(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch(e) { return url.slice(0, 40); }
+}
+function truncUrl(url, n) { return url.length > n ? url.slice(0, n) + '…' : url; }
+// Shared color map — keyed by getLinkType() return values, used by treemap + topics chart
+var LINK_TYPE_COLORS = {
+    'Marketo Landing page': '#1565c0',
+    'Product':              '#D97706',
+    'Sectors':              '#F59E0B',
+    'Brands':               '#10B981',
+    'Hazards':              '#EF4444',
+    'Sustainability':       '#2e7d32',
+    'Campaigns':            '#6366F1',
+    'Blogs':                '#DB2777',
+    'AnsellGuardian':       '#0891B2',
+    'Right Cycle':          '#15803d',
+    'Glove Finder':         '#7C3AED',
+    'Webstore':             '#00A28F',
+    'AssetBank':            '#0063AC',
+    'Highspot':             '#b45309',
+    'PDF':                  '#b45309',
+    'Webinar':              '#15803d',
+    'Meeting':              '#7C3AED',
+    'Ansell page':          '#2563eb',
+    'Ansell (other)':       '#3b82f6',
+    'LinkedIn':             '#0a66c2',
+    'Facebook':             '#1877f2',
+    'Twitter':              '#374151',
+    'YouTube':              '#dc2626',
+    'Instagram':            '#e1306c',
+    'External':             '#6b7280',
+    'Homepage':             '#0063AC',
+    'Unsubscribe':          '#c62828',
+    'View in browser':      '#9ca3af',
+    'Legal':                '#9ca3af',
+    'Other':                '#d1d5db'
+};
+
+// Types excluded from the Content Topics chart (system/navigation, not content)
+var TOPIC_EXCLUDE_TYPES = new Set(['Unsubscribe', 'View in browser', 'Homepage', 'Legal', 'Other']);
+
+function getLinkType(url) {
+    var lower = url.toLowerCase();
+    if (/unsub|Preference|optout|opt-out/i.test(lower)) return 'Unsubscribe';
+    if (/view.message|view.in.browser|viewinbrowser|view_email|mirror\./i.test(lower)) return 'View in browser';
+    if (/\.pdf(\?|$)/i.test(url)) return 'PDF';
+    try {
+        var u = new URL(url);
+        var host = u.hostname.toLowerCase().replace(/^www\./, '');
+        var path = u.pathname.toLowerCase();
+        if (host.includes('linkedin.com'))                          return 'LinkedIn';
+        if (host.includes('assetbank.ansell.com')) return 'AssetBank';
+        if (host.includes('shop.ansell.com')) return 'Webstore';
+        if (host.includes('facebook.com') || host.includes('fb.com')) return 'Facebook';
+        if (host.includes('twitter.com') || host === 'x.com')      return 'Twitter';
+        if (host.includes('youtube.com') || host === 'youtu.be')   return 'YouTube';
+        if (host.includes('instagram.com')) return 'Instagram';
+        if (host.includes('ansell.highspot.com')) return 'Highspot';
+        if (host.includes('on24.com') || (host.includes('zoom.us') || host.includes('webex.com') || host.includes('gotowebinar')) )      return 'Webinar';
+        if (host.includes('calendly.com') || host.includes('outlook.live') || host.includes('outlook.office')) return 'Meeting';
+        if (host === 'pages.ansell.com')  return 'Marketo Landing page';
+        if (host === 'ansell.com' || host.endsWith('.ansell.com')) {
+            if (path.includes('/product'))  return 'Product';
+            if (path.includes('/sectors'))  return 'Sectors';
+            if (path.includes('/brands'))  return 'Brands';
+            if (path.includes('/sustainability'))  return 'Sustainability';
+            if (path.includes('/campaigns'))  return 'Campaigns';
+            if (path.includes('/hazards'))  return 'Hazards';
+            if (path.includes('/blog'))  return 'Blogs';
+            if (path.includes('/facebook%20channels'))  return 'Facebook';
+            if (path.includes('/ansellguardian'))  return 'AnsellGuardian';
+            if (path.includes('/rightcycle'))  return 'Right Cycle';
+            if (path.includes('/glove-finder'))   return 'Glove Finder';
+            if (path.includes('/legal/'))  return 'Legal';
+            if (path.includes('/us/en'))  return 'Homepage';
+            if (path.includes('/jp/ja'))  return 'Homepage';
+            if (path.includes('/br/pt'))  return 'Homepage';
+            if (path.includes('/mx/es'))  return 'Homepage';
+            if (path.includes('/gb/en'))  return 'Homepage';
+            if (path.includes('/int/en'))  return 'Homepage';
+            var segs = path.split('/').filter(Boolean);
+            if (segs.length <= 1)           return 'Homepage';
+            return 'Ansell page';
+        }
+        if (host.includes('ansell'))        return 'Ansell (other)';
+        return 'External';
+    } catch(e) { return 'Other'; }
+}
 function parseDate(v) {
     if (!v) return null;
     if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
     if (typeof v === 'number') {
-        var d = new Date(Math.round((v - 25569) * 86400 * 1000));
-        return isNaN(d.getTime()) ? null : d;
+        // Excel serial number
+        if (v > 25569 && v < 60000) {
+            var d = new Date(Math.round((v - 25569) * 86400 * 1000));
+            return isNaN(d.getTime()) ? null : d;
+        }
+        return null;
     }
     var s = String(v).trim();
     if (!s) return null;
+    // Excel serial stored as a string (e.g. "45847")
+    if (/^\d{5}$/.test(s)) {
+        var n = parseInt(s, 10);
+        if (n > 25569 && n < 60000) return new Date(Math.round((n - 25569) * 86400 * 1000));
+    }
+    // Parse date-only strings as local time to avoid UTC-offset day shift
+    var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+    var mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdy) return new Date(+mdy[3], +mdy[1]-1, +mdy[2]);
     var d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
 }
@@ -851,18 +1619,27 @@ async function detectLatestDate(suffix) {
 
 async function loadData() {
     showLoading('Detecting latest Email export…');
-    var found = await detectLatestDate('Dashboard_Export_Emails.xlsx');
+    var found = await detectLatestDate('Dashboard_Emails_Performance.xlsx');
     if (!found) { showEmpty(); return; }
 
-    showLoading('Loading ' + found.dateStr + ' Dashboard_Export_Emails.xlsx…');
+    showLoading('Loading ' + found.dateStr + ' Dashboard_Emails_Performance.xlsx…');
     try {
         var buf = await fetch(found.path).then(r => r.arrayBuffer());
         var wb  = XLSX.read(buf, { type: 'array', cellDates: true });
         var raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+        // Forward-fill Program Name: Marketo exports only print it on the first row of each group
+        var lastProgName = '';
+        raw.forEach(function(row) {
+            var prog = String(row['Program Name'] || '').trim();
+            if (prog) { lastProgName = prog; }
+            else { row['Program Name'] = lastProgName; }
+        });
 
         raw = raw.filter(function(row) {
             var prog = String(row['Program Name'] || '').trim();
-            if (prog.toLowerCase() === 'total') return false;
+            var progLow = prog.toLowerCase();
+            if (progLow === 'total' || progLow === 'grand total' || progLow === 'subtotal') return false;
+            if (!prog) return false;
             var firstVal = Object.values(row).map(v => String(v).trim()).find(v => v !== '');
             if (firstVal && firstVal.toLowerCase().startsWith('applied filters')) return false;
             return true;
@@ -876,13 +1653,22 @@ async function loadData() {
             if (emailNameFull.toLowerCase().startsWith(progName.toLowerCase() + '.')) {
                 emailNameShort = emailNameFull.slice(progName.length + 1);
             }
+            var sentDate = parseDate(row['Sent (Date)'] || row['Sent Date'] || row['SentDate'] || row['Date Sent'] || row['Send Date']);
+            var rawHour  = row['Sent Hour'] !== undefined && row['Sent Hour'] !== '' ? parseHour12(row['Sent Hour']) : NaN;
+            var sentHour = !isNaN(rawHour) ? rawHour : (sentDate ? sentDate.getHours() : null);
+            // Apply hour back onto date when the date was parsed without time (hour=0 and Sent Hour column exists)
+            if (sentDate && !isNaN(rawHour) && sentDate.getHours() === 0) sentDate.setHours(rawHour);
             var r = {
                 programName:   progName,
                 emailNameFull: emailNameFull,
                 emailName:     emailNameShort,
-                sentDate:     parseDate(row['Sent (Date)'] || row['Sent Date'] || row['SentDate']),
-                subject:      String(row['Email Subject'] || '').trim(),
-                fromAddr:     String(row['Email From Address'] || row['From Address'] || '').trim(),
+                sentDate:      sentDate,
+                sentHour:      sentHour,
+                subject:       String(row['Email Subject'] || '').trim(),
+                fromAddr:      String(row['Email From Address'] || row['From Address'] || '').trim(),
+                emailTemplate: String(row['Email Template'] || row['Template Name'] || row['Template'] || '').trim(),
+                contentType:   String(row['Email Type'] || row['Content Type'] || '').trim(),
+                deviceUsed:    String(row['Device Used'] || '').trim(),
                 sent:         parseNum(row['Sent']),
                 delivered:    parseNum(row['Delivered']),
                 opened:       parseNum(row['Opened']),
@@ -927,11 +1713,82 @@ async function loadData() {
         if (btnBatch)   btnBatch.textContent   = 'Batch '   + batchPct   + '%';
         if (btnNurture) btnNurture.textContent  = 'Nurture ' + nurturePct + '%';
 
+        // Build send-date lookup (emailNameFull → sorted array of sentDates) for velocity calc
+        sendDateLookup = {};
+        rawEmails.forEach(function(r) {
+            if (!r.sentDate) return;
+            if (!sendDateLookup[r.emailNameFull]) sendDateLookup[r.emailNameFull] = [];
+            sendDateLookup[r.emailNameFull].push(r.sentDate);
+        });
+        Object.keys(sendDateLookup).forEach(k => sendDateLookup[k].sort((a,b) => a - b));
+
         // Update file badge
         var wrap = document.getElementById('fileBadgeWrap');
         if (wrap) {
             wrap.style.display = 'flex';
-            wrap.innerHTML = '<div style="display:flex;align-items:center;gap:5px;padding:1px 0"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00A28F;flex-shrink:0"></span><code style="font-size:10px;color:#444">' + found.dateStr + ' Dashboard_Export_Emails.xlsx</code></div>';
+            var perfTotalSent = rawEmails.reduce(function(s,r){ return s + r.sent; }, 0);
+            wrap.innerHTML = '<div style="display:flex;align-items:center;gap:5px;padding:1px 0"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00A28F;flex-shrink:0"></span><code style="font-size:10px;color:#444">' + found.dateStr + ' Dashboard_Emails_Performance.xlsx · ' + fmt(rawEmails.length) + ' rows · ' + fmt(perfTotalSent) + ' sent</code></div>';
+        }
+
+        // Try loading URL clicks file — detect its own latest date independently
+        rawUrlClicks = [];
+        try {
+            showLoading('Loading URL click data…');
+            var urlFound = await detectLatestDate('Dashboard_Emails_URL.xlsx');
+            var urlPath = '../Reports/' + urlFound.dateStr + ' Dashboard_Emails_URL.xlsx';
+            var urlBuf  = await fetch(urlPath).then(res => res.arrayBuffer());
+            // raw:true preserves actual cell values — without this, Excel date-formatted number cells
+            // (e.g. Clicked=1 formatted as Date) come back as "1900-01-01" instead of 1.
+            var urlWb   = XLSX.read(urlBuf, { type: 'array' });
+            var urlRaw  = XLSX.utils.sheet_to_json(urlWb.Sheets[urlWb.SheetNames[0]], { defval: '', raw: true });
+            if (urlRaw.length > 0) {
+                var cols = Object.keys(urlRaw[0]);
+                console.log('[URL file] columns:', cols, '| first row:', JSON.stringify(urlRaw[0]));
+            }
+            rawUrlClicks = urlRaw.map(function(row) {
+                var clickedDate = parseDate(row['Clicked (Date)'] || row['Clicked Date']);
+                var rawCH = row['Clicked Hour'] !== undefined && row['Clicked Hour'] !== '' ? parseHour12(row['Clicked Hour']) : NaN;
+                if (clickedDate && !isNaN(rawCH) && clickedDate.getHours() === 0) clickedDate.setHours(rawCH);
+                return {
+                    emailNameFull: String(row['Email Name'] || '').trim(),
+                    link:          String(row['Email Link'] || '').trim(),
+                    clickedDate:   clickedDate,
+                    clickedHour:   !isNaN(rawCH) ? rawCH : (clickedDate ? clickedDate.getHours() : null),
+                    clicked:       parseNum(row['Clicked'] !== undefined ? row['Clicked'] : row['Clicks']),
+                    country:       String(row['Country'] || row['country'] || '').trim()
+                };
+            }).filter(r => r.emailNameFull && r.link && r.clicked > 0);
+
+            var _deduped = _groupUrlClicks(rawUrlClicks);
+            var rawClickTotal = _deduped.reduce(function(s,g){ return s + g.clicked; }, 0);
+            console.log('[URL file] raw rows:', rawUrlClicks.length,
+                '| unique email+link groups:', _deduped.length,
+                '| raw sum (pre-dedup):', rawUrlClicks.reduce(function(s,r){ return s + r.clicked; }, 0),
+                '| deduplicated total:', rawClickTotal,
+                '| avg clicked per group:', _deduped.length ? (rawClickTotal / _deduped.length).toFixed(1) : 'n/a');
+
+            // Verify join: how many URL email names are found in the performance file
+            var perfNames = new Set(rawEmails.map(function(r) { return r.emailNameFull; }));
+            var urlNamesAll  = new Set(rawUrlClicks.map(function(r) { return r.emailNameFull; }));
+            var urlNamesJoined = new Set(rawUrlClicks.filter(function(r) { return perfNames.has(r.emailNameFull); }).map(function(r) { return r.emailNameFull; }));
+            var joinedClickTotal = _groupUrlClicks(rawUrlClicks.filter(function(r){ return perfNames.has(r.emailNameFull); })).reduce(function(s,g){ return s + g.clicked; }, 0);
+            console.log('[URL file] rows:', rawUrlClicks.length, '| total clicks:', rawClickTotal,
+                '| unique email names:', urlNamesAll.size, '| matched to perf file:', urlNamesJoined.size,
+                '| clicks after join:', joinedClickTotal,
+                '| unmatched names sample:', [...urlNamesAll].filter(function(n) { return !perfNames.has(n); }).slice(0, 5));
+
+            if (wrap) {
+                var dot = rawUrlClicks.length ? 'background:#0063AC' : 'background:#9ca3af';
+                var label = rawUrlClicks.length
+                    ? urlFound.dateStr + ' Dashboard_Emails_URL.xlsx · ' + fmt(rawUrlClicks.length) + ' rows · ' + fmt(rawClickTotal) + ' clicks'
+                    : urlFound.dateStr + ' Dashboard_Emails_URL.xlsx · not found';
+                wrap.innerHTML += '<div style="display:flex;align-items:center;gap:5px;padding:1px 0"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;' + dot + ';flex-shrink:0"></span><code style="font-size:10px;color:#444">' + label + '</code></div>';
+            }
+        } catch(e) {
+            rawUrlClicks = [];
+            if (wrap) {
+                wrap.innerHTML += '<div style="display:flex;align-items:center;gap:5px;padding:1px 0"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9ca3af;flex-shrink:0"></span><code style="font-size:10px;color:#9ca3af">Dashboard_Emails_URL.xlsx · not found</code></div>';
+            }
         }
 
         initFilters();
@@ -947,11 +1804,15 @@ async function loadData() {
 // FILTER INIT
 // ═══════════════════════════════════════════════════════
 function initFilters() {
-    populateMs('f-region',   rawEmails, r => r.region   !== '(Non-standard)' ? r.region    : null, v => v);
-    populateMs('f-vertical', rawEmails, r => r.vertical !== '(Non-standard)' ? r.vertical  : null, v => VERTICAL_LABELS[v] ? v + ' — ' + VERTICAL_LABELS[v] : v);
-    populateMs('f-channel',  rawEmails, r => r.channel  !== '(Non-standard)' ? r.channel   : null, v => v);
-    populateMs('f-fy',       rawEmails, r => r.fy || null, v => v);
-    populateMs('f-subregion',rawEmails, r => r.subRegion || null, v => SUBREGION_LABELS[v] ? v + ' — ' + SUBREGION_LABELS[v] : v);
+    populateMs('f-region',      rawEmails, r => r.region      !== '(Non-standard)' ? r.region    : null, v => v);
+    populateMs('f-vertical',   rawEmails, r => r.vertical    !== '(Non-standard)' ? r.vertical  : null, v => VERTICAL_LABELS[v] ? v + ' — ' + VERTICAL_LABELS[v] : v);
+    populateMs('f-channel',    rawEmails, r => r.channel     !== '(Non-standard)' ? r.channel   : null, v => v);
+    populateMs('f-fy',         rawEmails, r => r.fy          || null, v => v);
+    populateMs('f-subregion',  rawEmails, r => r.subRegion   || null, v => SUBREGION_LABELS[v] ? v + ' — ' + SUBREGION_LABELS[v] : v);
+    populateMs('f-contenttype',rawEmails, r => r.contentType || null, v => v);
+    // Hide content type dropdown if no data
+    var ctWrap = document.getElementById('ms-f-contenttype');
+    if (ctWrap) ctWrap.style.display = rawEmails.some(r => r.contentType) ? '' : 'none';
 }
 
 function populateMs(id, data, keyFn, labelFn) {
@@ -969,9 +1830,15 @@ function populateMs(id, data, keyFn, labelFn) {
 // FILTER APPLY
 // ═══════════════════════════════════════════════════════
 function applyFilters() {
-    var search = (document.getElementById('emailSearch').value || '').toLowerCase();
+    var search   = (document.getElementById('emailSearch').value || '').toLowerCase();
+    var fromVal  = document.getElementById('dateFrom').value;
+    var toVal    = document.getElementById('dateTo').value;
+    var dateFrom = fromVal ? new Date(fromVal) : null;
+    var dateTo   = toVal   ? new Date(toVal + 'T23:59:59') : null;
     return rawEmails.filter(function(r) {
         if (emailTypeFilter !== 'all' && r.emailType !== emailTypeFilter) return false;
+        if (dateFrom && r.sentDate && r.sentDate < dateFrom) return false;
+        if (dateTo   && r.sentDate && r.sentDate > dateTo)   return false;
         if (batchSizeFilter.size > 0) {
             var s = r.sent;
             var ok = (batchSizeFilter.has('lt100')  && s < 100)
@@ -985,7 +1852,8 @@ function applyFilters() {
         if (msState['f-vertical'].size && !msState['f-vertical'].has(r.vertical)) return false;
         if (msState['f-channel'].size  && !msState['f-channel'].has(r.channel))   return false;
         if (msState['f-fy'].size       && !msState['f-fy'].has(r.fy))             return false;
-        if (msState['f-subregion'].size&& !msState['f-subregion'].has(r.subRegion)) return false;
+        if (msState['f-subregion'].size   && !msState['f-subregion'].has(r.subRegion))   return false;
+        if (msState['f-contenttype'].size && !msState['f-contenttype'].has(r.contentType)) return false;
         if (search) {
             var haystack = (r.emailName + ' ' + r.emailNameFull + ' ' + r.programName + ' ' + r.subject + ' ' + r.fromAddr).toLowerCase();
             if (haystack.indexOf(search) === -1) return false;
@@ -994,11 +1862,47 @@ function applyFilters() {
     });
 }
 
+// Group rawUrlClicks rows by email+link, summing all rows regardless of country.
+// Blank-country rows are ordinary clicks with undetected country — not summary rows.
+function _groupUrlClicks(rows) {
+    var groups = {};
+    rows.forEach(function(r) {
+        var key = r.emailNameFull + '\x00' + r.link;
+        if (!groups[key]) groups[key] = { base: r, clicked: 0, countryRows: [] };
+        groups[key].clicked += r.clicked;
+        if (r.country) groups[key].countryRows.push(r);
+    });
+    return Object.values(groups);
+}
+
+function getUrlData(filteredEmails) {
+    if (!rawUrlClicks.length) return [];
+    var nameSet = new Set(filteredEmails.map(r => r.emailNameFull));
+    var filtered = rawUrlClicks.filter(r => nameSet.has(r.emailNameFull));
+    return _groupUrlClicks(filtered).map(function(g) {
+        return Object.assign({}, g.base, { clicked: g.clicked });
+    });
+}
+
+// Per-country rows for the country map — returns one row per email+link+country.
+function getCountryUrlData(filteredEmails) {
+    if (!rawUrlClicks.length) return [];
+    var nameSet = new Set(filteredEmails.map(r => r.emailNameFull));
+    var filtered = rawUrlClicks.filter(r => nameSet.has(r.emailNameFull));
+    var result = [];
+    _groupUrlClicks(filtered).forEach(function(g) {
+        g.countryRows.forEach(function(r) { result.push(r); });
+    });
+    return result;
+}
+
 function updateFilterCount() {
     var n = 0;
     Object.values(msState).forEach(s => n += s.size);
     var search = (document.getElementById('emailSearch').value || '').trim();
     if (search) n++;
+    if (document.getElementById('dateFrom').value) n++;
+    if (document.getElementById('dateTo').value)   n++;
     var el = document.getElementById('filterCount');
     if (el) el.textContent = n ? n + ' filter' + (n > 1 ? 's' : '') + ' active' : '';
 }
@@ -1007,20 +1911,35 @@ function updateFilterCount() {
 // RENDER ALL
 // ═══════════════════════════════════════════════════════
 function renderAll() {
-    var data = applyFilters();
+    var data    = applyFilters();
+    var urlData = getUrlData(data);
     updateFilterCount();
     renderKPIs(data);
     renderTrend(data);
     renderHealth(data);
+    renderDeliveryTrend(data);
     renderFromAddr(data);
+    renderFromAddrOpenRate(data);
     renderChannel(data);
     renderDayOfWeek(data);
-    renderSenderEngagement(data);
+    renderHourOfDay(data);
+    renderHeatmap(data, urlData);
+    renderTimeScatter(data);
+    renderContentType(data);
+    renderTemplate(data);
     renderScatter(data);
     renderClicks(data);
+    renderDomainPie(urlData);
+    renderDeviceChart(data);
+    renderTopicAnalysis(data, urlData);
+    renderTopLinks(urlData);
+    renderClickHourDist(urlData);
+    renderClickVelocity(urlData);
     renderSubjectLines(data);
     renderReputation(data);
+    renderRegionReputation(data);
     renderRegion(data);
+    renderCountryMap(getCountryUrlData(data));
     renderWatchlist(data);
     renderTable(data);
 }
@@ -1029,37 +1948,96 @@ function renderAll() {
 // KPIs
 // ═══════════════════════════════════════════════════════
 function renderKPIs(data) {
-    var totSent      = data.reduce((s,r)=>s+r.sent,0);
-    var totDel       = data.reduce((s,r)=>s+r.delivered,0);
-    var totOpened    = data.reduce((s,r)=>s+r.opened,0);
-    var totUC        = data.reduce((s,r)=>s+r.uniqueClicks,0);
-    var totBounced   = data.reduce((s,r)=>s+r.hardBounced,0);
-    var totUnsub     = data.reduce((s,r)=>s+r.unsubscribed,0);
+    var totSent       = data.reduce((s,r)=>s+r.sent,0);
+    var totDel        = data.reduce((s,r)=>s+r.delivered,0);
+    var totOpened     = data.reduce((s,r)=>s+r.opened,0);
+    var totUC         = data.reduce((s,r)=>s+r.uniqueClicks,0);
+    var totBounced    = data.reduce((s,r)=>s+r.hardBounced,0);
+    var totSoftBounced= Math.max(0, totSent - totDel - totBounced);
+    var totUnsub      = data.reduce((s,r)=>s+r.unsubscribed,0);
+    var totComplaints = data.reduce((s,r)=>s+(r.complaints||0),0);
 
-    var delivRate = totSent ? (totDel   / totSent * 100) : null;
-    var openRate  = totDel  ? (totOpened/ totDel  * 100) : null;
-    var clickRate = totDel  ? (totUC    / totDel  * 100) : null;
-    var ctoRate   = totOpened?(totUC/totOpened*100)       : null;
-    var bounceRate= totSent ? (totBounced/totSent* 100)   : null;
-    var unsubRate = totDel  ? (totUnsub / totDel  * 100)  : null;
+    var delivRate      = totSent   ? (totDel         / totSent    * 100) : null;
+    var openRate       = totDel    ? (totOpened      / totDel     * 100) : null;
+    var clickRate      = totDel    ? (totUC          / totDel     * 100) : null;
+    var ctoRate        = totOpened ? (totUC          / totOpened  * 100) : null;
+    var bounceRate     = totSent   ? (totBounced     / totSent    * 100) : null;
+    var softBounceRate = totSent   ? (totSoftBounced / totSent    * 100) : null;
+    var unsubRate      = totDel    ? (totUnsub       / totDel     * 100) : null;
+    var complaintRate  = totDel    ? (totComplaints  / totDel     * 100) : null;
 
     var uniqueEmails = new Set(data.map(r => r.emailNameFull)).size;
     setText('kpiSent',     fmt(totSent));
     setText('kpiSentSub',  fmt(data.length) + ' sends · ' + fmt(uniqueEmails) + ' unique emails');
     setText('kpiDelivery', fmtPct(delivRate));
     setText('kpiDeliverySub', fmt(totDel) + ' delivered');
+    setText('kpiDelivery2', fmtPct(delivRate));
+    setText('kpiDelivery2Sub', fmt(totDel) + ' delivered');
     setText('kpiOpen',  fmtPct(openRate));
     setText('kpiClick', fmtPct(clickRate));
     setText('kpiCTO',   fmtPct(ctoRate));
-    setText('kpiBounce',fmtPct(bounceRate));
+    setText('kpiBounce', fmtPct(bounceRate));
     setText('kpiBounceSub', fmt(totBounced) + ' bounced');
+    setText('kpiBounce2', fmtPct(bounceRate));
+    setText('kpiBounce2Sub', fmt(totBounced) + ' bounced');
+    setText('kpiSoftBounce', fmtPct(softBounceRate));
+    setText('kpiSoftBounceSub', fmt(totSoftBounced) + ' soft bounced');
     setText('kpiUnsub', fmtPct(unsubRate));
+    // Section-level narrative KPIs
+    setText('kpiOpenS',      fmtPct(openRate));
+    setText('kpiClickS',     fmtPct(clickRate));
+    setText('kpiCTOS',       fmtPct(ctoRate));
+    setText('kpiUnsubS',     fmtPct(unsubRate));
+    setText('kpiBounceS',    fmtPct(bounceRate));
+    setText('kpiComplaintS', fmtPct(complaintRate, 3));
+    setText('kpiComplaintSSub', fmt(totComplaints) + ' complaints');
     setText('kpiCount', fmt(data.length));
     var totalUnique = new Set(rawEmails.map(r => r.emailNameFull)).size;
     var uniquePrograms = new Set(data.map(r => r.programName)).size;
     setText('kpiCountSub', fmt(uniqueEmails) + ' unique emails · ' + fmt(uniquePrograms) + ' programs');
 }
 function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+
+// ═══════════════════════════════════════════════════════
+// FY END LINE PLUGIN (shared by all time-series charts)
+// ═══════════════════════════════════════════════════════
+function makeFyPlugin(labels) {
+    if (!labels.length) return { id:'fyLine', afterDraw:function(){} };
+    var firstYear = parseInt(labels[0].slice(0,4));
+    var lastYear  = parseInt(labels[labels.length-1].slice(0,4)) + 1;
+    var labSet    = new Set(labels);
+    var fyBuckets = [];
+    for (var fy = firstYear; fy <= lastYear; fy++) {
+        var b = getBucket(new Date(fy, 5, 30), timeScale);
+        if (b && labSet.has(b)) fyBuckets.push(b);
+    }
+    fyBuckets = Array.from(new Set(fyBuckets));
+    return {
+        id: 'fyLine',
+        afterDraw: function(chart) {
+            if (!fyBuckets.length) return;
+            var meta = chart.getDatasetMeta(0);
+            var c = chart.ctx, ca = chart.chartArea;
+            fyBuckets.forEach(function(bucket) {
+                var idx = labels.indexOf(bucket);
+                if (idx < 0 || !meta.data[idx]) return;
+                var x = meta.data[idx].x;
+                c.save();
+                c.beginPath(); c.moveTo(x, ca.top); c.lineTo(x, ca.bottom);
+                c.strokeStyle = 'rgba(100,100,140,0.45)';
+                c.lineWidth = 1.5;
+                c.setLineDash([3,4]);
+                c.stroke();
+                c.setLineDash([]);
+                c.fillStyle = 'rgba(80,80,130,0.75)';
+                c.font = 'bold 9px sans-serif';
+                c.textAlign = 'center';
+                c.fillText('FY', x, ca.top + 10);
+                c.restore();
+            });
+        }
+    };
+}
 
 // ═══════════════════════════════════════════════════════
 // TRENDLINE
@@ -1138,7 +2116,8 @@ function renderTrend(data) {
                 y2: { beginAtZero:true, position:'right', ticks:{ font:{size:10}, callback: v => v.toFixed(1)+'%' }, grid:{ drawOnChartArea:false }, title:{ display:true, text:'Rate (%)', font:{size:10} } },
                 x:  { stacked:true, ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } }
             }
-        }
+        },
+        plugins: [makeFyPlugin(labels)]
     });
 }
 
@@ -1185,33 +2164,478 @@ function renderChannel(data) {
 }
 
 // ═══════════════════════════════════════════════════════
-// REGION CHART
+// REGION MAP
 // ═══════════════════════════════════════════════════════
+var REGION_GEO = {
+    'NA':     { x: 430,  y: 230, color: '#0063AC' },
+    'EMEA':   { x: 1090, y: 185, color: '#00A28F' },
+    'APAC':   { x: 1720, y: 355, color: '#7C3AED' },
+    'LAC':    { x: 660,  y: 525, color: '#D97706' },
+    'EMAP':   { x: 1280, y: 290, color: '#3B82F6' },
+    'GLOBAL': { x: 990,  y: 760, color: '#6B7280' }
+};
+
 function renderRegion(data) {
+    if (charts['region']) { charts['region'].destroy(); charts['region'] = null; }
     var byRegion = {};
     data.forEach(function(r) {
-        var rg = r.region || '(Non-standard)';
-        byRegion[rg] = (byRegion[rg] || 0) + r.sent;
+        byRegion[r.region || '(Non-standard)'] = (byRegion[r.region || '(Non-standard)'] || 0) + r.sent;
     });
-    var regions = Object.keys(byRegion).sort((a,b) => byRegion[b] - byRegion[a]);
-    var palette = ['#0063AC','#00A28F','#F59E0B','#7C3AED','#EF4444','#10B981','#6366F1','#D97706'];
+    var totSent = Object.keys(byRegion).reduce(function(s,k){ return s + byRegion[k]; }, 0);
+    var knownKeys = Object.keys(REGION_GEO);
+    var maxSent = Math.max.apply(null, knownKeys.map(function(k){ return byRegion[k] || 0; }));
+    if (!maxSent) return;
 
-    if (charts['region']) { charts['region'].destroy(); }
-    var ctx = document.getElementById('chartRegion').getContext('2d');
-    charts['region'] = new Chart(ctx, {
-        type:'doughnut',
-        data:{
-            labels: regions,
-            datasets:[{ data: regions.map(r=>byRegion[r]), backgroundColor: regions.map((_,i)=>palette[i%palette.length]), borderWidth:2, borderColor:'#fff' }]
-        },
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            plugins:{
-                legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:12 } },
-                tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' sent' } }
-            }
+    var ns = 'http://www.w3.org/2000/svg';
+    var g  = document.getElementById('regionBubbles');
+    g.innerHTML = '';
+    var tip  = document.getElementById('regionMapTip');
+    var wrap = tip.parentElement;
+
+    knownKeys.forEach(function(rg) {
+        var sent = byRegion[rg] || 0;
+        if (!sent) return;
+        var geo = REGION_GEO[rg];
+        var r   = Math.max(30, Math.sqrt(sent / maxSent) * 160);
+        var pct = totSent ? (sent / totSent * 100).toFixed(1) : '0';
+        var isDashed = (rg === 'GLOBAL' || rg === 'EMAP');
+
+        var circle = document.createElementNS(ns, 'circle');
+        circle.setAttribute('cx', geo.x); circle.setAttribute('cy', geo.y); circle.setAttribute('r', r);
+        circle.setAttribute('fill', geo.color); circle.setAttribute('fill-opacity', '0.22');
+        circle.setAttribute('stroke', geo.color); circle.setAttribute('stroke-width', '4');
+        if (isDashed) circle.setAttribute('stroke-dasharray', '10,6');
+        circle.style.cursor = 'default';
+
+
+        var lbl = document.createElementNS(ns, 'text');
+        lbl.setAttribute('x', geo.x); lbl.setAttribute('y', geo.y - 4);
+        lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('dominant-baseline', 'auto');
+        lbl.setAttribute('font-size', '26'); lbl.setAttribute('font-weight', '700');
+        lbl.setAttribute('fill', geo.color); lbl.setAttribute('pointer-events', 'none');
+        lbl.textContent = rg;
+
+        var sub = document.createElementNS(ns, 'text');
+        sub.setAttribute('x', geo.x); sub.setAttribute('y', geo.y + 24);
+        sub.setAttribute('text-anchor', 'middle'); sub.setAttribute('dominant-baseline', 'auto');
+        sub.setAttribute('font-size', '22'); sub.setAttribute('fill', geo.color);
+        sub.setAttribute('pointer-events', 'none');
+        sub.textContent = pct + '%';
+
+        g.appendChild(circle); g.appendChild(lbl); g.appendChild(sub);
+
+        circle.addEventListener('mousemove', function(e) {
+            var rect = wrap.getBoundingClientRect();
+            tip.style.left = (e.clientX - rect.left + 14) + 'px';
+            tip.style.top  = (e.clientY - rect.top  - 10) + 'px';
+            tip.style.display = 'block';
+            tip.innerHTML = '<strong>' + rg + '</strong><br>' + fmt(sent) + ' sent &nbsp;·&nbsp; ' + pct + '%';
+        });
+        circle.addEventListener('mouseleave', function() { tip.style.display = 'none'; });
+    });
+
+    var noteEl = document.getElementById('regionMapNote');
+    if (noteEl) {
+        var others = [];
+        Object.keys(byRegion).forEach(function(rg) { if (!REGION_GEO[rg]) others.push(rg + ' ' + fmt(byRegion[rg])); });
+        var parts = ['EMAP = combined EMEA + APAC programs', 'GLOBAL = pan-global programs'];
+        if (others.length) parts.unshift('Other: ' + others.join(', '));
+        noteEl.textContent = parts.join(' · ');
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// COUNTRY CLICKS MAP (inline SVG choropleth)
+// ═══════════════════════════════════════════════════════
+var COUNTRY_ISO = {
+    // ── Standard names ──────────────────────────────────────────────────
+    'Afghanistan':'AF','Albania':'AL','Algeria':'DZ','Angola':'AO','Argentina':'AR',
+    'Armenia':'AM','Australia':'AU','Austria':'AT','Azerbaijan':'AZ','Bahrain':'BH',
+    'Bangladesh':'BD','Belarus':'BY','Belgium':'BE','Bolivia':'BO','Bosnia and Herzegovina':'BA',
+    'Brazil':'BR','Bulgaria':'BG','Cameroon':'CM','Canada':'CA','Chile':'CL',
+    'China':'CN','Colombia':'CO','Costa Rica':'CR','Croatia':'HR','Cyprus':'CY',
+    'Czech Republic':'CZ','Denmark':'DK','Dominican Republic':'DO','Ecuador':'EC',
+    'Egypt':'EG','El Salvador':'SV','Estonia':'EE','Ethiopia':'ET','Finland':'FI',
+    'FRANCE':'FR','Georgia':'GE','Germany':'DE','Ghana':'GH','Greece':'GR',
+    'Guatemala':'GT','Honduras':'HN','Hong Kong':'HK','Hungary':'HU','Iceland':'IS',
+    'India':'IN','Indonesia':'ID','Ireland':'IE','Israel':'IL','Italy':'IT',
+    'Japan':'JP','Jordan':'JO','Kazakhstan':'KZ','Kenya':'KE','South Korea':'KR',
+    'Kuwait':'KW','Latvia':'LV','Lithuania':'LT','Luxembourg':'LU','Malaysia':'MY',
+    'Malta':'MT','Mexico':'MX','Moldova':'MD','Montenegro':'ME','Morocco':'MA',
+    'Mozambique':'MZ','Netherlands':'NL','New Zealand':'NZ','Nigeria':'NG',
+    'North Macedonia':'MK','Norway':'NO','Oman':'OM','Pakistan':'PK','Panama':'PA',
+    'Paraguay':'PY','Peru':'PE','Philippines':'PH','Poland':'PL','Portugal':'PT',
+    'Qatar':'QA','Romania':'RO','Russia':'RU','Saudi Arabia':'SA','Serbia':'RS',
+    'Singapore':'SG','Slovakia':'SK','Slovenia':'SI','South Africa':'ZA',
+    'Spain':'ES','Sri Lanka':'LK','Sweden':'SE','Switzerland':'CH','Taiwan':'TW',
+    'Tanzania':'TZ','Thailand':'TH','Turkey':'TR','UAE':'AE','Ukraine':'UA',
+    'United Kingdom':'GB','United States':'US','Uruguay':'UY','Venezuela':'VE',
+    'Vietnam':'VN','Zambia':'ZM','Zimbabwe':'ZW','Uganda':'UG',
+    'Bahamas':'BS','Jamaica':'JM','Trinidad and Tobago':'TT',
+    'Libya':'LY','Tunisia':'TN','Sudan':'SD','Somalia':'SO','Madagascar':'MG',
+    'Namibia':'NA','Botswana':'BW','Rwanda':'RW','Senegal':'SN','Mali':'ML',
+    'Niger':'NE','Chad':'TD','Mauritania':'MR','Burkina Faso':'BF','Guinea':'GN',
+    'Benin':'BJ','Togo':'TG','Sierra Leone':'SL','Liberia':'LR','Côte d\'Ivoire':'CI',
+    'Democratic Republic of the Congo':'CD','Republic of the Congo':'CG',
+    'Central African Republic':'CF','Gabon':'GA','Equatorial Guinea':'GQ',
+    'Eritrea':'ER','Djibouti':'DJ','Lesotho':'LS','Eswatini':'SZ','Malawi':'MW',
+    'Zambia':'ZM','Nepal':'NP','Myanmar':'MM','Cambodia':'KH','Laos':'LA',
+    'Mongolia':'MN','Kyrgyzstan':'KG','Tajikistan':'TJ','Turkmenistan':'TM',
+    'Uzbekistan':'UZ','Afghanistan':'AF','Iraq':'IQ','Iran':'IR','Syria':'SY',
+    'Lebanon':'LB','Yemen':'YE','Palestine':'PS','Libya':'LY',
+    'Cuba':'CU','Haiti':'HT','Nicaragua':'NI','Belize':'BZ','Guyana':'GY',
+    'Suriname':'SR','Papua New Guinea':'PG','New Caledonia':'NC','Fiji':'FJ',
+    'Solomon Islands':'SB','Vanuatu':'VU','Samoa':'WS',
+    // ── Common alternate spellings / abbreviations ───────────────────────
+    'USA':'US','U.S.A.':'US','U.S.':'US','United States of America':'US',
+    'UK':'GB','U.K.':'GB','Great Britain':'GB','England':'GB','Britain':'GB',
+    'Czechia':'CZ','Czech Rep.':'CZ','Czech Rep':'CZ',
+    'Russian Federation':'RU','Russia Federation':'RU',
+    'Viet Nam':'VN','Việt Nam':'VN',
+    'Korea':'KR','Korea, Republic of':'KR','Korea, South':'KR','Republic of Korea':'KR',
+    'North Korea':'KP','Korea, Democratic People\'s Republic of':'KP',
+    'Türkiye':'TR','Turkiye':'TR',
+    'Iran, Islamic Republic of':'IR',
+    'Syria, Arab Republic':'SY','Syrian Arab Republic':'SY',
+    'Tanzania, United Republic of':'TZ',
+    'Bolivia, Plurinational State of':'BO',
+    'Venezuela, Bolivarian Republic of':'VE',
+    'Moldova, Republic of':'MD',
+    'Taiwan, Province of China':'TW',
+    'Hong Kong SAR':'HK','Hong Kong S.A.R.':'HK','Hong Kong, China':'HK',
+    'Macau':'MO','Macao':'MO','Macao SAR':'MO',
+    'Netherlands, The':'NL','The Netherlands':'NL',
+    'Bahamas, The':'BS','The Bahamas':'BS',
+    'Gambia, The':'GM','The Gambia':'GM','Gambia':'GM',
+    'Ivory Coast':'CI','Cote d\'Ivoire':'CI','Cote dIvoire':'CI',
+    'Burma':'MM',
+    'Macedonia':'MK','North Macedonia':'MK',
+    'Trinidad & Tobago':'TT',
+    'Bosnia & Herzegovina':'BA',
+    'São Tomé and Príncipe':'ST','Sao Tome and Principe':'ST',
+    'Réunion':'RE','Reunion':'RE',
+    'UAE':'AE','U.A.E.':'AE','United Arab Emirates':'AE',
+    'Saudi Arabia':'SA','KSA':'SA',
+    'South Sudan':'SS',
+    'Kosovo':'XK',
+    // ── Entries added from unmatched data ────────────────────────────────
+    'Mauritius':'MU',
+    'French Polynesia':'PF',
+    'Aland Islands':'AX','Åland Islands':'AX',
+    'Liechtenstein':'LI',
+    'Faroe Islands':'FO',
+    'Guernsey':'GG',
+    'Isle of Man':'IM',
+    'Lao People\'s Democratic Republic':'LA',
+    'Macedonia, the former Yugoslav Republic of':'MK',
+    'Trinidad And Tobago':'TT',
+    'HONDURAS':'HN',
+};
+
+// Case-insensitive lookup — built once after COUNTRY_ISO is defined
+var _COUNTRY_ISO_LOWER = {};
+Object.keys(COUNTRY_ISO).forEach(function(k) {
+    _COUNTRY_ISO_LOWER[k.toLowerCase()] = COUNTRY_ISO[k];
+});
+
+function getCountryIso(country) {
+    return COUNTRY_ISO[country]
+        || _COUNTRY_ISO_LOWER[country.toLowerCase()]
+        || (country.length === 2 ? country.toUpperCase() : null)
+        || (country.length === 3 ? country.toUpperCase() : null);
+}
+
+// Countries/territories confirmed absent from the world SVG (too small or continent labels)
+var COUNTRY_NOT_IN_SVG = new Set([
+    'singapore','hong kong','liechtenstein','guernsey','faroe islands',
+    'isle of man','aland islands','åland islands','africa',
+]);
+
+var _worldSvgCache          = null;
+var _countryMapStats        = {};
+var _countryMapTotal        = 0;
+var _countryMapRawRows      = [];
+var _countryMapListenersSet = false;
+var _svgClassMap            = {}; // lowercase class attr value → [path elements]
+var _countryMapUrlFilter    = ''; // active URL keyword filter (lowercase)
+
+function _buildSvgClassMap(svg) {
+    _svgClassMap = {};
+    svg.querySelectorAll('path').forEach(function(p) {
+        var cls = (p.getAttribute('class') || '').trim().toLowerCase();
+        if (!cls) return;
+        if (!_svgClassMap[cls]) _svgClassMap[cls] = [];
+        _svgClassMap[cls].push(p);
+    });
+}
+
+function _countryFill(clicks, maxClicks) {
+    var t = Math.pow(clicks / maxClicks, 0.5); // sqrt scale for better visual spread
+    // #DBEAFE (light) → #0063AC (Ansell blue)
+    return 'rgb(' + Math.round(219*(1-t)) + ',' + Math.round(234-135*t) + ',' + Math.round(254-82*t) + ')';
+}
+
+function renderCountryMapDebug(svg, unmatched) {
+    var el = document.getElementById('countryMapDebug');
+    if (!el) return;
+    if (!unmatched.length) { el.style.display = 'none'; return; }
+    el.style.display = '';
+
+    // Build SVG name→ISO lookup from the actual SVG paths
+    var svgNames = [];
+    svg.querySelectorAll('path[id]').forEach(function(p) {
+        var iso  = p.getAttribute('id');
+        var name = p.getAttribute('name') || p.getAttribute('title') || '';
+        svgNames.push({ iso: iso, name: name });
+    });
+    svgNames.sort(function(a, b) { return (a.name || a.iso).localeCompare(b.name || b.iso); });
+
+    // Left box: unmatched country names from data (with click counts)
+    var leftRows = unmatched.map(function(c) {
+        var clicks = _countryMapStats[c] || 0;
+        return '<tr><td style="padding:3px 8px 3px 0;color:#374151;font-size:11px">' + c + '</td>'
+             + '<td style="padding:3px 0;color:#6b7280;font-size:11px;text-align:right">' + fmt(clicks) + '</td></tr>';
+    }).join('');
+
+    // Right box: all paths from the SVG map
+    var rightRows = svgNames.map(function(s) {
+        return '<tr><td style="padding:2px 8px 2px 0;color:#6b7280;font-size:10px;font-family:monospace">' + s.iso + '</td>'
+             + '<td style="padding:2px 0;color:#374151;font-size:11px">' + (s.name || '—') + '</td></tr>';
+    }).join('');
+
+    el.innerHTML =
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:8px">'
+        + 'Country Mapping Troubleshooter — ' + unmatched.length + ' names from your data not found on the map</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+        +   '<div>'
+        +     '<div style="font-size:10px;font-weight:600;color:#374151;margin-bottom:4px">Your data (not matched)</div>'
+        +     '<div style="font-size:10px;color:#6b7280;margin-bottom:6px">Add these to <code>COUNTRY_ISO</code> in the JS</div>'
+        +     '<div style="max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:4px;padding:6px 8px;background:#fafafa">'
+        +       '<table style="width:100%;border-collapse:collapse"><thead><tr>'
+        +         '<th style="text-align:left;font-size:10px;color:#9ca3af;font-weight:600;padding-bottom:4px">Country name in your file</th>'
+        +         '<th style="text-align:right;font-size:10px;color:#9ca3af;font-weight:600;padding-bottom:4px">Clicks</th>'
+        +       '</tr></thead><tbody>' + leftRows + '</tbody></table>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div>'
+        +     '<div style="font-size:10px;font-weight:600;color:#374151;margin-bottom:4px">Countries on the map (ISO → name)</div>'
+        +     '<div style="font-size:10px;color:#6b7280;margin-bottom:6px">Use the name exactly as shown, or the 2-letter ISO code</div>'
+        +     '<div style="max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:4px;padding:6px 8px;background:#fafafa">'
+        +       '<table style="width:100%;border-collapse:collapse"><thead><tr>'
+        +         '<th style="text-align:left;font-size:10px;color:#9ca3af;font-weight:600;padding-bottom:4px">ISO</th>'
+        +         '<th style="text-align:left;font-size:10px;color:#9ca3af;font-weight:600;padding-bottom:4px">Map name</th>'
+        +       '</tr></thead><tbody>' + rightRows + '</tbody></table>'
+        +     '</div>'
+        +   '</div>'
+        + '</div>';
+}
+
+function _paintCountryMap() {
+    var svg = document.getElementById('countryMapSvg');
+    if (!svg) return;
+    var maxClicks = Math.max.apply(null, Object.values(_countryMapStats).concat([1]));
+
+    svg.querySelectorAll('path').forEach(function(p) { p.style.fill = '#e5e9ef'; });
+    var unmatched = [];
+    Object.keys(_countryMapStats).forEach(function(country) {
+        var iso   = getCountryIso(country);
+        var paths = [];
+        if (iso) { var p = svg.querySelector('[id="' + iso + '"]'); if (p) paths = [p]; }
+        if (!paths.length) { var p = svg.querySelector('[name="' + country + '"]'); if (p) paths = [p]; }
+        if (!paths.length) { var cls = _svgClassMap[country.toLowerCase()]; if (cls) paths = cls; }
+        if (!paths.length) { if (!COUNTRY_NOT_IN_SVG.has(country.toLowerCase())) unmatched.push(country); return; }
+        var fill = _countryFill(_countryMapStats[country], maxClicks);
+        paths.forEach(function(p) { p.style.fill = fill; p.dataset.country = country; });
+    });
+
+    var skipped = Object.keys(_countryMapStats).filter(function(c) {
+        return COUNTRY_NOT_IN_SVG.has(c.toLowerCase());
+    }).sort(function(a, b) { return _countryMapStats[b] - _countryMapStats[a]; });
+    var skippedTotal = skipped.reduce(function(s, c) { return s + _countryMapStats[c]; }, 0);
+
+    var noteEl = document.getElementById('countryMapNote');
+    if (noteEl) {
+        var mapped = Object.keys(_countryMapStats).length - unmatched.length - skipped.length;
+        noteEl.textContent = mapped + ' countries mapped · ' + fmt(_countryMapTotal) + ' total clicks · click a country to drill down'
+            + (unmatched.length ? ' · ' + unmatched.length + ' unmatched (see below)' : '');
+    }
+    var skipEl = document.getElementById('countryMapSkipped');
+    if (skipEl) {
+        if (skipped.length) {
+            var parts = skipped.map(function(c) { return c + ' (' + fmt(_countryMapStats[c]) + ')'; });
+            skipEl.textContent = 'Not shown — too small for map: ' + parts.join(', ') + ' · ' + fmt(skippedTotal) + ' clicks total';
+            skipEl.style.display = '';
+        } else {
+            skipEl.style.display = 'none';
+        }
+    }
+    renderCountryMapDebug(svg, unmatched);
+}
+
+function _filterMapByUrl(query) {
+    _countryMapUrlFilter = query.trim().toLowerCase();
+    var rows = _countryMapRawRows;
+    if (_countryMapUrlFilter) {
+        rows = rows.filter(function(r) { return r.link && r.link.toLowerCase().indexOf(_countryMapUrlFilter) !== -1; });
+    }
+    _countryMapStats = {};
+    rows.forEach(function(r) {
+        if (!r.country) return;
+        _countryMapStats[r.country] = (_countryMapStats[r.country] || 0) + r.clicked;
+    });
+    _countryMapTotal = Object.values(_countryMapStats).reduce(function(s, v) { return s + v; }, 0);
+    var clearBtn = document.getElementById('countryMapFilterClear');
+    if (clearBtn) clearBtn.style.display = query.trim() ? '' : 'none';
+    _paintCountryMap();
+}
+
+function renderCountryMap(countryRows) {
+    _countryMapRawRows = countryRows;
+    var el  = document.getElementById('sec-country-map');
+    var nav = document.getElementById('nav-sec-country-map');
+    var hasData = countryRows.some(function(r){ return r.country; });
+    if (!hasData) {
+        if (el)  el.style.display  = 'none';
+        if (nav) nav.style.display = 'none';
+        return;
+    }
+    if (el)  el.style.display  = '';
+    if (nav) nav.style.display = '';
+
+    // Reset URL filter on full re-render (new file / filter change)
+    _countryMapUrlFilter = '';
+    var filterInput = document.getElementById('countryMapFilter');
+    if (filterInput) { filterInput.value = ''; }
+    var clearBtn = document.getElementById('countryMapFilterClear');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    _countryMapStats = {};
+    countryRows.forEach(function(r) {
+        if (!r.country) return;
+        _countryMapStats[r.country] = (_countryMapStats[r.country] || 0) + r.clicked;
+    });
+    _countryMapTotal = Object.values(_countryMapStats).reduce(function(s,v){ return s+v; }, 0);
+
+    var container = document.getElementById('countryMapContainer');
+    var existingSvg = document.getElementById('countryMapSvg');
+    if (existingSvg) {
+        _paintCountryMap();
+        return;
+    }
+
+    // First render: fetch + inject SVG
+    var fetchPromise = _worldSvgCache
+        ? Promise.resolve(_worldSvgCache)
+        : fetch('../resources/world.svg').then(function(r){ return r.text(); }).then(function(t){ _worldSvgCache = t; return t; });
+
+    fetchPromise.then(function(svgText) {
+        container.innerHTML = svgText;
+        var svg = container.querySelector('svg');
+        if (!svg) return;
+        svg.id = 'countryMapSvg';
+        svg.style.cssText = 'width:100%;height:auto;display:block;';
+        svg.setAttribute('viewBox', '0 0 2000 857');
+        _buildSvgClassMap(svg); // build class→paths lookup once
+
+        // Tooltip
+        var tip = document.createElement('div');
+        tip.id = 'countryMapTip';
+        tip.style.cssText = 'position:absolute;display:none;background:#1a2230;color:#fff;font-size:12px;line-height:1.5;padding:8px 12px;border-radius:6px;pointer-events:none;white-space:nowrap;z-index:10;transform:translateY(-100%)';
+        container.appendChild(tip);
+
+        _paintCountryMap();
+
+        // Event delegation — attach once
+        svg.addEventListener('mousemove', function(e) {
+            var p = e.target;
+            if (p.tagName !== 'path' || !p.dataset.country) { tip.style.display = 'none'; return; }
+            var rect = container.getBoundingClientRect();
+            tip.style.left = (e.clientX - rect.left + 14) + 'px';
+            tip.style.top  = (e.clientY - rect.top  - 10) + 'px';
+            tip.style.display = 'block';
+            var c = p.dataset.country, cl = _countryMapStats[c] || 0;
+            var pct = _countryMapTotal ? (cl / _countryMapTotal * 100).toFixed(1) : '0';
+            tip.innerHTML = '<strong>' + c + '</strong><br>' + fmt(cl) + ' clicks · ' + pct + '%';
+        });
+        svg.addEventListener('mouseleave', function() { tip.style.display = 'none'; });
+        svg.addEventListener('click', function(e) {
+            var p = e.target;
+            if (p.tagName !== 'path' || !p.dataset.country) return;
+            selectCountry(p.dataset.country, svg);
+        });
+    });
+}
+
+function selectCountry(country, svg) {
+    if (!svg) svg = document.getElementById('countryMapSvg');
+    if (!svg) return;
+
+    var clicks = _countryMapStats[country] || 0;
+    var pct    = _countryMapTotal ? (clicks / _countryMapTotal * 100).toFixed(1) : '0';
+
+    // Shade: dim non-selected, highlight selected
+    var maxClicks = Math.max.apply(null, Object.values(_countryMapStats).concat([1]));
+    svg.querySelectorAll('path').forEach(function(p) {
+        if (p.dataset.country) {
+            var isSel = p.dataset.country === country;
+            p.style.opacity = isSel ? '1' : '0.3';
+            p.setAttribute('stroke', isSel ? '#0063AC' : 'black');
+            p.setAttribute('stroke-width', isSel ? '3' : '.2');
         }
     });
+
+    // Links for this country — apply active URL filter if set
+    var linkMap = {};
+    _countryMapRawRows.forEach(function(r) {
+        if (r.country !== country || !r.link) return;
+        if (_countryMapUrlFilter && r.link.toLowerCase().indexOf(_countryMapUrlFilter) === -1) return;
+        linkMap[r.link] = (linkMap[r.link] || 0) + r.clicked;
+    });
+    var topLinks = Object.keys(linkMap).sort(function(a,b){ return linkMap[b]-linkMap[a]; });
+    if (!_countryMapUrlFilter) topLinks = topLinks.slice(0, 5); // cap at 5 only when unfiltered
+    var linksLabel = _countryMapUrlFilter ? 'Matching Links' : 'Top Links';
+
+    var panel = document.getElementById('countryMapPanel');
+    var titleEl = document.getElementById('countryMapPanelTitle');
+    var bodyEl  = document.getElementById('countryMapPanelBody');
+    if (!panel) return;
+
+    titleEl.textContent = country;
+    bodyEl.innerHTML =
+        '<div style="margin-bottom:12px">' +
+            '<div style="font-size:26px;font-weight:700;color:#0063AC;line-height:1">' + fmt(clicks) + '</div>' +
+            '<div style="font-size:11px;color:#6b7280;margin-top:2px">' + pct + '% of total clicks</div>' +
+        '</div>' +
+        (topLinks.length
+            ? '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:6px">' + linksLabel + '</div>' +
+              topLinks.map(function(url) {
+                  var c = linkMap[url];
+                  var barW = Math.round(c / clicks * 100);
+                  return '<div style="margin-bottom:7px">' +
+                      '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151" title="' + escHtml(url) + '">' + truncUrl(url, 32) + '</div>' +
+                      '<div style="display:flex;align-items:center;gap:5px;margin-top:2px">' +
+                          '<div style="flex:1;height:4px;background:#e5e7eb;border-radius:2px"><div style="height:4px;width:' + barW + '%;background:#0063AC;border-radius:2px"></div></div>' +
+                          '<span style="font-size:10px;color:#6b7280;white-space:nowrap">' + fmt(c) + '</span>' +
+                      '</div></div>';
+              }).join('')
+            : '<p style="font-size:12px;color:#9ca3af;margin:0">No URL detail for this country.</p>');
+
+    panel.style.display = '';
+}
+
+function clearCountrySelection() {
+    var svg = document.getElementById('countryMapSvg');
+    if (svg) {
+        var maxClicks = Math.max.apply(null, Object.values(_countryMapStats).concat([1]));
+        svg.querySelectorAll('path').forEach(function(p) {
+            p.style.opacity = '1';
+            p.setAttribute('stroke', 'black');
+            p.setAttribute('stroke-width', '.2');
+            if (p.dataset.country) p.style.fill = _countryFill(_countryMapStats[p.dataset.country] || 0, maxClicks);
+        });
+    }
+    var panel = document.getElementById('countryMapPanel');
+    if (panel) panel.style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1240,6 +2664,48 @@ function renderFromAddr(data) {
             scales:{
                 x:{ beginAtZero:true, ticks:{ font:{size:10} }, grid:{ color:'#f0f0f0' } },
                 y:{ ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+function renderFromAddrOpenRate(data) {
+    var byAddr = {};
+    data.forEach(function(r) {
+        var addr = r.fromAddr || '(unknown)';
+        if (!byAddr[addr]) byAddr[addr] = { delivered: 0, opened: 0 };
+        byAddr[addr].delivered += r.delivered;
+        byAddr[addr].opened    += r.opened;
+    });
+    var addrs = Object.keys(byAddr)
+        .filter(function(a) { return byAddr[a].delivered >= 100; })
+        .sort(function(a, b) {
+            var ra = byAddr[a].delivered ? byAddr[a].opened / byAddr[a].delivered : 0;
+            var rb = byAddr[b].delivered ? byAddr[b].opened / byAddr[b].delivered : 0;
+            return rb - ra;
+        })
+        .slice(0, 10);
+    var vals   = addrs.map(function(a) { return byAddr[a].delivered ? byAddr[a].opened / byAddr[a].delivered * 100 : 0; });
+    var colors = vals.map(function(v) { return v >= 20 ? 'rgba(0,162,143,0.7)' : v >= 10 ? 'rgba(0,99,172,0.6)' : 'rgba(217,119,6,0.6)'; });
+
+    if (charts['fromAddrOpen']) charts['fromAddrOpen'].destroy();
+    var ctx = document.getElementById('chartFromAddrOpen');
+    if (!ctx) return;
+    charts['fromAddrOpen'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: addrs,
+            datasets: [{ label: 'Open Rate (%)', data: vals, backgroundColor: colors, borderWidth: 0, borderRadius: 3 }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.parsed.x.toFixed(1) + '%'; } } }
+            },
+            scales: {
+                x: { beginAtZero: true, ticks: { font:{size:10}, callback: function(v){ return v+'%'; } }, grid: { color:'#f0f0f0' } },
+                y: { ticks: { font:{size:10} }, grid: { display:false } }
             }
         }
     });
@@ -1280,6 +2746,46 @@ function renderHealth(data) {
                 }}
             }
         }
+    });
+}
+
+function renderDeliveryTrend(data) {
+    var buckets = {};
+    data.forEach(function(r) {
+        var k = getBucket(r.sentDate, timeScale);
+        if (!k) return;
+        if (!buckets[k]) buckets[k] = { sent: 0, delivered: 0, hardBounced: 0 };
+        buckets[k].sent      += r.sent;
+        buckets[k].delivered += r.delivered;
+        buckets[k].hardBounced += r.hardBounced;
+    });
+    var labels    = Object.keys(buckets).sort();
+    var delivVals = labels.map(function(k) { return buckets[k].sent ? buckets[k].delivered / buckets[k].sent * 100 : null; });
+    var bounceVals= labels.map(function(k) { return buckets[k].sent ? buckets[k].hardBounced / buckets[k].sent * 100 : null; });
+
+    if (charts['deliveryTrend']) charts['deliveryTrend'].destroy();
+    var ctx = document.getElementById('chartDeliveryTrend');
+    if (!ctx) return;
+    charts['deliveryTrend'] = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Delivery Rate (%)', data: delivVals, borderColor: '#00A28F', backgroundColor: 'rgba(0,162,143,0.08)', tension: 0.3, pointRadius: 3, yAxisID: 'y' },
+                { label: 'Hard Bounce Rate (%)', data: bounceVals, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.06)', tension: 0.3, pointRadius: 3, borderDash: [4,3], yAxisID: 'y2' }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } },
+            scales: {
+                y:  { position: 'left',  min: 80, max: 100, ticks: { font:{size:10}, callback: function(v){ return v+'%'; } }, grid: { color:'#f0f0f0' } },
+                y2: { position: 'right', beginAtZero: true, ticks: { font:{size:10}, callback: function(v){ return v+'%'; } }, grid: { display:false } },
+                x:  { ticks: { font:{size:10}, maxRotation:45 }, grid: { display:false } }
+            }
+        },
+        plugins: [makeFyPlugin(labels)]
     });
 }
 
@@ -1476,48 +2982,20 @@ function setScatterLimit(val) {
 // CLICKS vs UNIQUE CLICKS
 // ═══════════════════════════════════════════════════════
 function renderClicks(data) {
-    var labels, totalClicks, uniqueClicks, ratios;
+    var buckets = {};
+    data.forEach(function(r) {
+        var k = getBucket(r.sentDate, timeScale);
+        if (!k) return;
+        if (!buckets[k]) buckets[k] = { clicked:0, uniqueClicks:0 };
+        buckets[k].clicked      += r.clicked;
+        buckets[k].uniqueClicks += r.uniqueClicks;
+    });
+    var labels       = Object.keys(buckets).sort();
+    var totalClicks  = labels.map(function(k){ return buckets[k].clicked; });
+    var uniqueClicks = labels.map(function(k){ return buckets[k].uniqueClicks; });
+    var ratios       = labels.map(function(k){ return buckets[k].uniqueClicks > 0 ? buckets[k].clicked / buckets[k].uniqueClicks : null; });
 
-    if (clicksView === 'time') {
-        var buckets = {};
-        data.forEach(function(r) {
-            var k = getBucket(r.sentDate, timeScale);
-            if (!k) return;
-            if (!buckets[k]) buckets[k] = { clicked:0, uniqueClicks:0 };
-            buckets[k].clicked      += r.clicked;
-            buckets[k].uniqueClicks += r.uniqueClicks;
-        });
-        labels       = Object.keys(buckets).sort();
-        totalClicks  = labels.map(k => buckets[k].clicked);
-        uniqueClicks = labels.map(k => buckets[k].uniqueClicks);
-        ratios       = labels.map(k => buckets[k].uniqueClicks > 0 ? buckets[k].clicked / buckets[k].uniqueClicks : null);
-    } else if (clicksView === 'channel') {
-        var byChannel = {};
-        data.forEach(function(r) {
-            var ch = r.channel || '(Non-standard)';
-            if (!byChannel[ch]) byChannel[ch] = { clicked:0, uniqueClicks:0 };
-            byChannel[ch].clicked      += r.clicked;
-            byChannel[ch].uniqueClicks += r.uniqueClicks;
-        });
-        labels = Object.keys(byChannel).sort((a,b) => byChannel[b].clicked - byChannel[a].clicked).slice(0,12);
-        totalClicks  = labels.map(ch => byChannel[ch].clicked);
-        uniqueClicks = labels.map(ch => byChannel[ch].uniqueClicks);
-        ratios       = labels.map(ch => byChannel[ch].uniqueClicks > 0 ? byChannel[ch].clicked / byChannel[ch].uniqueClicks : null);
-    } else {
-        var bySender = {};
-        data.forEach(function(r) {
-            var addr = (r.fromAddr || '(unknown)').trim();
-            if (!bySender[addr]) bySender[addr] = { clicked:0, uniqueClicks:0 };
-            bySender[addr].clicked      += r.clicked;
-            bySender[addr].uniqueClicks += r.uniqueClicks;
-        });
-        labels = Object.keys(bySender).sort((a,b) => bySender[b].clicked - bySender[a].clicked).slice(0,12);
-        totalClicks  = labels.map(s => bySender[s].clicked);
-        uniqueClicks = labels.map(s => bySender[s].uniqueClicks);
-        ratios       = labels.map(s => bySender[s].uniqueClicks > 0 ? bySender[s].clicked / bySender[s].uniqueClicks : null);
-    }
-
-    var isHorizontal = clicksView !== 'time';
+    var isHorizontal = false;
     if (charts['clicks']) charts['clicks'].destroy();
     var ctx = document.getElementById('chartClicks').getContext('2d');
     charts['clicks'] = new Chart(ctx, {
@@ -1564,17 +3042,11 @@ function renderClicks(data) {
                 y2: { beginAtZero: true, position: 'right', ticks: { font:{size:10}, callback: v => v.toFixed(2)+'×' }, grid: { drawOnChartArea: false }, title: { display: !isHorizontal, text: 'Ratio', font:{size:10} } },
                 x:  { ticks: { font:{size:10}, maxRotation: isHorizontal ? 0 : 45 }, grid: { display: isHorizontal } }
             }
-        }
+        },
+        plugins: [makeFyPlugin(labels)]
     });
 }
 
-function setClicksView(v) {
-    clicksView = v;
-    document.getElementById('btnClicksTime').classList.toggle('active',    v === 'time');
-    document.getElementById('btnClicksChannel').classList.toggle('active', v === 'channel');
-    document.getElementById('btnClicksSender').classList.toggle('active',  v === 'sender');
-    renderClicks(applyFilters());
-}
 
 // ═══════════════════════════════════════════════════════
 // SUBJECT LINE ANALYSIS
@@ -1618,6 +3090,136 @@ function renderSubjectLines(data) {
     }).join('');
     var el = document.getElementById('subjectCount');
     if (el) el.textContent = rows.length + ' subjects shown';
+}
+
+// ═══════════════════════════════════════════════════════
+// HOUR OF DAY
+// ═══════════════════════════════════════════════════════
+function renderHourOfDay(data) {
+    var byHour = {};
+    data.forEach(function(r) {
+        var h = r.sentHour;
+        if (h === null || h === undefined || isNaN(h)) return;
+        if (!byHour[h]) byHour[h] = { sent:0, delivered:0, opened:0, uniqueClicks:0 };
+        byHour[h].sent        += r.sent;
+        byHour[h].delivered   += r.delivered;
+        byHour[h].opened      += r.opened;
+        byHour[h].uniqueClicks+= r.uniqueClicks;
+    });
+    var hours = Object.keys(byHour).map(Number).sort(function(a,b){return a-b;});
+    if (!hours.length) { if (charts['hourOfDay']) { charts['hourOfDay'].destroy(); delete charts['hourOfDay']; } return; }
+    var labels    = hours.map(function(h) { return (h % 12 || 12) + (h < 12 ? ' AM' : ' PM'); });
+    var openRates  = hours.map(function(h) { var b=byHour[h]; return b.delivered ? b.opened/b.delivered*100 : 0; });
+    var clickRates = hours.map(function(h) { var b=byHour[h]; return b.delivered ? b.uniqueClicks/b.delivered*100 : 0; });
+    var volumes    = hours.map(function(h) { return byHour[h].sent; });
+
+    if (charts['hourOfDay']) charts['hourOfDay'].destroy();
+    var ctx = document.getElementById('chartHourOfDay').getContext('2d');
+    charts['hourOfDay'] = new Chart(ctx, {
+        data: {
+            labels: labels,
+            datasets: [
+                { type:'bar',  label:'Open Rate (%)',        data:openRates,  backgroundColor:'rgba(245,158,11,0.7)', borderColor:'#F59E0B', borderWidth:1, yAxisID:'y', order:2 },
+                { type:'bar',  label:'Unique Click Rate (%)',data:clickRates, backgroundColor:'rgba(16,185,129,0.7)', borderColor:'#10B981', borderWidth:1, yAxisID:'y', order:2 },
+                { type:'line', label:'Volume (Sent)',         data:volumes,    borderColor:'rgba(0,99,172,0.5)', backgroundColor:'rgba(0,99,172,0.08)', tension:.3, pointRadius:4, yAxisID:'y2', order:1 }
+            ]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                y:  { beginAtZero:true, ticks:{ font:{size:10}, callback: v=>v.toFixed(1)+'%' }, grid:{ color:'#f0f0f0' }, title:{ display:true, text:'Rate (%)', font:{size:10} } },
+                y2: { beginAtZero:true, position:'right', ticks:{ font:{size:10} }, grid:{ drawOnChartArea:false }, title:{ display:true, text:'Sent', font:{size:10} } },
+                x:  { ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// CONTENT TYPE
+// ═══════════════════════════════════════════════════════
+function renderContentType(data) {
+    var byType = {};
+    data.forEach(function(r) {
+        var ct = r.contentType || 'Not Specified';
+        if (!byType[ct]) byType[ct] = { sent:0, delivered:0, opened:0, uniqueClicks:0, hardBounced:0 };
+        var b = byType[ct];
+        b.sent+=r.sent; b.delivered+=r.delivered; b.opened+=r.opened;
+        b.uniqueClicks+=r.uniqueClicks; b.hardBounced+=r.hardBounced;
+    });
+    var types = Object.keys(byType).sort(function(a,b){ return byType[b].sent - byType[a].sent; });
+    if (!types.length) { if (charts['contentType']) { charts['contentType'].destroy(); delete charts['contentType']; } return; }
+    var openRates  = types.map(function(t){ var b=byType[t]; return b.delivered ? b.opened/b.delivered*100 : 0; });
+    var clickRates = types.map(function(t){ var b=byType[t]; return b.delivered ? b.uniqueClicks/b.delivered*100 : 0; });
+    var ctoRates   = types.map(function(t){ var b=byType[t]; return b.opened ? b.uniqueClicks/b.opened*100 : 0; });
+
+    if (charts['contentType']) charts['contentType'].destroy();
+    var ctx = document.getElementById('chartContentType').getContext('2d');
+    charts['contentType'] = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels: types,
+            datasets:[
+                { label:'Click Rate (%)',         data:clickRates, backgroundColor:'rgba(16,185,129,0.7)', borderColor:'#10B981', borderWidth:1 },
+                { label:'Click-to-Open Rate (%)', data:ctoRates,   backgroundColor:'rgba(124,58,237,0.6)', borderColor:'#7C3AED', borderWidth:1 }
+            ]
+        },
+        options:{
+            indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales:{
+                x:{ beginAtZero:true, max:100, ticks:{ font:{size:10}, callback: v=>v+'%' }, grid:{ color:'#f0f0f0' } },
+                y:{ ticks:{ font:{size:11} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// EMAIL TEMPLATE
+// ═══════════════════════════════════════════════════════
+function renderTemplate(data) {
+    var MIN_SENT = 200;
+    var byTpl = {};
+    data.forEach(function(r) {
+        var t = (r.emailTemplate || '').trim() || '(no template)';
+        if (!byTpl[t]) byTpl[t] = { template:t, sent:0, delivered:0, opened:0, uniqueClicks:0, hardBounced:0, unsubscribed:0, sendCount:0 };
+        var b = byTpl[t];
+        b.sent+=r.sent; b.delivered+=r.delivered; b.opened+=r.opened;
+        b.uniqueClicks+=r.uniqueClicks; b.hardBounced+=r.hardBounced;
+        b.unsubscribed+=r.unsubscribed; b.sendCount++;
+    });
+    var rows = Object.values(byTpl)
+        .filter(function(t){ return t.sent >= MIN_SENT; })
+        .map(function(t){ computeRates(t); return t; })
+        .sort(function(a,b){ return (b.openRate||0)-(a.openRate||0); })
+        .slice(0,30);
+
+    var tbody = document.getElementById('templateTableBody');
+    var maxSent = Math.max(1, Math.max.apply(null, rows.map(function(r){return r.sent;})));
+    tbody.innerHTML = rows.map(function(t) {
+        var orCls = t.openRate  >= 25 ? 'good-pct' : t.openRate  >= 15 ? '' : 'warn-pct';
+        var crCls = t.clickRate >= 2  ? 'good-pct' : '';
+        var brCls = t.bounceRate <= 0.5 ? '' : t.bounceRate <= 2 ? 'warn-pct' : 'bad-pct';
+        var urCls = t.unsubRate  <= 0.1 ? '' : t.unsubRate  <= 0.5 ? 'warn-pct' : 'bad-pct';
+        var drCls = t.deliveryRate >= 98 ? 'good-pct' : t.deliveryRate >= 90 ? '' : 'warn-pct';
+        var barW  = Math.round(t.sent / maxSent * 100);
+        return '<tr>' +
+            '<td style="font-size:12px" title="' + escHtml(t.template) + '">' + escHtml(t.template.length > 60 ? t.template.slice(0,58)+'…' : t.template) + '</td>' +
+            '<td class="num-cell" style="color:#6b7280">' + t.sendCount + '</td>' +
+            '<td class="num-cell"><div class="rate-bar"><div class="rate-bar-track"><div class="rate-bar-fill" style="width:' + barW + '%"></div></div>' + fmt(t.sent) + '</div></td>' +
+            '<td class="pct-cell ' + orCls + '">' + fmtPct(t.openRate) + '</td>' +
+            '<td class="pct-cell ' + crCls + '">' + fmtPct(t.clickRate) + '</td>' +
+            '<td class="pct-cell">' + fmtPct(t.ctoRate) + '</td>' +
+            '<td class="pct-cell ' + drCls + '">' + fmtPct(t.deliveryRate) + '</td>' +
+            '<td class="pct-cell ' + brCls + '">' + fmtPct(t.bounceRate, 2) + '</td>' +
+            '<td class="pct-cell ' + urCls + '">' + fmtPct(t.unsubRate, 3) + '</td>' +
+        '</tr>';
+    }).join('');
+    var el = document.getElementById('templateCount');
+    if (el) el.textContent = rows.length + ' templates shown';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1676,7 +3278,7 @@ function renderWatchlist(data) {
 
     var tbody = document.getElementById('watchlistBody');
     tbody.innerHTML = rows.slice(0, 20).map(function(r) {
-        var dateStr  = r.sentDate ? r.sentDate.toISOString().slice(0,10) : '—';
+        var dateStr  = fmtDate(r.sentDate);
         var hbCls = r.bounceRate     >= 5   ? 'bad-pct' : r.bounceRate     >= 2   ? 'warn-pct' : '';
         var sbCls = r.softBounceRate >= 5   ? 'bad-pct' : r.softBounceRate >= 2   ? 'warn-pct' : '';
         var urCls = r.unsubRate      >= 1   ? 'bad-pct' : r.unsubRate      >= 0.5 ? 'warn-pct' : '';
@@ -1712,42 +3314,115 @@ function setWatchlist(metric) {
 // ═══════════════════════════════════════════════════════
 // REPUTATION TREND
 // ═══════════════════════════════════════════════════════
+var _repData = [];
+var REGION_REP_COLORS = {
+    'NA':'#0063AC','EMEA':'#00A28F','APAC':'#7C3AED','LAC':'#D97706','EMAP':'#3B82F6','GLOBAL':'#6B7280'
+};
+function _repColor(rg, i) {
+    return REGION_REP_COLORS[rg] || ['#EF4444','#F59E0B','#10B981','#8B5CF6','#EC4899','#14B8A6'][i % 6];
+}
 function renderReputation(data) {
-    var buckets = {};
+    _repData = data;
+    var metricField = repMetric === 'unsub' ? 'unsubscribed' : repMetric === 'bounce' ? 'hardBounced' : 'complaints';
+    // Bucket by time AND region
+    var buckets = {};  // buckets[period][region] = count
+    var allRegions = new Set();
     data.forEach(function(r) {
         var k = getBucket(r.sentDate, timeScale);
         if (!k) return;
-        if (!buckets[k]) buckets[k] = { delivered:0, sent:0, unsubscribed:0, hardBounced:0, complaints:0 };
-        buckets[k].delivered   += r.delivered;
-        buckets[k].sent        += r.sent;
-        buckets[k].unsubscribed+= r.unsubscribed;
-        buckets[k].hardBounced += r.hardBounced;
-        buckets[k].complaints  += r.complaints;
+        var rg = r.region || '(Other)';
+        allRegions.add(rg);
+        if (!buckets[k]) buckets[k] = {};
+        buckets[k][rg] = (buckets[k][rg] || 0) + (r[metricField] || 0);
     });
-    var labels    = Object.keys(buckets).sort();
-    var unsubVals = labels.map(k => buckets[k].delivered ? buckets[k].unsubscribed / buckets[k].delivered * 100 : null);
-    var bounceVals= labels.map(k => buckets[k].sent      ? buckets[k].hardBounced  / buckets[k].sent      * 100 : null);
-    var compVals  = labels.map(k => buckets[k].delivered ? buckets[k].complaints   / buckets[k].delivered * 100 : null);
-
+    var labels = Object.keys(buckets).sort();
+    // Sort regions by total volume descending
+    var regions = Array.from(allRegions).sort(function(a, b) {
+        var sa = labels.reduce(function(s,k){return s+(buckets[k][a]||0);}, 0);
+        var sb = labels.reduce(function(s,k){return s+(buckets[k][b]||0);}, 0);
+        return sb - sa;
+    });
+    var datasets = regions.map(function(rg, i) {
+        return {
+            label: rg,
+            data: labels.map(function(k){ return buckets[k][rg] || 0; }),
+            backgroundColor: _repColor(rg, i),
+            borderColor: _repColor(rg, i),
+            borderWidth: 1,
+            stack: 'rep'
+        };
+    });
     if (charts['reputation']) charts['reputation'].destroy();
     var ctx = document.getElementById('chartReputation').getContext('2d');
     charts['reputation'] = new Chart(ctx, {
-        type:'line',
-        data:{
-            labels: labels,
-            datasets:[
-                { label:'Unsubscribe Rate (%)', data:unsubVals,  borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,0.08)',  tension:.3, pointRadius:3 },
-                { label:'Hard Bounce Rate (%)', data:bounceVals, borderColor:'#D97706', backgroundColor:'rgba(217,119,6,0.08)',  tension:.3, pointRadius:3 },
-                { label:'Complaint Rate (%)',   data:compVals,   borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,0.08)', tension:.3, pointRadius:3 }
+        type: 'bar',
+        data: { labels: labels, datasets: datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode:'index', intersect:false },
+            plugins: { legend: { position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales: {
+                x: { stacked:true, ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } },
+                y: { stacked:true, beginAtZero:true, ticks:{ font:{size:10} }, grid:{ color:'#f0f0f0' } }
+            }
+        },
+        plugins: [makeFyPlugin(labels)]
+    });
+}
+function setRepMetric(m) {
+    repMetric = m;
+    ['Unsub','Bounce','Complaints'].forEach(function(x) {
+        var btn = document.getElementById('repBtn' + x);
+        if (btn) btn.classList.toggle('active', x.toLowerCase() === m);
+    });
+    var labels = { unsub:'unsubscribe count', bounce:'hard bounce count', complaints:'complaint count' };
+    var fn = document.getElementById('repFootnote');
+    if (fn) fn.textContent = 'Showing ' + (labels[m]||m) + ' per region. Switch tabs to view other metrics.';
+    renderReputation(_repData);
+}
+
+// ═══════════════════════════════════════════════════════
+// REGION REPUTATION CHART
+// ═══════════════════════════════════════════════════════
+function renderRegionReputation(data) {
+    var byRegion = {};
+    data.forEach(function(r) {
+        var rg = r.region || '(Non-standard)';
+        if (!byRegion[rg]) byRegion[rg] = { delivered:0, sent:0, unsubscribed:0, hardBounced:0, complaints:0 };
+        var b = byRegion[rg];
+        b.delivered   += r.delivered;
+        b.sent        += r.sent;
+        b.unsubscribed+= r.unsubscribed;
+        b.hardBounced += r.hardBounced;
+        b.complaints  += r.complaints;
+    });
+    var regions = Object.keys(byRegion)
+        .filter(function(rg) { return byRegion[rg].sent > 0; })
+        .sort(function(a,b) { return byRegion[b].sent - byRegion[a].sent; });
+
+    var unsubRates  = regions.map(function(rg) { var b=byRegion[rg]; return b.delivered ? b.unsubscribed/b.delivered*100 : 0; });
+    var bounceRates = regions.map(function(rg) { var b=byRegion[rg]; return b.sent      ? b.hardBounced /b.sent      *100 : 0; });
+    var compRates   = regions.map(function(rg) { var b=byRegion[rg]; return b.delivered ? b.complaints  /b.delivered*100 : 0; });
+
+    if (charts['regionRep']) charts['regionRep'].destroy();
+    var ctx = document.getElementById('chartRegionReputation').getContext('2d');
+    charts['regionRep'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: regions,
+            datasets: [
+                { label:'Unsub Rate (%)',       data:unsubRates,  backgroundColor:'rgba(239,68,68,0.7)',  borderColor:'#EF4444', borderWidth:1 },
+                { label:'Hard Bounce Rate (%)', data:bounceRates, backgroundColor:'rgba(217,119,6,0.7)',  borderColor:'#D97706', borderWidth:1 },
+                { label:'Complaint Rate (%)',   data:compRates,   backgroundColor:'rgba(124,58,237,0.7)', borderColor:'#7C3AED', borderWidth:1 }
             ]
         },
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            interaction:{ mode:'index', intersect:false },
-            plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
-            scales:{
-                y:{ beginAtZero:true, ticks:{ font:{size:10}, callback: v => v.toFixed(2)+'%' }, grid:{ color:'#f0f0f0' } },
-                x:{ ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } }
+        options: {
+            indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+            interaction: { mode:'index', intersect:false },
+            plugins: { legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+            scales: {
+                x: { beginAtZero:true, ticks:{ font:{size:10}, callback: function(v){ return v.toFixed(2)+'%'; } }, grid:{ color:'#f0f0f0' } },
+                y: { ticks:{ font:{size:11} }, grid:{ display:false } }
             }
         }
     });
@@ -1839,8 +3514,9 @@ function renderTable(data) {
         });
 
         var maxSent = Math.max(1, ...sorted.map(g=>g.sent));
+        _tableRows  = sorted.slice(0, 500);
         var tbody   = document.getElementById('emailTableBody');
-        tbody.innerHTML = sorted.slice(0, 500).map(function(g) {
+        tbody.innerHTML = _tableRows.map(function(g) {
             var row = renderTableRow(g, maxSent, g.dateRange);
             // Insert send count cell after date range cell (4th position → splice in)
             var insertPos = row.indexOf('</td>', row.indexOf(g.dateRange)) + 5;
@@ -1870,9 +3546,12 @@ function renderTable(data) {
         });
 
         var maxSent = Math.max(1, ...sorted.map(r=>r.sent));
+        _tableRows  = sorted.slice(0, 500);
         var tbody   = document.getElementById('emailTableBody');
-        tbody.innerHTML = sorted.slice(0, 500).map(function(r) {
-            var dateStr = r.sentDate ? r.sentDate.toISOString().slice(0,10) : '—';
+        tbody.innerHTML = _tableRows.map(function(r) {
+            var dateStr = fmtDate(r.sentDate);
+            var h = (r.sentHour !== null && !isNaN(r.sentHour)) ? r.sentHour : null;
+            if (h !== null) dateStr += ' <span style="color:#b0b7c3">' + String(h).padStart(2,'0') + ':00</span>';
             return renderTableRow(r, maxSent, dateStr);
         }).join('');
 
@@ -1896,6 +3575,43 @@ function renderTable(data) {
     }
 }
 
+function exportTableCsv() {
+    if (!_tableRows.length) { alert('No data to export.'); return; }
+    var isNurture = emailTypeFilter === 'nurture';
+    var headers = ['Program','Email','Channel','Sent Date','Sent','Delivery %','Open %','Click %','CTO %','Bounce %','Unsub %','Complaints'];
+    if (isNurture) headers.splice(4, 0, '# Sends');
+    function csvCell(v) {
+        var s = String(v === null || v === undefined ? '' : v);
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }
+    var lines = [headers.join(',')];
+    _tableRows.forEach(function(r) {
+        var dateStr = isNurture ? (r.dateRange || '') : fmtDate(r.sentDate);
+        var row = [
+            r.programName || '',
+            r.emailNameFull || r.emailName || '',
+            r.channel || '',
+            dateStr,
+            r.sent || 0,
+            r.deliveryRate !== null ? r.deliveryRate.toFixed(1) : '',
+            r.openRate    !== null ? r.openRate.toFixed(1)    : '',
+            r.clickRate   !== null ? r.clickRate.toFixed(1)   : '',
+            r.ctoRate     !== null ? r.ctoRate.toFixed(1)     : '',
+            r.bounceRate  !== null ? r.bounceRate.toFixed(2)  : '',
+            r.unsubRate   !== null ? r.unsubRate.toFixed(3)   : '',
+            r.complaints  || 0
+        ];
+        if (isNurture) row.splice(4, 0, r.sendCount || 1);
+        lines.push(row.map(csvCell).join(','));
+    });
+    var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'email-analytics.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
 function escHtml(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1912,7 +3628,8 @@ function setTimeScale(s) {
     var _f = applyFilters();
     renderTrend(_f);
     renderReputation(_f);
-    if (clicksView === 'time') renderClicks(_f);
+    renderClicks(_f);
+    renderDeliveryTrend(_f);
 }
 
 var BS_BTNS = { lt100:'btnBs100', lt1k:'btnBs1k', lt10k:'btnBs10k', lt20k:'btnBs20k', gt20k:'btnBs20kp' };
@@ -1955,6 +3672,8 @@ function resetFilters() {
         updateMsBtn(id);
     });
     document.getElementById('emailSearch').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value   = '';
     emailTypeFilter = 'all';
     document.getElementById('btnTypeAll').classList.add('active');
     document.getElementById('btnTypeBatch').classList.remove('active');
@@ -2007,6 +3726,877 @@ document.addEventListener('click', function() {
     document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
 });
+
+// ═══════════════════════════════════════════════════════
+// HEATMAP
+// ═══════════════════════════════════════════════════════
+var HM_DAYS   = [1,2,3,4,5,6,0]; // Mon→Sun (JS: 0=Sun)
+var HM_DLABELS= ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var HM_HLABELS= (function() {
+    var a = [];
+    for (var i = 0; i < 24; i++) a.push(i === 0 ? '12a' : i < 12 ? i + 'a' : i === 12 ? '12p' : (i-12) + 'p');
+    return a;
+})();
+
+function heatColor(t) {
+    var stops = [[249,250,251],[255,200,160],[198,40,40]];
+    var seg = t < 0.5 ? 0 : 1;
+    var u   = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+    var a = stops[seg], b = stops[seg+1];
+    return 'rgb(' + Math.round(a[0]+(b[0]-a[0])*u) + ',' + Math.round(a[1]+(b[1]-a[1])*u) + ',' + Math.round(a[2]+(b[2]-a[2])*u) + ')';
+}
+
+function renderHeatmap(data, urlData) {
+    var container = document.getElementById('heatmapGrid');
+    if (!container) return;
+
+    // Build 7×24 accumulators
+    var grid = {};
+    HM_DAYS.forEach(function(d) {
+        grid[d] = {};
+        for (var h = 0; h < 24; h++) grid[d][h] = { sent:0, del:0, open:0, uc:0, clicks:0 };
+    });
+
+    if (heatmapMetric === 'clickTiming') {
+        urlData.forEach(function(r) {
+            if (r.clickedDate === null || r.clickedHour === null || isNaN(r.clickedHour)) return;
+            var d = r.clickedDate.getDay(), h = r.clickedHour;
+            if (h < 0 || h >= 24 || !grid[d]) return;
+            grid[d][h].clicks += r.clicked;
+        });
+    } else {
+        data.forEach(function(r) {
+            if (!r.sentDate) return;
+            var d = r.sentDate.getDay();
+            var h = (r.sentHour !== null && !isNaN(r.sentHour)) ? r.sentHour : r.sentDate.getHours();
+            if (h < 0 || h >= 24 || !grid[d]) return;
+            grid[d][h].sent += r.sent;
+            grid[d][h].del  += r.delivered;
+            grid[d][h].open += r.opened;
+            grid[d][h].uc   += r.uniqueClicks;
+        });
+    }
+
+    // Compute metric values
+    var vals = {}, all = [];
+    HM_DAYS.forEach(function(d) {
+        vals[d] = {};
+        for (var h = 0; h < 24; h++) {
+            var c = grid[d][h], v = null;
+            if (heatmapMetric === 'openRate')     v = c.del >= 200 ? c.open / c.del * 100 : null;
+            else if (heatmapMetric === 'clickRate') v = c.del >= 200 ? c.uc   / c.del * 100 : null;
+            else                                    v = c.clicks > 0 ? c.clicks : null;
+            vals[d][h] = v;
+            if (v !== null) all.push(v);
+        }
+    });
+
+    var minV = all.length ? Math.min.apply(null, all) : 0;
+    var maxV = all.length ? Math.max.apply(null, all) : 1;
+    var range = maxV - minV || 1;
+    var isRate = heatmapMetric !== 'clickTiming';
+    var bestVal = maxV, bestD = null, bestH = null;
+    HM_DAYS.forEach(function(d) {
+        for (var h = 0; h < 24; h++) {
+            if (vals[d][h] === bestVal) { bestD = d; bestH = h; }
+        }
+    });
+
+    // Legend gradient
+    var legendEl = document.getElementById('heatmapLegend');
+    if (legendEl) {
+        legendEl.innerHTML =
+            '<span style="font-size:10px;color:#9ca3af">' + (isRate ? fmtPct(minV,1) : fmt(minV)) + '</span>' +
+            '<div style="flex:1;height:10px;border-radius:4px;background:linear-gradient(to right,' + heatColor(0) + ',' + heatColor(0.5) + ',' + heatColor(1) + ')"></div>' +
+            '<span style="font-size:10px;color:#9ca3af">' + (isRate ? fmtPct(maxV,1) : fmt(maxV)) + '</span>';
+    }
+
+    // Render table
+    var html = '<table style="border-collapse:separate;border-spacing:2px;width:100%;table-layout:fixed">';
+    // Hour header
+    html += '<tr><td style="width:36px"></td>';
+    for (var h = 0; h < 24; h++) {
+        html += '<td style="text-align:center;font-size:9px;font-weight:700;color:#9ca3af;padding:0 0 3px">' + HM_HLABELS[h] + '</td>';
+    }
+    html += '</tr>';
+
+    HM_DAYS.forEach(function(d, di) {
+        html += '<tr><td style="font-size:10px;font-weight:700;color:#6b7280;text-align:right;padding-right:6px;white-space:nowrap;vertical-align:middle">' + HM_DLABELS[di] + '</td>';
+        for (var h = 0; h < 24; h++) {
+            var v = vals[d][h];
+            var t = v !== null ? (v - minV) / range : 0;
+            var bg  = v !== null ? heatColor(t) : '#f9fafb';
+            var fg  = (v !== null && t > 0.52) ? '#fff' : '#374151';
+            var lbl = v !== null ? (isRate ? v.toFixed(1) : (v >= 1000 ? (v/1000).toFixed(1)+'k' : String(Math.round(v)))) : '';
+            var isBest = (d === bestD && h === bestH && v !== null);
+            var ring = isBest ? ';outline:2px solid #1a2230;outline-offset:-1px' : '';
+            var tooltip = HM_DLABELS[di] + ' ' + HM_HLABELS[h] + ': ' + (v !== null ? (isRate ? fmtPct(v,1) : fmt(v)) : '—');
+            html += '<td style="background:' + bg + ';text-align:center;font-size:9px;color:' + fg + ';border-radius:3px;vertical-align:middle;height:28px' + ring + '" title="' + tooltip + '">' + lbl + '</td>';
+        }
+        html += '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function setHeatmapMetric(m) {
+    heatmapMetric = m;
+    var map = { openRate:'btnHmOpen', clickRate:'btnHmClick', clickTiming:'btnHmClickTime' };
+    Object.keys(map).forEach(function(k) {
+        var btn = document.getElementById(map[k]);
+        if (btn) btn.classList.toggle('active', k === m);
+    });
+    var data = applyFilters();
+    renderHeatmap(data, getUrlData(data));
+}
+
+// ═══════════════════════════════════════════════════════
+// TIME SCATTER
+// ═══════════════════════════════════════════════════════
+var TS_X_CFG = {
+    month: {
+        min: 0.5, max: 12.5,
+        tick: function(v) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.round(v)-1] || ''; },
+        label: function(v) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][v-1] || ''; },
+        bucket: function(r) { return r.sentDate ? r.sentDate.getMonth() + 1 : null; }
+    },
+    dow: {
+        min: 0.5, max: 7.5,
+        tick: function(v) { return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][Math.round(v)-1] || ''; },
+        label: function(v) { return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][v-1] || ''; },
+        bucket: function(r) { if (!r.sentDate) return null; var d = r.sentDate.getDay(); return d === 0 ? 7 : d; }
+    },
+    hour: {
+        min: -0.5, max: 23.5,
+        tick: function(v) { var i=Math.round(v); return i===0?'12am':i<12?i+'am':i===12?'12pm':(i-12)+'pm'; },
+        label: function(v) { return v===0?'12am':v<12?v+'am':v===12?'12pm':(v-12)+'pm'; },
+        bucket: function(r) { return (r.sentHour !== null && !isNaN(r.sentHour)) ? r.sentHour : (r.sentDate ? r.sentDate.getHours() : null); }
+    }
+};
+
+var TS_PALETTE = [
+    '#0063AC','#00A28F','#7C3AED','#D97706','#EF4444',
+    '#3B82F6','#10B981','#F59E0B','#EC4899','#6366F1',
+    '#14B8A6','#F97316','#059669','#DC2626','#7C3AED'
+];
+
+function renderTimeScatter(data) {
+    var canvas = document.getElementById('chartTimeScatter');
+    if (!canvas) return;
+
+    var xCfg = TS_X_CFG[tScatterX];
+
+    // Aggregate by (xBucket, channel)
+    var groups = {};
+    data.forEach(function(r) {
+        var x = xCfg.bucket(r);
+        if (x === null) return;
+        var ch = r.channel || '(Non-standard)';
+        var key = x + '|' + ch;
+        if (!groups[key]) groups[key] = { x: x, channel: ch, sent: 0, del: 0, open: 0, uc: 0 };
+        groups[key].sent += r.sent;
+        groups[key].del  += r.delivered;
+        groups[key].open += r.opened;
+        groups[key].uc   += r.uniqueClicks;
+    });
+
+    var pts = Object.values(groups).filter(function(g) { return g.del >= 200; });
+    if (!pts.length) { if (charts['timeScatter']) { charts['timeScatter'].destroy(); delete charts['timeScatter']; } return; }
+
+    // Unique channels sorted by total sent (largest first → more prominent color)
+    var chSent = {};
+    pts.forEach(function(g) { chSent[g.channel] = (chSent[g.channel] || 0) + g.sent; });
+    var channels = Object.keys(chSent).sort(function(a,b) { return chSent[b] - chSent[a]; });
+    var nCh = channels.length;
+
+    var maxSent = Math.max.apply(null, pts.map(function(g) { return g.sent; }));
+    var R_MAX = 24;
+
+    function yVal(g) {
+        return tScatterY === 'openRate'
+            ? (g.del ? g.open / g.del * 100 : null)
+            : (g.del ? g.uc   / g.del * 100 : null);
+    }
+
+    var yLabel = tScatterY === 'openRate' ? 'Open Rate (%)' : 'Click Rate (%)';
+
+    // One dataset per channel; jitter spreads channels evenly within each X slot
+    var datasets = channels.map(function(ch, i) {
+        var jitter = nCh > 1 ? (i / (nCh - 1) - 0.5) * 0.55 : 0;
+        var hex    = TS_PALETTE[i % TS_PALETTE.length];
+        var chPts  = pts.filter(function(g) { return g.channel === ch; }).map(function(g) {
+            return { x: g.x + jitter, y: yVal(g), r: Math.max(4, Math.sqrt(g.sent / maxSent) * R_MAX), _g: g, _j: jitter };
+        });
+        return {
+            label: ch, data: chPts,
+            backgroundColor: hex + 'B0',
+            hoverBackgroundColor: hex,
+            borderWidth: 0
+        };
+    });
+
+    if (charts['timeScatter']) charts['timeScatter'].destroy();
+    charts['timeScatter'] = new Chart(canvas.getContext('2d'), {
+        type: 'bubble',
+        data: { datasets: datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 10 } },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            var raw = items[0].raw;
+                            return xCfg.label(Math.round(raw.x - raw._j)) + ' · ' + items[0].dataset.label;
+                        },
+                        label: function(c) {
+                            var g = c.raw._g;
+                            return [
+                                yLabel.replace(' (%)', '') + ': ' + (c.raw.y !== null ? c.raw.y.toFixed(1) + '%' : '—'),
+                                'Sent: ' + fmt(g.sent),
+                                'Delivered: ' + fmt(g.del)
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    min: xCfg.min, max: xCfg.max,
+                    grid: { color: '#f0f0f0' },
+                    ticks: { stepSize: 1, callback: xCfg.tick, font: { size: 11 } }
+                },
+                y: {
+                    min: 0,
+                    grid: { color: '#f0f0f0' },
+                    title: { display: true, text: yLabel, font: { size: 11 }, color: '#9ca3af' },
+                    ticks: { callback: function(v) { return v + '%'; }, font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+function setTScatterX(v) {
+    tScatterX = v;
+    ['month','dow','hour'].forEach(function(k) {
+        var b = document.getElementById('btnTsX_' + k); if (b) b.classList.toggle('active', k === v);
+    });
+    renderTimeScatter(applyFilters());
+}
+
+function setTScatterY(v) {
+    tScatterY = v;
+    ['openRate','clickRate'].forEach(function(k) {
+        var b = document.getElementById('btnTsY_' + k); if (b) b.classList.toggle('active', k === v);
+    });
+    renderTimeScatter(applyFilters());
+}
+
+// ═══════════════════════════════════════════════════════
+// SQUARIFIED TREEMAP LAYOUT
+// ═══════════════════════════════════════════════════════
+function _tmWorst(row, rowVal, total, w, h) {
+    var horiz = w >= h;
+    var stripLen = (horiz ? w : h) * rowVal / total;
+    var shortSide = horiz ? h : w;
+    var worst = 0;
+    row.forEach(function(d) {
+        var cs = shortSide * d.v / rowVal;
+        var r = cs > 0 ? Math.max(stripLen / cs, cs / stripLen) : Infinity;
+        if (r > worst) worst = r;
+    });
+    return worst;
+}
+function _tmLayout(items, x0, y0, x1, y1, total, out) {
+    if (!items.length) return;
+    var w = x1 - x0, h = y1 - y0;
+    if (items.length === 1) { out.push({x:x0, y:y0, w:w, h:h, d:items[0]}); return; }
+    var bestN = 1, bestScore = Infinity, rowVal = 0;
+    for (var n = 1; n <= items.length; n++) {
+        rowVal += items[n-1].v;
+        var score = _tmWorst(items.slice(0,n), rowVal, total, w, h);
+        if (score < bestScore) { bestScore = score; bestN = n; }
+        else if (n > 1) break;
+    }
+    var row = items.slice(0, bestN), rest = items.slice(bestN);
+    rowVal = row.reduce(function(s,d){return s+d.v;},0);
+    var horiz = w >= h;
+    var stripLen = (horiz ? w : h) * rowVal / total;
+    var pos = horiz ? y0 : x0;
+    row.forEach(function(d) {
+        var cellLen = (horiz ? h : w) * d.v / rowVal;
+        if (horiz) out.push({x:x0, y:pos, w:stripLen, h:cellLen, d:d});
+        else       out.push({x:pos, y:y0, w:cellLen,  h:stripLen, d:d});
+        pos += cellLen;
+    });
+    if (rest.length) {
+        if (horiz) _tmLayout(rest, x0+stripLen, y0, x1, y1, total-rowVal, out);
+        else       _tmLayout(rest, x0, y0+stripLen, x1, y1, total-rowVal, out);
+    }
+}
+function layoutTreemap(items, x0, y0, x1, y1) {
+    var out = [], total = items.reduce(function(s,d){return s+d.v;},0);
+    if (total) _tmLayout(items, x0, y0, x1, y1, total, out);
+    return out;
+}
+
+// ═══════════════════════════════════════════════════════
+// URL CLICK ANALYSIS
+// ═══════════════════════════════════════════════════════
+// DOMAIN PIE
+// ═══════════════════════════════════════════════════════
+function renderDomainPie(urlData) {
+    var canvas = document.getElementById('chartDomainPie');
+    var noteEl = document.getElementById('domainPieNote');
+    if (!canvas) return;
+    if (!urlData.length) {
+        if (charts['domainPie']) { charts['domainPie'].destroy(); delete charts['domainPie']; }
+        if (noteEl) { noteEl.textContent = 'Load the URL activity file to see click data.'; noteEl.style.display = ''; }
+        return;
+    }
+    if (noteEl) noteEl.style.display = 'none';
+
+    var SOCIAL_DOMAINS = ['linkedin.com','facebook.com','instagram.com','twitter.com','x.com','youtube.com'];
+    var domainTotals = {};
+    var socialBreakdown = {};
+    urlData.forEach(function(r) {
+        if (!r.link) return;
+        var d = getDomain(r.link);
+        var isSocial = SOCIAL_DOMAINS.some(function(s){ return d === s || d.endsWith('.'+s); });
+        if (isSocial) {
+            domainTotals['Social'] = (domainTotals['Social'] || 0) + r.clicked;
+            socialBreakdown[d]     = (socialBreakdown[d]     || 0) + r.clicked;
+        } else {
+            domainTotals[d] = (domainTotals[d] || 0) + r.clicked;
+        }
+    });
+    var sorted = Object.keys(domainTotals).sort(function(a,b){ return domainTotals[b]-domainTotals[a]; });
+    var top = sorted.slice(0, 7);
+    var otherTotal = sorted.slice(7).reduce(function(s,d){ return s+domainTotals[d]; }, 0);
+    var labels = top.slice();
+    var values = top.map(function(d){ return domainTotals[d]; });
+    if (otherTotal > 0) { labels.push('Other'); values.push(otherTotal); }
+
+    var palette = ['#0063AC','#00A28F','#7C3AED','#D97706','#EF4444','#3B82F6','#10B981','#9ca3af'];
+    if (charts['domainPie']) charts['domainPie'].destroy();
+    charts['domainPie'] = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{ data: values, backgroundColor: palette.slice(0, labels.length), borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font:{size:10}, boxWidth:10 } },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var total = ctx.dataset.data.reduce(function(s,v){return s+v;},0);
+                    var pct = total ? (ctx.parsed/total*100).toFixed(1) : '0';
+                    var base = ctx.label + ': ' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                    if (ctx.label === 'Social' && Object.keys(socialBreakdown).length) {
+                        var breakdown = Object.keys(socialBreakdown)
+                            .sort(function(a,b){ return socialBreakdown[b]-socialBreakdown[a]; })
+                            .map(function(d){ return '  ' + d + ': ' + socialBreakdown[d].toLocaleString(); });
+                        return [base].concat(breakdown);
+                    }
+                    return base;
+                }}}
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// CONTENT TOPICS
+// ═══════════════════════════════════════════════════════
+var topicSort    = 'clicks';
+var _topicUrlMap = {}; // topic → { url → { url, clicked, emails } }
+
+
+function renderTopicAnalysis(data, urlData) {
+    var el  = document.getElementById('sec-topics');
+    var nav = document.getElementById('nav-sec-topics');
+    if (!urlData.length) {
+        if (el)  el.style.display  = 'none';
+        if (nav) nav.style.display = 'none';
+        return;
+    }
+    if (el)  el.style.display  = '';
+    if (nav) nav.style.display = '';
+
+    // Performance lookup per email
+    var emailPerf = {};
+    data.forEach(function(r) {
+        var k = r.emailNameFull;
+        if (!emailPerf[k]) emailPerf[k] = { sent:0, delivered:0, opened:0 };
+        emailPerf[k].sent      += r.sent;
+        emailPerf[k].delivered += r.delivered;
+        emailPerf[k].opened    += r.opened;
+    });
+
+    // Aggregate by link type (same classification as Top Clicked Links treemap)
+    var topicMap = {};
+    _topicUrlMap = {};
+    urlData.forEach(function(r) {
+        if (!r.link) return;
+        var topic = getLinkType(r.link);
+        if (TOPIC_EXCLUDE_TYPES.has(topic)) return;
+        if (!topicMap[topic]) topicMap[topic] = { clicks:0, emails: new Set() };
+        topicMap[topic].clicks += r.clicked;
+        topicMap[topic].emails.add(r.emailNameFull);
+        if (!_topicUrlMap[topic]) _topicUrlMap[topic] = {};
+        var key = r.link;
+        if (!_topicUrlMap[topic][key]) _topicUrlMap[topic][key] = { url:r.link, clicked:0, emails: new Set() };
+        _topicUrlMap[topic][key].clicked += r.clicked;
+        _topicUrlMap[topic][key].emails.add(r.emailNameFull);
+    });
+
+    // Compute reach / impressions per topic
+    var topics = Object.keys(topicMap).map(function(t) {
+        var tp = topicMap[t];
+        var totalSent = 0, totalDel = 0, totalOpened = 0;
+        tp.emails.forEach(function(n) {
+            var p = emailPerf[n];
+            if (p) { totalSent += p.sent; totalDel += p.delivered; totalOpened += p.opened; }
+        });
+        return { topic:t, clicks:tp.clicks, emails:tp.emails.size, sent:totalSent, opened:totalOpened, openRate: totalDel ? totalOpened/totalDel*100 : 0, color: LINK_TYPE_COLORS[t] || '#9ca3af' };
+    });
+
+    // Sort
+    topics.sort(function(a,b) {
+        if (topicSort === 'reach')    return b.sent     - a.sent;
+        if (topicSort === 'openRate') return b.openRate - a.openRate;
+        return b.clicks - a.clicks;
+    });
+    topics = topics.slice(0, 15);
+
+    var labels  = topics.map(function(t){ return t.topic; });
+    var maxSent = Math.max(1, Math.max.apply(null, topics.map(function(t){ return t.sent; })));
+
+    if (charts['topics']) charts['topics'].destroy();
+    var ctx = document.getElementById('chartTopics');
+    if (!ctx) return;
+    charts['topics'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Impressions (Opened)', data: topics.map(function(t){ return t.opened; }),
+                  backgroundColor: topics.map(function(t){ return t.color; }), borderWidth:0, borderRadius:3 },
+                { label: 'Reach (Sent, not opened)', data: topics.map(function(t){ return Math.max(0, t.sent - t.opened); }),
+                  backgroundColor: 'rgba(0,0,0,0.07)', borderWidth:0, borderRadius:3 }
+            ]
+        },
+        options: {
+            indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+            interaction: { mode:'index', intersect:false },
+            onClick: function(evt, elements) {
+                if (!elements.length) return;
+                var t = topics[elements[0].index];
+                showTopicDrill(t.topic, t.color);
+            },
+            plugins: {
+                legend: { position:'bottom', labels:{ font:{size:10}, boxWidth:10 } },
+                tooltip: { callbacks: { afterBody: function(items) {
+                    var i = items[0].dataIndex, t = topics[i];
+                    return ['Clicks: ' + fmt(t.clicks), 'Open Rate: ' + (t.openRate.toFixed(1))+'%', 'Emails: '+t.emails, '— click to see top URLs —'];
+                }}}
+            },
+            scales: {
+                x: { stacked:true, beginAtZero:true, ticks:{ font:{size:10} }, grid:{ color:'#f0f0f0' } },
+                y: { stacked:true, ticks:{ font:{size:10} }, grid:{ display:false } }
+            }
+        }
+    });
+}
+
+function setTopicSort(s) {
+    topicSort = s;
+    ['Clicks','Reach','Open'].forEach(function(x) {
+        var btn = document.getElementById('topicBtn' + x + (x==='Open'?'Rate':''));
+        if (!btn) btn = document.getElementById('topicBtn' + x);
+        if (btn) btn.classList.toggle('active', x.toLowerCase() === s || (x==='Open' && s==='openRate'));
+    });
+    renderAll();
+}
+
+function showTopicDrill(topicName, color) {
+    var panel   = document.getElementById('topicDrillDown');
+    var titleEl = document.getElementById('topicDrillTitle');
+    var listEl  = document.getElementById('topicDrillList');
+    if (!panel) return;
+
+    var urlEntries = Object.values(_topicUrlMap[topicName] || {})
+        .sort(function(a,b){ return b.clicked - a.clicked; })
+        .slice(0, 10);
+    var topTotal = urlEntries.reduce(function(s,r){ return s + r.clicked; }, 0);
+
+    titleEl.innerHTML =
+        '<span style="display:inline-block;padding:2px 9px;border-radius:4px;background:' + color + '22;color:' + color + ';font-weight:700;margin-right:8px">' + escHtml(topicName) + '</span>' +
+        'Top ' + urlEntries.length + ' URLs &nbsp;·&nbsp; ' + fmt(topTotal) + ' clicks total';
+
+    if (!urlEntries.length) {
+        listEl.innerHTML = '<p style="color:#9ca3af;font-size:12px;margin:0">No URLs found for this topic.</p>';
+    } else {
+        listEl.innerHTML = urlEntries.map(function(r, i) {
+            var pct  = topTotal ? (r.clicked / topTotal * 100).toFixed(1) : '0';
+            var barW = topTotal ? Math.round(r.clicked / topTotal * 100) : 0;
+            var safeUrl = r.url.replace(/"/g, '&quot;');
+            var emailCount = r.emails.size;
+            return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;font-size:12px">' +
+                '<span style="min-width:18px;text-align:right;color:#9ca3af;font-weight:600">' + (i+1) + '</span>' +
+                '<div style="flex:1;min-width:0">' +
+                    '<a href="' + safeUrl + '" target="_blank" rel="noopener" style="color:#0063AC;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + safeUrl + '">' + truncUrl(r.url, 90) + '</a>' +
+                    '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">' +
+                        '<div style="width:100px;height:5px;background:#e5e7eb;border-radius:3px"><div style="height:5px;width:' + barW + '%;background:' + color + ';border-radius:3px"></div></div>' +
+                        '<span style="color:#6b7280">' + fmt(r.clicked) + ' clicks · ' + pct + '%</span>' +
+                        '<span style="color:#9ca3af">' + emailCount + ' email' + (emailCount !== 1 ? 's' : '') + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    panel.style.display = '';
+    panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function clearTopicDrill() {
+    var panel = document.getElementById('topicDrillDown');
+    if (panel) panel.style.display = 'none';
+}
+
+function renderDeviceChart(data) {
+    var DEVICE_ORDER  = ['Desktop MacOs','Desktop Win','Mobile iOS','Mobile Android','Tablet Android'];
+    var DEVICE_COLORS = { 'Desktop MacOs':'#0063AC','Desktop Win':'#00A28F','Mobile iOS':'#7C3AED','Mobile Android':'#10B981','Tablet Android':'#D97706' };
+    var counts = {};
+    var hasAny = false;
+    data.forEach(function(r) {
+        var d = r.deviceUsed || '';
+        var key = d.trim() || 'Not Specified';
+        counts[key] = (counts[key] || 0) + r.opened;
+        if (d) hasAny = true;
+    });
+    var noteEl = document.getElementById('deviceNote');
+    if (!hasAny) {
+        if (noteEl) noteEl.textContent = 'No Device Used data in this export.';
+        if (charts['device']) { charts['device'].destroy(); delete charts['device']; }
+        return;
+    }
+    if (noteEl) noteEl.textContent = 'Based on Opened count per send row.';
+
+    var labels = DEVICE_ORDER.filter(function(d) { return counts[d]; });
+    if (counts['Not Specified']) labels.push('Not Specified');
+    var values = labels.map(function(d) { return counts[d]; });
+    var colors = labels.map(function(d) { return DEVICE_COLORS[d] || '#9ca3af'; });
+
+    if (charts['device']) charts['device'].destroy();
+    var ctx = document.getElementById('chartDevice');
+    if (!ctx) return;
+    var total = values.reduce(function(s,v){return s+v;},0);
+    charts['device'] = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font:{size:10}, boxWidth:10 } },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var pct = total ? (ctx.parsed / total * 100).toFixed(1) : '0';
+                    return ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                }}}
+            }
+        }
+    });
+}
+
+function renderTopLinks(urlData) {
+    var el = document.getElementById('sec-links');
+    if (!urlData.length) { if (el) el.style.display = 'none'; return; }
+    if (el) el.style.display = '';
+    ['nav-sec-links','nav-sec-clickhour','nav-sec-velocity'].forEach(function(id) {
+        var a = document.getElementById(id); if (a) a.style.display = '';
+    });
+
+    // Aggregate by link
+    var linkMap = {};
+    urlData.forEach(function(r) {
+        if (!r.link) return;
+        if (!linkMap[r.link]) linkMap[r.link] = {
+            url: r.link, domain: getDomain(r.link), type: getLinkType(r.link),
+            totalClicks: 0, emails: new Set(), clicksByEmail: {}
+        };
+        linkMap[r.link].totalClicks += r.clicked;
+        linkMap[r.link].emails.add(r.emailNameFull);
+        linkMap[r.link].clicksByEmail[r.emailNameFull] = (linkMap[r.link].clicksByEmail[r.emailNameFull] || 0) + r.clicked;
+    });
+    var rows = Object.values(linkMap).sort(function(a,b) { return b.totalClicks - a.totalClicks; });
+    _linkRows = rows;
+    var totalClicks = rows.reduce(function(s,r) { return s + r.totalClicks; }, 0);
+    // Clear any stale drill-down when data reloads
+    clearLinkDrill();
+
+    // ── Treemap by link type ──────────────────────────────────────────
+    var typeTotals = {};
+    rows.forEach(function(r) { typeTotals[r.type] = (typeTotals[r.type] || 0) + r.totalClicks; });
+    var typeItems = Object.keys(typeTotals)
+        .map(function(t) { return {type:t, v:typeTotals[t]}; })
+        .sort(function(a,b) { return b.v - a.v; });
+
+    var tmSvg = document.getElementById('linkTypeTreemap');
+    var tmTip = document.getElementById('linkTreemapTip');
+    if (tmSvg && typeItems.length) {
+        var TW = 800, TH = 220, PAD = 2;
+        tmSvg.innerHTML = '';
+        var ns = 'http://www.w3.org/2000/svg';
+        var bg = document.createElementNS(ns,'rect');
+        bg.setAttribute('width',TW); bg.setAttribute('height',TH);
+        bg.setAttribute('fill','#f8f9fa'); bg.setAttribute('rx','6');
+        tmSvg.appendChild(bg);
+
+        var cells = layoutTreemap(typeItems, PAD, PAD, TW-PAD, TH-PAD);
+        var tmWrap = tmTip ? tmTip.parentElement : null;
+        cells.forEach(function(cell) {
+            var d = cell.d;
+            var color = LINK_TYPE_COLORS[d.type] || '#9ca3af';
+            var pct = totalClicks ? (d.v/totalClicks*100).toFixed(1) : '0';
+            var cw = Math.max(0, cell.w-2), ch = Math.max(0, cell.h-2);
+
+            var rect = document.createElementNS(ns,'rect');
+            rect.setAttribute('x', cell.x+1); rect.setAttribute('y', cell.y+1);
+            rect.setAttribute('width', cw);    rect.setAttribute('height', ch);
+            rect.setAttribute('rx', '3');
+            rect.setAttribute('fill', color);  rect.setAttribute('fill-opacity','0.15');
+            rect.setAttribute('stroke', color); rect.setAttribute('stroke-width','1.5');
+            rect.setAttribute('data-type', d.type);
+            rect.style.cursor = 'pointer';
+            tmSvg.appendChild(rect);
+
+            if (cw > 36 && ch > 20) {
+                var cx = cell.x + 1 + cw/2, cy = cell.y + 1 + ch/2;
+                var fs = Math.min(13, Math.max(9, Math.sqrt(cw*ch)/8));
+                var lbl = document.createElementNS(ns,'text');
+                lbl.setAttribute('x', cx); lbl.setAttribute('y', ch > 38 ? cy-6 : cy);
+                lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('dominant-baseline','central');
+                lbl.setAttribute('font-size', fs); lbl.setAttribute('font-weight','700');
+                lbl.setAttribute('fill', color); lbl.setAttribute('pointer-events','none');
+                lbl.textContent = cw < 70 ? d.type.split(' ').map(function(w){return w[0].toUpperCase();}).join('') : d.type;
+                tmSvg.appendChild(lbl);
+                if (ch > 38) {
+                    var sub = document.createElementNS(ns,'text');
+                    sub.setAttribute('x', cx); sub.setAttribute('y', cy+8);
+                    sub.setAttribute('text-anchor','middle'); sub.setAttribute('dominant-baseline','central');
+                    sub.setAttribute('font-size', Math.max(8, fs-2)); sub.setAttribute('fill', color);
+                    sub.setAttribute('pointer-events','none');
+                    sub.textContent = pct + '%';
+                    tmSvg.appendChild(sub);
+                }
+            }
+
+            (function(type, v, p) {
+                if (tmTip && tmWrap) {
+                    rect.addEventListener('mousemove', function(e) {
+                        var r2 = tmWrap.getBoundingClientRect();
+                        tmTip.style.left = (e.clientX - r2.left + 12) + 'px';
+                        tmTip.style.top  = (e.clientY - r2.top  - 10) + 'px';
+                        tmTip.style.display = 'block';
+                        tmTip.innerHTML = '<strong>' + type + '</strong><br>' + fmt(v) + ' clicks &nbsp;·&nbsp; ' + p + '%<br><span style="opacity:.7;font-size:11px">Click to see top links</span>';
+                    });
+                    rect.addEventListener('mouseleave', function() { tmTip.style.display = 'none'; });
+                }
+                rect.addEventListener('click', function() {
+                    if (tmTip) tmTip.style.display = 'none';
+                    showLinkDrill(type);
+                });
+            })(d.type, d.v, pct);
+        });
+    }
+
+    var countEl = document.getElementById('linksCount');
+    if (countEl) countEl.textContent = fmt(rows.length) + ' links · ' + fmt(totalClicks) + ' clicks';
+
+    // Type badge styling
+    var TYPE_STYLE = {
+        'Unsubscribe':     ['#fee2e2','#c62828'],
+        'View in browser': ['#f3f4f6','#9ca3af'],
+        'Landing page':    ['#e8f0fb','#1565c0'],
+        'Webinar':         ['#f0fdf4','#15803d'],
+        'Product':         ['#fef3c7','#92400e'],
+        'LinkedIn':        ['#e8f0fb','#0a66c2'],
+        'PDF':             ['#fef3c7','#b45309'],
+    };
+    function typeBadge(type) {
+        var s = TYPE_STYLE[type] || ['#f3f4f6','#374151'];
+        return '<span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:' + s[0] + ';color:' + s[1] + ';white-space:nowrap">' + type + '</span>';
+    }
+
+    var tbody = document.getElementById('linksTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = rows.slice(0, 50).map(function(r) {
+        var topEmail = Object.keys(r.clicksByEmail).sort(function(a,b) { return r.clicksByEmail[b] - r.clicksByEmail[a]; })[0] || '';
+        var avgClicks = r.emails.size ? (r.totalClicks / r.emails.size).toFixed(1) : '—';
+        var pct = totalClicks ? (r.totalClicks / totalClicks * 100).toFixed(1) : '0';
+        var safeUrl = r.url.replace(/"/g, '&quot;');
+        return '<tr>' +
+            '<td style="font-size:11px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + safeUrl + '"><a href="' + safeUrl + '" target="_blank" rel="noopener" style="color:#0063AC;text-decoration:none">' + truncUrl(r.url, 65) + '</a></td>' +
+            '<td style="font-size:11px;color:#6b7280;white-space:nowrap">' + r.domain + '</td>' +
+            '<td>' + typeBadge(r.type) + '</td>' +
+            '<td class="num-cell">' + fmt(r.totalClicks) + '</td>' +
+            '<td class="num-cell" style="color:#9ca3af">' + pct + '%</td>' +
+            '<td class="num-cell">' + r.emails.size + '</td>' +
+            '<td class="num-cell">' + avgClicks + '</td>' +
+            '<td class="email-name-cell" style="font-size:11px;color:#6b7280" title="' + topEmail.replace(/"/g,'&quot;') + '">' + topEmail + '</td>' +
+        '</tr>';
+    }).join('');
+}
+
+function showLinkDrill(type) {
+    _currentLinkType = type;
+    var panel = document.getElementById('linkDrillDown');
+    var titleEl = document.getElementById('linkDrillTitle');
+    var listEl  = document.getElementById('linkDrillList');
+    if (!panel || !titleEl || !listEl) return;
+
+    var typeRows = _linkRows
+        .filter(function(r) { return r.type === type; })
+        .sort(function(a,b) { return b.totalClicks - a.totalClicks; })
+        .slice(0, 10);
+    var typeTotal = typeRows.reduce(function(s,r) { return s + r.totalClicks; }, 0);
+
+    var col = LINK_TYPE_COLORS[type] || '#374151';
+    titleEl.innerHTML = '<span style="display:inline-block;padding:2px 8px;border-radius:4px;background:' + col + '22;color:' + col + ';font-weight:700;margin-right:8px">' + type + '</span>Top ' + typeRows.length + ' links · ' + fmt(typeTotal) + ' clicks total';
+
+    if (!typeRows.length) {
+        listEl.innerHTML = '<p style="color:#9ca3af;font-size:12px;margin:0">No links found for this type.</p>';
+    } else {
+        listEl.innerHTML = typeRows.map(function(r, i) {
+            var pct = typeTotal ? (r.totalClicks / typeTotal * 100).toFixed(1) : '0';
+            var barW = typeTotal ? Math.round(r.totalClicks / typeTotal * 100) : 0;
+            var safeUrl = r.url.replace(/"/g,'&quot;');
+            return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eee;font-size:12px">' +
+                '<span style="min-width:18px;text-align:right;color:#9ca3af;font-weight:600">' + (i+1) + '</span>' +
+                '<div style="flex:1;min-width:0">' +
+                    '<a href="' + safeUrl + '" target="_blank" rel="noopener" style="color:#0063AC;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + safeUrl + '">' + truncUrl(r.url, 80) + '</a>' +
+                    '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">' +
+                        '<div style="width:80px;height:5px;background:#e5e7eb;border-radius:3px"><div style="height:5px;width:' + barW + '%;background:' + col + ';border-radius:3px"></div></div>' +
+                        '<span style="color:#6b7280">' + fmt(r.totalClicks) + ' clicks · ' + pct + '% of type</span>' +
+                        '<span style="color:#9ca3af">' + r.emails.size + ' email' + (r.emails.size!==1?'s':'') + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    // Highlight selected cell, dim others
+    document.querySelectorAll('#linkTypeTreemap rect[data-type]').forEach(function(r) {
+        var isSelected = r.getAttribute('data-type') === type;
+        r.setAttribute('fill-opacity', isSelected ? '0.4' : '0.07');
+        r.setAttribute('stroke-width', isSelected ? '2.5' : '1.5');
+    });
+
+    panel.style.display = '';
+    panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function clearLinkDrill() {
+    _currentLinkType = null;
+    var panel = document.getElementById('linkDrillDown');
+    if (panel) panel.style.display = 'none';
+    document.querySelectorAll('#linkTypeTreemap rect[data-type]').forEach(function(r) {
+        r.setAttribute('fill-opacity', '0.15');
+        r.setAttribute('stroke-width', '1.5');
+    });
+}
+
+function renderClickHourDist(urlData) {
+    var timingEl = document.getElementById('sec-content-timing-group');
+    if (!urlData.length) { if (timingEl) timingEl.style.display = 'none'; return; }
+    if (timingEl) timingEl.style.display = '';
+
+    var hourBuckets = new Array(24).fill(0);
+    urlData.forEach(function(r) {
+        var h = r.clickedHour;
+        if (h !== null && !isNaN(h) && h >= 0 && h < 24) hourBuckets[h] += r.clicked;
+    });
+    var hourLabels = Array.from({length: 24}, function(_, i) {
+        return i === 0 ? '12am' : i < 12 ? i + 'am' : i === 12 ? '12pm' : (i - 12) + 'pm';
+    });
+    var peak = Math.max.apply(null, hourBuckets);
+    var colors = hourBuckets.map(function(v) {
+        return v === peak ? 'rgba(0,99,172,0.85)' : 'rgba(0,99,172,0.45)';
+    });
+
+    if (charts['clickHour']) charts['clickHour'].destroy();
+    var ctx = document.getElementById('chartClickHour');
+    if (!ctx) return;
+    charts['clickHour'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: hourLabels,
+            datasets: [{ label: 'Clicks', data: hourBuckets, backgroundColor: colors, borderRadius: 3 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: function(c) { return fmt(c.raw) + ' clicks'; } } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function renderClickVelocity(urlData) {
+    if (!urlData.length) return;
+    var BANDS   = ['0', '1', '2-3', '4-7', '8-14', '15+'];
+    var LABELS  = ['Same day', '1 day', '2–3 days', '4–7 days', '8–14 days', '15+ days'];
+    var COLORS  = ['rgba(16,185,129,0.7)', 'rgba(0,99,172,0.7)', 'rgba(59,130,246,0.7)',
+                   'rgba(147,197,253,0.7)', 'rgba(196,181,253,0.7)', 'rgba(209,213,219,0.7)'];
+    var counts  = {};
+    BANDS.forEach(function(b) { counts[b] = 0; });
+    var matched = 0;
+
+    urlData.forEach(function(r) {
+        if (!r.clickedDate) return;
+        var sendDates = sendDateLookup[r.emailNameFull];
+        if (!sendDates || !sendDates.length) return;
+        var sentDate = null;
+        for (var i = sendDates.length - 1; i >= 0; i--) {
+            if (sendDates[i] <= r.clickedDate) { sentDate = sendDates[i]; break; }
+        }
+        if (!sentDate) sentDate = sendDates[0];
+        var days = Math.round((r.clickedDate - sentDate) / 86400000);
+        if (days < 0) days = 0;
+        var band = days === 0 ? '0' : days === 1 ? '1' : days <= 3 ? '2-3' : days <= 7 ? '4-7' : days <= 14 ? '8-14' : '15+';
+        counts[band] += r.clicked;
+        matched++;
+    });
+
+    if (charts['clickVelocity']) charts['clickVelocity'].destroy();
+    var ctx = document.getElementById('chartClickVelocity');
+    if (!ctx || !matched) return;
+    charts['clickVelocity'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: LABELS,
+            datasets: [{ label: 'Clicks', data: BANDS.map(function(b) { return counts[b]; }), backgroundColor: COLORS, borderRadius: 4 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: function(c) { return fmt(c.raw) + ' clicks'; } } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+}
 
 // ═══════════════════════════════════════════════════════
 // PAGE STATE
@@ -2068,6 +4658,45 @@ function initNavObserver() {
     }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
     targets.forEach(function(t) { _navObserver.observe(t); });
 }
+
+// ═══════════════════════════════════════════════════════
+// FLIP KPI CARDS — randomised idle + JS-driven snap flip
+// ═══════════════════════════════════════════════════════
+(function initFlipCards() {
+    document.querySelectorAll('.kpi-flip').forEach(function(wrap) {
+        var inner = wrap.querySelector('.kpi-flip-inner');
+        var flipped = false;
+
+        function setAnim(value) {
+            inner.style.animation = 'none';
+            void inner.offsetWidth;
+            inner.style.animation = value;
+        }
+
+        function startIdle() {
+            var dur   = (3.5 + Math.random() * 4).toFixed(2) + 's';
+            var delay = (Math.random() * 6).toFixed(2) + 's';
+            setAnim('kpiNudge ' + dur + ' ' + delay + ' ease-in-out infinite');
+        }
+
+        startIdle();
+
+        wrap.addEventListener('mouseenter', function() {
+            if (flipped) return;
+            flipped = true;
+            setAnim('kpiFlipIn 0.45s ease-in-out both');
+        });
+
+        wrap.addEventListener('mouseleave', function() {
+            if (!flipped) return;
+            flipped = false;
+            setAnim('kpiFlipOut 0.45s ease-in-out both');
+            inner.addEventListener('animationend', function() {
+                startIdle();
+            }, { once: true });
+        });
+    });
+})();
 
 // ═══════════════════════════════════════════════════════
 // BOOT

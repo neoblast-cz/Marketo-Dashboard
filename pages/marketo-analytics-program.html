@@ -57,77 +57,58 @@
         .bf-ch-item input { accent-color: #0063AC; cursor: pointer; flex-shrink: 0; }
         .bf-ch-item span  { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* ── Accordion grid ── */
-        #accGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .acc-group.open { grid-column: 1 / -1; }
-        @keyframes accExpand   { from { opacity:.55; transform:scaleX(.97); } to { opacity:1; transform:none; } }
-        @keyframes accCollapse { from { opacity:1;   transform:none; }        to { opacity:.6; transform:scaleX(.97); } }
-        .acc-group.acc-expanding  { animation: accExpand   .3s cubic-bezier(.4,0,.2,1) both; transform-origin: left center; }
-        .acc-group.acc-collapsing { animation: accCollapse .28s cubic-bezier(.4,0,.2,1) both; transform-origin: left center; }
+        /* ── Sidenav ── */
+        #pageLayout { display: flex; align-items: flex-start; }
+        #sidenav {
+            position: sticky; top: 0; flex-shrink: 0; width: 200px;
+            max-height: 100vh; overflow-y: auto;
+            border-right: 1px solid #e5e7eb; background: #fff;
+            padding: 14px 0 16px; box-sizing: border-box;
+        }
+        #navSearch {
+            display: block; width: calc(100% - 20px); margin: 0 10px 10px;
+            padding: 6px 10px; font-size: 12px; font-family: inherit; color: #374151;
+            border: 1px solid #dde0e7; border-radius: 5px; outline: none; box-sizing: border-box;
+        }
+        #navSearch:focus { border-color: #0063AC; }
+        #navSearch::placeholder { color: #b0b7c3; }
+        .nav-group-label {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .09em; color: #b0b7c3; padding: 10px 12px 3px;
+        }
+        .nav-link {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 12px 5px 15px; font-size: 12px;
+            color: #4b5563; text-decoration: none; border-left: 3px solid transparent;
+            line-height: 1.35; transition: background .1s, color .1s;
+        }
+        .nav-link:hover { background: #f4f7fb; color: #0063AC; }
+        .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; font-weight: 600; }
+        .nav-sub-link {
+            display: flex; align-items: center;
+            padding: 3px 12px 3px 26px;
+            font-size: 11px; color: #9ca3af;
+            text-decoration: none; border-left: 3px solid transparent;
+            line-height: 1.3; transition: background .1s, color .1s;
+        }
+        .nav-sub-link:hover { background: #f4f7fb; color: #0063AC; }
+        .nav-sub-link.active { border-left-color: #93c5fd; background: #f0f5fc; color: #0063AC; }
 
-        /* Shared header base */
-        .acc-header {
-            display: flex; align-items: center; justify-content: space-between;
-            background: #fff; border: 1px solid #e5e7eb; border-left: 4px solid #0063AC;
-            border-radius: 5px; cursor: pointer; user-select: none;
-            transition: background .15s, transform .18s cubic-bezier(.4,0,.2,1),
-                        box-shadow .18s cubic-bezier(.4,0,.2,1), padding .25s cubic-bezier(.4,0,.2,1),
-                        border-radius .2s;
+        /* ── Page sections ── */
+        #sections { flex: 1; min-width: 0; }
+        .page-section { margin-bottom: 48px; scroll-margin-top: 16px; }
+        .chart-anchor { scroll-margin-top: 16px; }
+        .sec-header {
+            display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 20px; padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
         }
-
-        /* Closed tile: lift on hover, press on click */
-        .acc-group:not(.open) .acc-header:hover {
-            background: #f4f7fb;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0,99,172,0.10);
-        }
-        .acc-group:not(.open) .acc-header:active {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(0,99,172,0.08);
-            background: #edf3fb;
-        }
-
-        /* Open bar: subtle hover only */
-        .acc-group.open > .acc-header:hover { background: #f4f7fb; }
-
-        /* Closed: tile card */
-        .acc-group:not(.open) .acc-header {
-            flex-direction: column; align-items: flex-start;
-            padding: 20px 22px 16px; min-height: 130px;
-        }
-        .acc-group:not(.open) .acc-header-left {
-            flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;
-        }
-        .acc-group:not(.open) .acc-title { font-size: 13px; }
-        .acc-group:not(.open) .acc-meta  { margin-left: 0; }
-        .acc-group:not(.open) .acc-chevron { align-self: flex-end; margin-top: 8px; }
-
-        /* Open: horizontal bar */
-        .acc-group.open > .acc-header {
-            flex-direction: row; align-items: center; padding: 12px 18px;
-            border-radius: 5px 5px 0 0; transform: none; box-shadow: none;
-        }
-        .acc-group.open > .acc-header .acc-header-left {
-            flex-direction: row; align-items: center; gap: 10px; width: auto; flex: 1;
-        }
-        .acc-group.open > .acc-header .acc-title { font-size: 12px; }
-        .acc-group.open > .acc-header .acc-meta   { margin-left: 4px; }
-        .acc-group.open > .acc-header .acc-chevron { transform: rotate(180deg); margin-top: 0; }
-
-        .acc-header-left { display: flex; flex: 1; min-width: 0; }
-        .acc-title { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #374151; }
-        .acc-meta  { display: flex; gap: 5px; flex-wrap: wrap; }
+        .sec-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #374151; }
+        .sec-desc  { font-size: 11px; color: #9ca3af; }
         .acc-chip  { font-size: 10px; font-weight: 600; color: #0063AC; background: #e8f0fb; border-radius: 3px; padding: 2px 7px; white-space: nowrap; }
         .acc-chip.green  { color: #1a7a4a; background: #e4f5ee; }
         .acc-chip.gray   { color: #6b7280; background: #f3f4f6; }
         .acc-chip.purple { color: #6d28d9; background: #ede9fe; }
-        .acc-chevron { width: 16px; height: 16px; color: #9ca3af; flex-shrink: 0; transition: transform .2s; }
-        .acc-num  { font-size: 38px; font-weight: 800; color: #0063AC; opacity: 0.18; line-height: 1; letter-spacing: -2px; margin-bottom: 6px; }
-        .acc-group.open > .acc-header .acc-num { font-size: 11px; font-weight: 700; opacity: 0.45; letter-spacing: 0; margin-bottom: 0; margin-right: 4px; align-self: center; }
-        .acc-desc { font-size: 10px; color: #9ca3af; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 3px; line-height: 1.4; }
-        .acc-group.open > .acc-header .acc-desc { display: none; }
-        .acc-body { display: none; padding-top: 14px; }
-        .acc-group.open > .acc-body { display: block; }
     </style>
 </head>
 <body>
@@ -170,9 +151,9 @@
         <!-- Row 1: Attribution + Time Scale + Reset -->
         <div class="fb-row">
             <span class="filter-label">Attribution:</span>
-            <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">FT</button>
-            <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">MT</button>
-            <button class="quick-filter-btn" id="btnAttrLT" onclick="setAttrMode('lt')" style="margin:0" title="Last Touch — Salesforce Primary Campaign Source">LT</button>
+            <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">First Touch</button>
+            <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">Multi Touch</button>
+            <button class="quick-filter-btn" id="btnAttrLT" onclick="setAttrMode('lt')" style="margin:0" title="Last Touch — Salesforce Primary Campaign Source">Last Touch</button>
 
             <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
             <span class="filter-label">Scale:</span>
@@ -188,12 +169,6 @@
                 Include Sales
             </button>
 
-            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
-            <button class="quick-filter-btn" id="btnIcapture" onclick="toggleIcaptureMode()" style="margin:0;display:none"
-                title="Filter to iCapture event programs only and reveal iCapture-specific analytics">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                iCapture
-            </button>
 
             <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
             <span class="filter-count" id="filterCount"></span>
@@ -361,26 +336,75 @@
 
     <!-- ═══ DASHBOARD CONTENT ════════════════════════════════════════════ -->
     <div id="dashContent" style="display:none">
-        <div class="main">
+        <div class="main" style="max-width:none;padding-left:0;padding-right:0">
+        <div id="pageLayout">
 
-            <!-- ══ Group 1: Overview (open by default) ══════════════════════ -->
-            <div id="accGrid">
-            <div class="acc-group open" id="acc-overview">
-                <div class="acc-header" onclick="toggleAcc('acc-overview')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">1</span>
-                        <span class="acc-title">Overview</span>
-                        <span class="acc-desc">KPIs, membership trends and trendline chart</span>
-                        <div class="acc-meta" id="acc-overview-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        <!-- ══ Sidenav ══════════════════════════════════════════════════════ -->
+        <nav id="sidenav">
+            <input id="navSearch" type="search" placeholder="Search…" oninput="navSearch(this.value)">
+            <div class="nav-group">
+                <div class="nav-group-label">Overview</div>
+                <a class="nav-link" href="#sec-overview">Overview</a>
+                <a class="nav-sub-link" href="#card-trendline">Members, Success &amp; Qualified vs Pipeline/Revenue</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Acquisition</div>
+                <a class="nav-link" href="#sec-acquisition">Acquisition</a>
+                <a class="nav-sub-link" href="#sec-acquisition">Channel Mix</a>
+                <a class="nav-sub-link" href="#card-acq-trend">New Names Over Time</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Cost &amp; ROI</div>
+                <a class="nav-link" href="#sec-cost">Cost &amp; ROI</a>
+                <a class="nav-sub-link" href="#card-cost-scatter">Cost vs Pipeline scatter</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Pipeline &amp; Revenue</div>
+                <a class="nav-link" href="#sec-attribution">Program Attribution</a>
+                <a class="nav-sub-link" href="#card-top-programs">Top Programs by Pipeline</a>
+                <a class="nav-sub-link" href="#card-top-programs">Top Programs by Revenue Won</a>
+                <a class="nav-sub-link" href="#card-ftmt">FT vs MT vs LT</a>
+                <a class="nav-sub-link" href="#card-sankey">Pipeline Flow (Sankey)</a>
+                <a class="nav-sub-link" href="#card-prog-scatter">Revenue vs Pipeline scatter</a>
+                <a class="nav-link" href="#sec-opportunity">Opportunity Analysis</a>
+                <a class="nav-sub-link" href="#card-opp-stage">Stage Breakdown</a>
+                <a class="nav-sub-link" href="#oppBubbleCard">Deal Size &amp; Type</a>
+                <a class="nav-sub-link" href="#card-opp-type">Pipeline by Opp Type</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Dimensions</div>
+                <a class="nav-link" href="#sec-channels">Channels &amp; Regions</a>
+                <a class="nav-sub-link" href="#sec-channels">Success by Channel</a>
+                <a class="nav-sub-link" href="#sec-channels">Pipeline by Vertical</a>
+                <a class="nav-sub-link" href="#sec-channels">Pipeline &amp; Revenue by Region</a>
+                <a class="nav-link" href="#sec-comparison">Comparison Tool</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Tools</div>
+                <a class="nav-link" href="#sec-programs">Program Summary</a>
+                <a class="nav-sub-link" href="#card-prog-table">All Programs</a>
+                <a class="nav-sub-link" href="#card-prog-health">Program Health</a>
+                <a class="nav-link" href="#sec-nc">Naming Convention</a>
+                <a class="nav-sub-link" href="#ncHealthCard">Compliance Score</a>
+                <a class="nav-link" href="#sec-icapture">iCapture</a>
+                <a class="nav-sub-link" href="#sec-icapture">Platform Economics</a>
+                <a class="nav-sub-link" href="#sec-icapture">Deal Performance</a>
+                <a class="nav-sub-link" href="#sec-icapture">Event Overview</a>
+            </div>
+        </nav>
+
+        <!-- ══ Sections ═════════════════════════════════════════════════════ -->
+        <div id="sections" style="padding:24px 30px 50px">
+            <div class="page-section" id="sec-overview">
+                <div class="sec-header">
+                    <span class="sec-title">Overview</span>
+                    <span class="sec-desc">KPIs, membership trends and trendline chart</span>
                 </div>
-                <div class="acc-body">
                     <!-- KPI Cards -->
                     <div id="kpiGrid" class="kpi-grid" style="grid-template-columns:repeat(4,1fr)"></div>
 
                     <!-- Performance Trendline -->
-                    <div class="chart-card" style="margin-top:14px">
+                    <div class="chart-card chart-anchor" id="card-trendline" style="margin-top:14px">
                         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
                             <div class="chart-title" style="margin:0">Members, Success &amp; Qualified vs Pipeline/Revenue over time</div>
                             <div style="display:flex;align-items:center;gap:8px">
@@ -393,39 +417,30 @@
                             <table id="comboTable" class="data-table" style="font-size:11px;min-width:100%"></table>
                         </div>
                     </div>
-                </div>
             </div>
 
-            <!-- ══ Group 2: Opportunity Analysis ════════════════════════════ -->
-            <!-- ══ Group 3: Acquisition ══════════════════════════════════════ -->
-            <div class="acc-group" id="acc-acquisition">
-                <div class="acc-header" onclick="toggleAcc('acc-acquisition')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">2</span>
-                        <span class="acc-title">Acquisition</span>
-                        <span class="acc-desc">New name volume and source channel mix</span>
-                        <div class="acc-meta" id="acc-acquisition-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Acquisition ══════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-acquisition">
+                <div class="sec-header">
+                    <span class="sec-title">Acquisition</span>
+                    <span class="sec-desc">New name volume and source channel mix</span>
                 </div>
-                <div class="acc-body">
-                    <!-- New Names — Acquisition Contribution -->
+                    <!-- Filter controls: Period + Groups on one compact row -->
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+                        <span style="font-size:11px;font-weight:600;color:#666;flex-shrink:0">Period:</span>
+                        <div id="newNamesPeriodBtns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+                        <div id="newNamesCustomDates" style="display:none;align-items:center;gap:6px">
+                            <input type="date" id="nnDateFrom" onchange="applyNewNamesCustomDate()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;color:#444;cursor:pointer">
+                            <span style="font-size:11px;color:#aaa">→</span>
+                            <input type="date" id="nnDateTo" onchange="applyNewNamesCustomDate()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;color:#444;cursor:pointer">
+                        </div>
+                        <span style="width:1px;height:14px;background:#dde0e7;flex-shrink:0;margin:0 2px;align-self:center"></span>
+                        <span style="font-size:11px;font-weight:600;color:#666;flex-shrink:0">Groups:</span>
+                        <div id="newNamesGroupBtns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+                    </div>
+                    <!-- New Names — Channel Mix -->
                     <div class="chart-card">
-                        <!-- Filter row 1: Period -->
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-                            <span style="font-size:12px;font-weight:600;color:#666;flex-shrink:0">Period:</span>
-                            <div id="newNamesPeriodBtns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-                            <div id="newNamesCustomDates" style="display:none;align-items:center;gap:6px">
-                                <input type="date" id="nnDateFrom" onchange="applyNewNamesCustomDate()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;color:#444;cursor:pointer">
-                                <span style="font-size:11px;color:#aaa">→</span>
-                                <input type="date" id="nnDateTo" onchange="applyNewNamesCustomDate()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;color:#444;cursor:pointer">
-                            </div>
-                        </div>
-                        <!-- Filter row 2: Groups -->
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap">
-                            <span style="font-size:12px;font-weight:600;color:#666;flex-shrink:0">Groups:</span>
-                            <div id="newNamesGroupBtns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-                        </div>
+                        <div class="chart-title">Channel Mix</div>
                         <!-- Chart + breakdown -->
                         <div style="display:grid;grid-template-columns:260px 1fr;gap:32px;align-items:center">
                             <div style="position:relative;height:260px">
@@ -437,17 +452,6 @@
                             </div>
                             <div id="newNamesBreakdown" style="display:flex;flex-direction:column;gap:2px"></div>
                         </div>
-                        <!-- Acquisition trendline -->
-                        <div style="margin-top:24px;padding-top:18px;border-top:1px solid #f3f4f6">
-                            <div style="margin-bottom:14px">
-                                <span style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.05em">New Names Over Time</span>
-                                <span style="font-size:10px;color:#bbb;margin-left:8px">scale follows global filter</span>
-                            </div>
-                            <div style="position:relative;height:220px">
-                                <canvas id="chartAcqTrend"></canvas>
-                            </div>
-                        </div>
-
                         <!-- Channel grouping note -->
                         <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f3f4f6">
                             <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#bbb">Channel groupings</span>
@@ -460,23 +464,46 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Acquisition trendline — separate card -->
+                    <div class="chart-card chart-anchor" id="card-acq-trend" style="margin-top:16px">
+                        <div class="chart-title">New Names Over Time</div>
+                        <div style="font-size:10px;color:#bbb;margin-bottom:14px">scale follows global filter</div>
+                        <div style="position:relative;height:220px">
+                            <canvas id="chartAcqTrend"></canvas>
+                        </div>
+                    </div>
             </div>
 
-            <!-- ══ Group 4: Program Attribution ═════════════════════════════ -->
-            <div class="acc-group" id="acc-attribution">
-                <div class="acc-header" onclick="toggleAcc('acc-attribution')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">3</span>
-                        <span class="acc-title">Program Attribution</span>
-                        <span class="acc-desc">Top programs ranked by FT, MT and LT pipeline</span>
-                        <div class="acc-meta" id="acc-attribution-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Cost & ROI ═══════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-cost">
+                <div class="sec-header">
+                    <span class="sec-title">Cost &amp; ROI</span>
+                    <span class="sec-desc">Budget breakdown and program cost efficiency</span>
                 </div>
-                <div class="acc-body">
+                    <div id="costKpiWrap"></div>
+                    <!-- Cost vs Pipeline scatter -->
+                    <div class="chart-card chart-anchor" id="card-cost-scatter" style="margin-top:16px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                            <div class="chart-title" style="margin:0">Program Cost vs <span id="scatterMetricLabel">Pipeline</span></div>
+                            <div style="display:flex;gap:6px">
+                                <button id="btnScatterPipeline" class="quick-filter-btn active" onclick="setScatterMetric('pipeline')" style="margin:0;padding:3px 10px;font-size:11px">Pipeline</button>
+                                <button id="btnScatterRevenue"  class="quick-filter-btn"        onclick="setScatterMetric('revenue')"  style="margin:0;padding:3px 10px;font-size:11px">Revenue</button>
+                            </div>
+                        </div>
+                        <div style="position:relative;height:400px"><canvas id="chartCostScatter"></canvas></div>
+                        <div style="font-size:10px;color:#bbb;margin-top:8px">Bubble size = member count. Only programs with recorded cost shown. Attribution follows global FT / MT / LT setting.</div>
+                    </div>
+            </div>
+
+            <!-- ══ Program Attribution ══════════════════════════════════════ -->
+            <div class="page-section" id="sec-attribution">
+                <div class="sec-header">
+                    <span class="sec-title">Program Attribution</span>
+                    <span class="sec-desc">Top programs ranked by FT, MT and LT pipeline</span>
+                </div>
                     <!-- Top Programs by Pipeline & Revenue -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div id="card-top-programs" class="chart-anchor" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="chart-card">
                             <div class="chart-title">Top Programs by Pipeline <span id="pipeAttrLabel" style="color:#0063AC">MT</span></div>
                             <div id="chartPipelineWrap" style="position:relative;height:300px"><canvas id="chartPipeline"></canvas></div>
@@ -486,19 +513,22 @@
                             <div id="chartRevenueWrap" style="position:relative;height:300px"><canvas id="chartRevenue"></canvas></div>
                         </div>
                     </div>
-                    <div class="chart-card" style="margin-top:16px">
+                    <div class="chart-card chart-anchor" id="card-ftmt" style="margin-top:16px">
                         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-                            <div class="chart-title" style="margin:0">FT vs MT vs LT — Top Programs</div>
-                            <div style="display:flex;gap:6px">
+                            <div class="chart-title" style="margin:0" id="ftMtTitle">FT vs MT vs LT — Top Programs</div>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap">
                                 <button id="btnFTMTpipeline" class="quick-filter-btn active" onclick="setFTMTMeasure('pipeline')" style="margin:0;padding:3px 10px;font-size:11px">Pipeline</button>
                                 <button id="btnFTMTrevenue"  class="quick-filter-btn"        onclick="setFTMTMeasure('revenue')"  style="margin:0;padding:3px 10px;font-size:11px">Revenue</button>
+                                <span style="width:1px;height:16px;background:#dde0e7;align-self:center"></span>
+                                <button id="btnFTMTprogram" class="quick-filter-btn active" onclick="setFTMTGroupBy('program')"  style="margin:0;padding:3px 10px;font-size:11px">Programs</button>
+                                <button id="btnFTMTchannel" class="quick-filter-btn"        onclick="setFTMTGroupBy('channel')"  style="margin:0;padding:3px 10px;font-size:11px">Channels</button>
                             </div>
                         </div>
                         <div style="position:relative;height:320px"><canvas id="chartFTvsMT"></canvas></div>
                     </div>
 
                     <!-- Sankey: Pipeline Flow -->
-                    <div class="chart-card" style="margin-top:16px">
+                    <div class="chart-card chart-anchor" id="card-sankey" style="margin-top:16px">
                         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
                             <div class="chart-title" style="margin:0" id="sankeyTitle">Pipeline Flow — Channel Group to Program</div>
                             <div style="display:flex;align-items:center;gap:8px">
@@ -522,30 +552,30 @@
                         <div id="sankeyEmpty" style="display:none;padding:40px;text-align:center;color:#aaa;font-size:13px">No pipeline data for the current filter selection.</div>
                         <div style="font-size:10px;color:#bbb;margin-top:8px">Link width proportional to attributed pipeline value. Colors represent channel group.</div>
                     </div>
-                </div>
+
+                    <!-- Program Performance Scatter -->
+                    <div class="chart-card chart-anchor" id="card-prog-scatter" style="margin-top:16px">
+                        <div class="chart-title">Revenue Won vs Pipeline Created — Program Analysis</div>
+                        <div style="position:relative;height:420px"><canvas id="chartProgScatter"></canvas></div>
+                        <div style="font-size:10px;color:#bbb;margin-top:8px">Bubble size = success count. Color = channel group. Attribution follows global FT / MT / LT setting. Only programs with both pipeline and revenue shown.</div>
+                    </div>
             </div>
 
-            <!-- ══ Group 5: Opportunity Analysis ════════════════════════════ -->
-            <div class="acc-group" id="acc-opportunity">
-                <div class="acc-header" onclick="toggleAcc('acc-opportunity')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">4</span>
-                        <span class="acc-title">Opportunity Analysis</span>
-                        <span class="acc-desc">Pipeline by stage, opportunity type and deal size</span>
-                        <div class="acc-meta" id="acc-opportunity-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Opportunity Analysis ════════════════════════════════════ -->
+            <div class="page-section" id="sec-opportunity">
+                <div class="sec-header">
+                    <span class="sec-title">Opportunity Analysis</span>
+                    <span class="sec-desc">Pipeline by stage, opportunity type and deal size</span>
                 </div>
-                <div class="acc-body">
                     <!-- Opportunity Stage Breakdown -->
-                    <div class="chart-card">
+                    <div class="chart-card chart-anchor" id="card-opp-stage">
                         <div class="chart-title">Opportunity Stage Breakdown</div>
                         <div id="chartStageWrap" style="position:relative;height:260px"><canvas id="chartStage"></canvas></div>
                         <div id="stageSummaryEl" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
                     </div>
 
                     <!-- Opp Size vs Type bubble chart -->
-                    <div class="chart-card" id="oppBubbleCard" style="margin-top:16px">
+                    <div class="chart-card chart-anchor" id="oppBubbleCard" style="margin-top:16px">
                         <div class="chart-title">Deal Size by Opportunity Type &amp; Channel</div>
                         <div id="chartOppBubbleWrap" style="position:relative;height:300px"><canvas id="chartOppBubble"></canvas></div>
                         <div id="chartOppBubbleEmpty" style="display:none;padding:32px;text-align:center;color:#aaa;font-size:12px">No opportunity type data for current filters.</div>
@@ -553,7 +583,7 @@
                     </div>
 
                     <!-- Pipeline & Revenue by Opportunity Type -->
-                    <div class="chart-card" style="margin-top:16px">
+                    <div class="chart-card chart-anchor" id="card-opp-type" style="margin-top:16px">
                         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
                             <div class="chart-title" style="margin:0">Pipeline &amp; Revenue by Opportunity Type</div>
                             <div style="display:flex;gap:4px">
@@ -564,21 +594,14 @@
                         <div id="chartOppTypeWrap" style="position:relative;height:240px"><canvas id="chartOppType"></canvas></div>
                         <div id="chartOppTypeEmpty" style="display:none;padding:32px;text-align:center;color:#aaa;font-size:12px">No opportunity type data for the current filter selection.</div>
                     </div>
-                </div>
             </div>
 
-            <!-- ══ Group 6: Channels, Verticals & Regions ════════════════════ -->
-            <div class="acc-group" id="acc-channels">
-                <div class="acc-header" onclick="toggleAcc('acc-channels')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">5</span>
-                        <span class="acc-title">Channels, Verticals &amp; Regions</span>
-                        <span class="acc-desc">Performance breakdown across dimensions</span>
-                        <div class="acc-meta" id="acc-channels-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Channels, Verticals & Regions ════════════════════════════ -->
+            <div class="page-section" id="sec-channels">
+                <div class="sec-header">
+                    <span class="sec-title">Channels, Verticals &amp; Regions</span>
+                    <span class="sec-desc">Performance breakdown across dimensions</span>
                 </div>
-                <div class="acc-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="chart-card">
                             <div class="chart-title" data-chart-title="channel">Success by Channel</div>
@@ -597,21 +620,14 @@
                             <div style="position:relative;height:240px"><canvas id="chartRegionRevenue"></canvas></div>
                         </div>
                     </div>
-                </div>
             </div>
 
-            <!-- ══ Group 6: Comparison Tool ══════════════════════════════════ -->
-            <div class="acc-group" id="acc-comparison">
-                <div class="acc-header" onclick="toggleAcc('acc-comparison')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">6</span>
-                        <span class="acc-title">Comparison Tool</span>
-                        <span class="acc-desc">Side-by-side channel comparison (butterfly)</span>
-                        <div class="acc-meta" id="acc-comparison-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Comparison Tool ════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-comparison">
+                <div class="sec-header">
+                    <span class="sec-title">Comparison Tool</span>
+                    <span class="sec-desc">Side-by-side channel comparison (butterfly)</span>
                 </div>
-                <div class="acc-body">
                     <div class="chart-card">
                         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
                             <div class="chart-title" style="margin:0" id="bfCardTitle">Deal Performance by Channel &amp; Deal Size</div>
@@ -659,22 +675,15 @@
 
                         </div>
                     </div>
-                </div>
             </div>
 
-            <!-- ══ Group 7: Program Summary ═══════════════════════════════════ -->
-            <div class="acc-group" id="acc-programs">
-                <div class="acc-header" onclick="toggleAcc('acc-programs')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">7</span>
-                        <span class="acc-title">Program Summary</span>
-                        <span class="acc-desc">Detailed program table with sortable metrics</span>
-                        <div class="acc-meta" id="acc-programs-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Program Summary ════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-programs">
+                <div class="sec-header">
+                    <span class="sec-title">Program Summary</span>
+                    <span class="sec-desc">Detailed program table with sortable metrics</span>
                 </div>
-                <div class="acc-body">
-                    <div class="chart-card">
+                    <div class="chart-card chart-anchor" id="card-prog-table">
                         <div class="chart-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                             All Programs
                             <button id="tqf-nc"      class="quick-filter-btn" onclick="toggleTableFilter('nc')"      title="Show only programs not following naming conventions">Naming conventions issues</button>
@@ -716,29 +725,23 @@
                     </div>
 
                     <!-- Program Health cards -->
-                    <div class="chart-card" style="margin-top:16px;margin-bottom:0">
+                    <div class="chart-card chart-anchor" id="card-prog-health" style="margin-top:16px;margin-bottom:0">
+                        <div class="chart-title">Program Health</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
                             <div id="healthCard0"></div>
                             <div id="healthCard1"></div>
                             <div id="healthCard2"></div>
                         </div>
                     </div>
-                </div>
             </div>
 
-            <!-- ══ Group 8: Naming Convention Health ═════════════════════════ -->
-            <div class="acc-group" id="acc-nc">
-                <div class="acc-header" onclick="toggleAcc('acc-nc')">
-                    <div class="acc-header-left">
-                        <span class="acc-num">8</span>
-                        <span class="acc-title">Naming Convention Health</span>
-                        <span class="acc-desc">Program naming audit and compliance score</span>
-                        <div class="acc-meta" id="acc-nc-meta"></div>
-                    </div>
-                    <svg class="acc-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <!-- ══ Naming Convention Health ═══════════════════════════════════ -->
+            <div class="page-section" id="sec-nc">
+                <div class="sec-header">
+                    <span class="sec-title">Naming Convention Health</span>
+                    <span class="sec-desc">Program naming audit and compliance score</span>
                 </div>
-                <div class="acc-body">
-                    <div class="chart-card" id="ncHealthCard">
+                    <div class="chart-card chart-anchor" id="ncHealthCard">
                         <div style="display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start">
                             <div>
                                 <div class="chart-title" style="margin-bottom:14px">Overall Compliance</div>
@@ -750,106 +753,93 @@
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
 
-            </div><!-- /accGrid -->
-
-            <!-- ── iCapture Section (hidden until toggle is on) ── -->
-            <div id="icaptureSection" style="display:none;margin-top:28px">
-                <div style="background:white;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
-                    <div style="background:#0063AC;color:white;padding:13px 24px;display:flex;align-items:center;gap:10px">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        <span style="font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase">iCapture Event Data</span>
-                    </div>
-                    <div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:22px">
-
-                        <!-- Deal Performance Impact -->
-                        <div>
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Deal Performance Impact — iCapture Events vs Channel: Events</div>
-                            <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:12px">
-                                <div style="padding-top:2px">
-                                    <button id="icEvtTierAllBtn" class="tier-all-btn" onclick="selectIcEvtTierAll()">All</button>
-                                </div>
-                                <div style="width:1px;background:#dde0e3;align-self:stretch;margin-top:4px"></div>
-                                <div id="icEvtTierSliderWrap" style="flex:1;position:relative;padding:4px 0 2px;user-select:none">
-                                    <div style="position:absolute;top:11px;left:calc(10% + 0px);right:calc(10% + 0px);height:2px;background:#dde0e3;border-radius:1px;pointer-events:none"></div>
-                                    <div id="icEvtTierTrackFill" style="position:absolute;top:11px;left:10%;height:2px;width:0;background:#0063AC;border-radius:1px;pointer-events:none;transition:width .3s ease"></div>
-                                    <div style="display:flex;justify-content:space-around">
-                                        <button class="tier-step-btn" onclick="selectIcEvtTier(0)"><div class="tier-step-dot"></div><div class="tier-step-label">&lt; $10K</div></button>
-                                        <button class="tier-step-btn" onclick="selectIcEvtTier(1)"><div class="tier-step-dot"></div><div class="tier-step-label">$10K &ndash; $50K</div></button>
-                                        <button class="tier-step-btn" onclick="selectIcEvtTier(2)"><div class="tier-step-dot"></div><div class="tier-step-label">$50K &ndash; $100K</div></button>
-                                        <button class="tier-step-btn" onclick="selectIcEvtTier(3)"><div class="tier-step-dot"></div><div class="tier-step-label">$100K &ndash; $250K</div></button>
-                                        <button class="tier-step-btn" onclick="selectIcEvtTier(4)"><div class="tier-step-dot"></div><div class="tier-step-label">$250K+</div></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="icEvtPerfButterflyPrompt" style="color:#888;text-align:center;padding:18px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;">Select All or a deal size tier to compare iCapture vs. all Events channel performance</div>
-                            <div id="icEvtPerfButterfly" style="display:none"></div>
-                        </div>
-
-                        <!-- Platform Economics -->
-                        <div>
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Platform Economics</div>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                                <div style="background:#f0f6fb;border:1px solid #cce0f0;border-radius:6px;padding:14px 18px">
-                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0063AC;margin-bottom:6px">iCapture License</div>
-                                    <div style="font-size:22px;font-weight:700;color:#2C2A29">~$21,556</div>
-                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / year &middot; EUR 23,494 &times; 0.917431</div>
-                                </div>
-                                <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
-                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Lead</div>
-                                    <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiIcCostPerLead">&mdash;</div>
-                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / lead captured</div>
-                                </div>
-                                <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
-                                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Member</div>
-                                    <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiIcCostPerMember">&mdash;</div>
-                                    <div style="font-size:11px;color:#75787B;margin-top:3px">USD / program member</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Event Overview -->
-                        <div>
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Event Overview</div>
-                            <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
-                                <div class="chart-title">Leads Captured per Event (by Start Date)</div>
-                                <div style="height:220px"><canvas id="chartIcTimeline"></canvas></div>
-                            </div>
-                            <div class="chart-grid-equal" style="margin-top:14px">
-                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
-                                    <div class="chart-title">Events by Size</div>
-                                    <div style="height:200px"><canvas id="chartIcSize"></canvas></div>
-                                </div>
-                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
-                                    <div class="chart-title">Budget vs Leads by Size</div>
-                                    <div style="height:200px"><canvas id="chartIcBudgetSize"></canvas></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lead Generation -->
-                        <div>
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#888;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f0f0f0">Lead Generation</div>
-                            <div class="chart-grid-equal">
-                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
-                                    <div class="chart-title">Top Events by Leads</div>
-                                    <div id="chartIcTopEventsWrap"><canvas id="chartIcTopEvents"></canvas></div>
-                                </div>
-                                <div class="chart-card" style="box-shadow:none;border:1px solid #eef0f3;padding:18px 20px">
-                                    <div class="chart-title">Top Users by Leads Captured</div>
-                                    <div id="chartIcUsersWrap"><canvas id="chartIcUsers"></canvas></div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
+            <!-- ══ iCapture ═══════════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-icapture">
+                <div class="sec-header">
+                    <span class="sec-title">iCapture</span>
+                    <span class="sec-desc">Event lead capture performance and platform economics</span>
                 </div>
-            </div><!-- /icaptureSection -->
+                    <!-- Platform Economics -->
+                    <div class="chart-card">
+                        <div class="chart-title">Platform Economics</div>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px">
+                            <div style="background:#f0f6fb;border:1px solid #cce0f0;border-radius:6px;padding:14px 18px">
+                                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0063AC;margin-bottom:6px">iCapture License</div>
+                                <div style="font-size:22px;font-weight:700;color:#2C2A29">~$21,556</div>
+                                <div style="font-size:11px;color:#75787B;margin-top:3px">USD / year &middot; EUR 23,494 &times; 0.917431</div>
+                            </div>
+                            <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
+                                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Lead</div>
+                                <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiIcCostPerLead">&mdash;</div>
+                                <div style="font-size:11px;color:#75787B;margin-top:3px">USD / lead captured</div>
+                            </div>
+                            <div style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 18px">
+                                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#75787B;margin-bottom:6px">Cost per Member</div>
+                                <div style="font-size:22px;font-weight:700;color:#2C2A29" id="kpiIcCostPerMember">&mdash;</div>
+                                <div style="font-size:11px;color:#75787B;margin-top:3px">USD / program member</div>
+                            </div>
+                        </div>
+                    </div>
 
-        </div>
-    </div>
+                    <!-- Deal Performance Impact -->
+                    <div class="chart-card">
+                        <div class="chart-title">Deal Performance Impact — iCapture Events vs Channel: Events</div>
+                        <div style="display:flex;align-items:flex-start;gap:16px;margin:14px 0 12px">
+                            <div style="padding-top:2px">
+                                <button id="icEvtTierAllBtn" class="tier-all-btn" onclick="selectIcEvtTierAll()">All</button>
+                            </div>
+                            <div style="width:1px;background:#dde0e3;align-self:stretch;margin-top:4px"></div>
+                            <div id="icEvtTierSliderWrap" style="flex:1;position:relative;padding:4px 0 2px;user-select:none">
+                                <div style="position:absolute;top:11px;left:calc(10% + 0px);right:calc(10% + 0px);height:2px;background:#dde0e3;border-radius:1px;pointer-events:none"></div>
+                                <div id="icEvtTierTrackFill" style="position:absolute;top:11px;left:10%;height:2px;width:0;background:#0063AC;border-radius:1px;pointer-events:none;transition:width .3s ease"></div>
+                                <div style="display:flex;justify-content:space-around">
+                                    <button class="tier-step-btn" onclick="selectIcEvtTier(0)"><div class="tier-step-dot"></div><div class="tier-step-label">&lt; $10K</div></button>
+                                    <button class="tier-step-btn" onclick="selectIcEvtTier(1)"><div class="tier-step-dot"></div><div class="tier-step-label">$10K &ndash; $50K</div></button>
+                                    <button class="tier-step-btn" onclick="selectIcEvtTier(2)"><div class="tier-step-dot"></div><div class="tier-step-label">$50K &ndash; $100K</div></button>
+                                    <button class="tier-step-btn" onclick="selectIcEvtTier(3)"><div class="tier-step-dot"></div><div class="tier-step-label">$100K &ndash; $250K</div></button>
+                                    <button class="tier-step-btn" onclick="selectIcEvtTier(4)"><div class="tier-step-dot"></div><div class="tier-step-label">$250K+</div></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="icEvtPerfButterflyPrompt" style="color:#888;text-align:center;padding:18px;font-size:12px;background:#f8f9fa;border:1px solid #e5e7eb;">Select All or a deal size tier to compare iCapture vs. all Events channel performance</div>
+                        <div id="icEvtPerfButterfly" style="display:none"></div>
+                    </div>
+
+                    <!-- Event Overview -->
+                    <div class="chart-card">
+                        <div class="chart-title">Leads Captured per Event (by Start Date)</div>
+                        <div style="height:220px;margin-top:14px"><canvas id="chartIcTimeline"></canvas></div>
+                    </div>
+                    <div class="chart-grid-equal">
+                        <div class="chart-card">
+                            <div class="chart-title">Events by Size</div>
+                            <div style="height:200px"><canvas id="chartIcSize"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">Budget vs Leads by Size</div>
+                            <div style="height:200px"><canvas id="chartIcBudgetSize"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- Lead Generation -->
+                    <div class="chart-grid-equal">
+                        <div class="chart-card">
+                            <div class="chart-title">Top Events by Leads</div>
+                            <div id="chartIcTopEventsWrap"><canvas id="chartIcTopEvents"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">Top Users by Leads Captured</div>
+                            <div id="chartIcUsersWrap"><canvas id="chartIcUsers"></canvas></div>
+                        </div>
+                    </div>
+            </div>
+
+        </div><!-- /sections -->
+        </div><!-- /pageLayout -->
+        </div><!-- /main -->
+    </div><!-- /dashContent -->
 
     <!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
     <div id="footerEl" class="footer" style="display:none">Marketo Analytics &mdash; Ansell Healthcare</div>
@@ -917,7 +907,6 @@
     var rawIcEvents      = [];   // iCapture Events CSV
     var rawIcUsers       = [];   // iCapture Users CSV
     var icapturePrograms = new Set();  // campaignNames from iCapture Events
-    var icaptureMode     = false;
     var icEvtButterflyGlobal   = null;
     var icEvtButterflyTierStats = [];
     var activeIcEvtTier  = -2;  // -2 = nothing selected yet
@@ -969,6 +958,15 @@
     ]);
     var ACQ_GROUPS = ['Organic', 'Paid', 'Events', 'Webinar', 'Other'];
     var ACQ_GROUP_COLORS = { 'Organic':'#00A28F', 'Paid':'#0063AC', 'Events':'#3B82F6', 'Webinar':'#7C3AED', 'Other':'#9CA3AF' };
+    var scatterMetric = 'pipeline'; // 'pipeline' | 'revenue'
+    function setScatterMetric(m) {
+        scatterMetric = m;
+        document.getElementById('btnScatterPipeline').classList.toggle('active', m === 'pipeline');
+        document.getElementById('btnScatterRevenue').classList.toggle('active',  m === 'revenue');
+        var lbl = document.getElementById('scatterMetricLabel');
+        if (lbl) lbl.textContent = m === 'revenue' ? 'Revenue' : 'Pipeline';
+        if (_lastStats) renderCostScatter(_lastStats);
+    }
     function getAcqGroup(ch) {
         if (!ch || ch === '(Non-standard)') return 'Other';
         var c = ch.toLowerCase();
@@ -1531,9 +1529,6 @@
                 leads:  parseNum(r['Leads'])
             })).filter(r => r.name);
             icapturePrograms = new Set(rawIcEvents.map(e => e.campaignName).filter(Boolean));
-            // Show the iCapture toggle now that files are available
-            const btn = document.getElementById('btnIcapture');
-            if (btn) btn.style.display = '';
         }
 
         // Load fixed-cost file
@@ -1579,8 +1574,13 @@
 
         initFilters();
         initButterflyLists();
-        try { renderAll(); } catch(e) { console.error('[renderAll]', e); }
-        showDash();
+        showDash();  // make container visible first so Chart.js reads correct dimensions
+        requestAnimationFrame(function() {
+            // Double-rAF: first frame makes dashContent visible, second frame guarantees layout is flushed
+            requestAnimationFrame(function() {
+                try { renderAll(); } catch(e) { console.error('[renderAll]', e); }
+            });
+        });
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1760,13 +1760,6 @@
             revs  = revs.filter(excl);
         }
 
-        // iCapture mode: restrict to iCapture programs only
-        if (icaptureMode && icapturePrograms.size) {
-            mems  = mems.filter(r => icapturePrograms.has(r.programName));
-            pipes = pipes.filter(r => icapturePrograms.has(r.programName));
-            revs  = revs.filter(r => icapturePrograms.has(r.programName));
-        }
-
         // Date range filter — each source uses its own date field
         const fromVal = (document.getElementById('dateFrom') || {}).value;
         const toVal   = (document.getElementById('dateTo')   || {}).value;
@@ -1880,15 +1873,6 @@
         onMsChange();
     }
 
-    function toggleIcaptureMode() {
-        icaptureMode = !icaptureMode;
-        var btn = document.getElementById('btnIcapture');
-        if (btn) btn.classList.toggle('active', icaptureMode);
-        var sec = document.getElementById('icaptureSection');
-        if (sec) sec.style.display = icaptureMode ? 'block' : 'none';
-        onMsChange();
-    }
-
     function setAttrMode(m) {
         attributionMode = m;
         document.getElementById('btnAttrFT').classList.toggle('active', m === 'ft');
@@ -1984,12 +1968,14 @@
         if (wrap) wrap.style.height = Math.max(160, labels.length * 30) + 'px';
         const ctx = document.getElementById(id).getContext('2d');
         if (charts[id]) charts[id].destroy();
+        const fullLabels = opts.fullLabels || null;
         charts[id] = new Chart(ctx, {
             type: 'bar',
             data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, borderRadius: 3 }] },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { callbacks: {
+                    title: fullLabels ? (items => [fullLabels[items[0].dataIndex]]) : undefined,
                     label: c => ' ' + (opts.usd ? fmtUSD(c.parsed.x) : fmt(c.parsed.x))
                 }}},
                 scales: {
@@ -2010,7 +1996,7 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+                    legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
                     tooltip: { callbacks: {
                         label: c => ' ' + c.label + ': ' + fmtUSD(c.parsed) + ' (' + (total > 0 ? (c.parsed/total*100).toFixed(1) : 0) + '%)'
                     }}
@@ -2277,7 +2263,7 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 10, padding: 14, usePointStyle: true } },
+                    legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 14, usePointStyle: true } },
                     tooltip: {
                         mode: 'index', intersect: false,
                         callbacks: {
@@ -2467,53 +2453,40 @@
         arrow.textContent = open ? '▸' : '▾';
     }
 
-    function toggleAcc(id) {
-        var group = document.getElementById(id);
-        var body  = group.querySelector('.acc-body');
-        if (group.classList.contains('open')) {
-            // Collapse: animate body closed, then snap grid-column back
-            group.classList.add('acc-collapsing');
-            body.style.height    = body.scrollHeight + 'px';
-            body.style.overflow  = 'hidden';
-            body.style.opacity   = '1';
-            body.style.transition = 'height 0.32s cubic-bezier(.4,0,.2,1), opacity 0.22s ease';
-            requestAnimationFrame(function() {
-                requestAnimationFrame(function() {
-                    body.style.height  = '0';
-                    body.style.opacity = '0';
-                });
+    // ── Sidebar nav: search ──────────────────────────────────────────
+    function navSearch(q) {
+        q = q.trim().toLowerCase();
+        document.querySelectorAll('#sidenav .nav-group').forEach(function(grp) {
+            var anyVisible = false;
+            grp.querySelectorAll('.nav-link, .nav-sub-link').forEach(function(a) {
+                var text = a.textContent.toLowerCase();
+                var match = !q || text.includes(q);
+                a.style.display = match ? '' : 'none';
+                if (match) anyVisible = true;
             });
-            setTimeout(function() {
-                group.classList.remove('open');
-                group.classList.remove('acc-collapsing');
-                body.style.cssText = '';
-            }, 330);
-        } else {
-            // Expand: snap grid-column immediately, animate width+body in
-            group.classList.add('open');
-            group.classList.add('acc-expanding');
-            setTimeout(function() { group.classList.remove('acc-expanding'); }, 320);
-            var target = body.scrollHeight;
-            body.style.height    = '0';
-            body.style.overflow  = 'hidden';
-            body.style.opacity   = '0';
-            body.style.transition = 'height 0.36s cubic-bezier(.4,0,.2,1), opacity 0.28s ease 0.06s';
-            requestAnimationFrame(function() {
-                requestAnimationFrame(function() {
-                    body.style.height  = target + 'px';
-                    body.style.opacity = '1';
-                });
-            });
-            setTimeout(function() {
-                body.style.cssText = '';
-                // Charts created while this section was hidden render at 0×0.
-                // Force a resize now that the container has its proper dimensions.
-                group.querySelectorAll('canvas').forEach(function(c) {
-                    if (charts[c.id]) { try { charts[c.id].resize(); } catch(e) {} }
-                });
-            }, 380);
-        }
+            grp.querySelector('.nav-group-label').style.display = anyVisible ? '' : 'none';
+        });
     }
+
+    // ── Sidebar nav: IntersectionObserver active highlighting ────────
+    var _navObserver = null;
+    function initNavObserver() {
+        if (_navObserver) _navObserver.disconnect();
+        var targets = document.querySelectorAll('.page-section[id], .chart-anchor[id]');
+        var links   = document.querySelectorAll('#sidenav .nav-link[href^="#"], #sidenav .nav-sub-link[href^="#"]');
+        _navObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var id = entry.target.id;
+                    links.forEach(function(a) {
+                        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+        targets.forEach(function(t) { _navObserver.observe(t); });
+    }
+
     function setAccMeta(id, html) {
         var el = document.getElementById(id);
         if (el) el.innerHTML = html;
@@ -2524,43 +2497,25 @@
 
     function renderAll(mems, quals, pipes, revs, ltOpps) {
         if (mems === undefined) { var f = applyFilters(); mems = f.mems; quals = f.quals; pipes = f.pipes; revs = f.revs; ltOpps = f.ltOpps; }
+
+        // Store for lazy-render callbacks
         _lastLTOpps = ltOpps || [];
+        _lastMems = mems; _lastQuals = quals; _lastPipes = pipes; _lastRevs = revs;
+        _lastStats = buildProgramStats(mems, quals, pipes, revs, _lastLTOpps);
+
+        // Reset combo view state
         comboViewMode = 'chart';
         document.getElementById('comboChartWrap').style.display = '';
         document.getElementById('comboTableWrap').style.display = 'none';
         var toggleBtn = document.getElementById('comboViewToggle');
         if (toggleBtn) toggleBtn.textContent = 'Table';
-        const stats = buildProgramStats(mems, quals, pipes, revs, _lastLTOpps);
-        renderKPIs(mems, quals, pipes, revs, stats);
+
+        // ── Always render: Overview (above the fold) ──
+        renderKPIs(mems, quals, pipes, revs, _lastStats);
         renderCombo(mems, quals, pipes, revs);
-        renderTopPipeline(stats);
-        renderTopRevenue(stats);
-        renderFTvsMT(stats);
-        renderChannel(mems);
-        renderSankey(stats, pipes, revs);
-        renderGBURegion(pipes, revs);
-        renderOppType(pipes, revs);
-        renderStage(pipes);
-        renderOppBubble(pipes);
-        buildButterfly();
-        buildOppIndex(pipes, revs);
-        renderTable(stats);
-        renderProgramHealth(stats);
-        renderNamingConvention(mems);
-        renderNewNamesChart(mems);
-        // iCapture-specific renders
-        if (icaptureMode && rawIcEvents.length) {
-            renderIcCost(mems);
-            renderIcTimeline();
-            renderIcSize();
-            renderIcBudgetSize();
-            renderIcTopEvents();
-            renderIcUsers();
-            buildIcButterfly();
-        }
-        // ── Accordion meta chips ──
+
+        // ── Accordion meta chips (fast, no charts) ──
         (function() {
-            // Opportunity Analysis
             var seenIds = {}, oppCount = 0, oppPipe = 0;
             pipes.forEach(function(r) {
                 var k = r.opportunityId || (r.programName + '|' + r.amountUSD);
@@ -2570,21 +2525,34 @@
                 accChip(fmt(oppCount) + ' unique opps') +
                 accChip(fmtUSD(oppPipe) + ' pipeline', 'green')
             );
-
-            // Program Attribution
             var ftPipe = 0, mtPipe = 0, ltPipe = 0;
-            Object.values(stats).forEach(function(s) { ftPipe += (s.pipelineFT||0); mtPipe += (s.pipelineMT||0); ltPipe += (s.pipelineLT||0); });
+            Object.values(_lastStats).forEach(function(s) { ftPipe += (s.pipelineFT||0); mtPipe += (s.pipelineMT||0); ltPipe += (s.pipelineLT||0); });
             setAccMeta('acc-attribution-meta',
                 accChip('FT Pipeline ' + fmtUSD(ftPipe)) +
                 accChip('MT Pipeline ' + fmtUSD(mtPipe), 'green') +
                 (ltPipe > 0 ? accChip('LT Pipeline ' + fmtUSD(ltPipe), 'purple') : '')
             );
-
-            // Programs
             setAccMeta('acc-programs-meta',
-                accChip(fmt(Object.keys(stats).length) + ' programs', 'gray')
+                accChip(fmt(Object.keys(_lastStats).length) + ' programs', 'gray')
             );
         })();
+
+        // ── Render remaining sections ──
+        // Initial load: delay 1 s so above-fold content paints first, then render everything.
+        // Filter change: sections already rendered once — update them immediately.
+        var renderRemaining = function() {
+            Object.keys(SECTION_RENDERS).forEach(function(id) {
+                _lazyRendered.add(id);
+                SECTION_RENDERS[id]();
+            });
+        };
+        if (_lazyRendered.size === 0) {
+            setTimeout(renderRemaining, 1000);  // first load — let Overview paint first
+        } else {
+            renderRemaining();                  // filter change — update everything now
+        }
+
+        initNavObserver();
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2796,9 +2764,10 @@
         var topPersonOwners    = Object.entries(personOwnerTotals).sort((a,b) => b[1]-a[1]).slice(0, 5);
         var maxPersonOwnerCost = topPersonOwners.length ? topPersonOwners[0][1] : 1;
 
-        if (totalCost > 0) {
-            document.getElementById('kpiGrid').innerHTML += (
-                '<div class="kpi-card" style="border-top:3px solid #e11d48;grid-column:span 2">' +
+        var costKpiWrap = document.getElementById('costKpiWrap');
+        if (totalCost > 0 && costKpiWrap) {
+            costKpiWrap.innerHTML = (
+                '<div class="kpi-card" style="border-top:3px solid #e11d48">' +
                     '<div class="kpi-label" style="margin-bottom:10px;color:#e11d48">Fixed Cost (USD)</div>' +
                     '<div style="display:flex;gap:0">' +
                         '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:14px">' +
@@ -2853,13 +2822,185 @@
         var pl = document.getElementById('pipeAttrLabel'); if (pl) pl.textContent = attrLabel;
         var rl = document.getElementById('revAttrLabel');  if (rl) rl.textContent = attrLabel;
 
-        // Accordion: overview meta
-        setAccMeta('acc-overview-meta',
-            accChip(fmt(totalSuccess) + ' success') +
-            accChip(fmtUSD(totalPipeline) + ' pipeline') +
-            accChip(fmtUSD(totalRevenue) + ' revenue', 'green') +
-            accChip(fmtUSD(totalPredicted) + ' predicted', 'purple')
-        );
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  COST vs PIPELINE/REVENUE SCATTER
+    // ═══════════════════════════════════════════════════════════
+    function renderCostScatter(stats) {
+        _lastStats = stats;
+        var ctx = document.getElementById('chartCostScatter');
+        if (!ctx) return;
+        if (charts['chartCostScatter']) { charts['chartCostScatter'].destroy(); charts['chartCostScatter'] = null; }
+
+        var isLT = attributionMode === 'lt';
+        var isFT = attributionMode === 'ft';
+
+        // Build per-group datasets
+        var datasets = {};
+        ACQ_GROUPS.forEach(function(g) {
+            datasets[g] = {
+                label: g,
+                data: [],
+                backgroundColor: ACQ_GROUP_COLORS[g] + 'bb',
+                borderColor:     ACQ_GROUP_COLORS[g],
+                borderWidth: 1
+            };
+        });
+
+        // Max members across all cost programs (for bubble scaling)
+        var maxMembers = 1;
+        Object.values(stats).forEach(function(s) {
+            var cost = getCostTotal(costMap[s.program] || {});
+            if (cost && s.members > maxMembers) maxMembers = s.members;
+        });
+
+        Object.values(stats).forEach(function(s) {
+            var cost = getCostTotal(costMap[s.program] || {});
+            if (!cost) return;
+            var yVal = scatterMetric === 'revenue'
+                ? (isLT ? s.revenueLT : isFT ? s.revenueFT : s.revenueMT)
+                : (isLT ? s.pipelineLT : isFT ? s.pipelineFT : s.pipelineMT);
+            if (!yVal) return;
+            var grp = getAcqGroup(s.programChannel || '');
+            var r   = Math.max(4, Math.min(28, Math.sqrt(s.members / maxMembers) * 28));
+            datasets[grp].data.push({
+                x: cost, y: yVal, r: r,
+                prog: s.program, members: s.members,
+                channel: s.programChannel || '—',
+                region: s.region || '—', gbu: s.gbu || '—'
+            });
+        });
+
+        var activeDatasets = ACQ_GROUPS.map(function(g) { return datasets[g]; })
+                                       .filter(function(d) { return d.data.length > 0; });
+
+        var yLabel = (scatterMetric === 'revenue' ? 'Revenue' : 'Pipeline')
+                   + ' ' + attributionMode.toUpperCase() + ' (USD)';
+
+        charts['chartCostScatter'] = new Chart(ctx, {
+            type: 'bubble',
+            data: { datasets: activeDatasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(item) {
+                                var d = item.raw;
+                                return [
+                                    d.prog.length > 50 ? d.prog.slice(0, 50) + '…' : d.prog,
+                                    'Cost: ' + fmtUSD(d.x),
+                                    (scatterMetric === 'revenue' ? 'Revenue' : 'Pipeline') + ': ' + fmtUSD(d.y),
+                                    'Members: ' + fmt(d.members),
+                                    'Channel: ' + d.channel,
+                                    'Region: ' + d.region + ' / ' + d.gbu
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Total Cost (USD)', font: { size: 11 } },
+                        ticks: { font: { size: 10 }, callback: function(v) { return fmtUSD(v); } },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    y: {
+                        title: { display: true, text: yLabel, font: { size: 11 } },
+                        ticks: { font: { size: 10 }, callback: function(v) { return fmtUSD(v); } },
+                        grid: { color: '#f3f4f6' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  REVENUE vs PIPELINE PROGRAM SCATTER
+    // ═══════════════════════════════════════════════════════════
+    function renderProgScatter(stats) {
+        var ctx = document.getElementById('chartProgScatter');
+        if (!ctx) return;
+        if (charts['chartProgScatter']) { charts['chartProgScatter'].destroy(); charts['chartProgScatter'] = null; }
+
+        var isLT = attributionMode === 'lt';
+        var isFT = attributionMode === 'ft';
+        var attrLabel = attributionMode.toUpperCase();
+
+        // Build per-group datasets
+        var datasets = {};
+        ACQ_GROUPS.forEach(function(g) {
+            datasets[g] = {
+                label: g,
+                data: [],
+                backgroundColor: ACQ_GROUP_COLORS[g] + 'bb',
+                borderColor:     ACQ_GROUP_COLORS[g],
+                borderWidth: 1
+            };
+        });
+
+        var maxSuccess = 1;
+        Object.values(stats).forEach(function(s) { if (s.successTotal > maxSuccess) maxSuccess = s.successTotal; });
+
+        Object.values(stats).forEach(function(s) {
+            var pipe = isLT ? s.pipelineLT : isFT ? s.pipelineFT : s.pipelineMT;
+            var rev  = isLT ? s.revenueLT  : isFT ? s.revenueFT  : s.revenueMT;
+            if (!pipe && !rev) return;
+            var grp = getAcqGroup(s.programChannel || '');
+            var r   = Math.max(4, Math.min(28, Math.sqrt((s.successTotal || 1) / maxSuccess) * 28));
+            datasets[grp].data.push({
+                x: rev, y: pipe, r: r,
+                prog: s.program,
+                successTotal: s.successTotal,
+                members: s.members,
+                channel: s.programChannel || '—',
+                region: s.region || '—', gbu: s.gbu || '—'
+            });
+        });
+
+        var activeDatasets = ACQ_GROUPS.map(function(g) { return datasets[g]; })
+                                       .filter(function(d) { return d.data.length > 0; });
+
+        charts['chartProgScatter'] = new Chart(ctx, {
+            type: 'bubble',
+            data: { datasets: activeDatasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(item) {
+                                var d = item.raw;
+                                return [
+                                    d.prog.length > 50 ? d.prog.slice(0, 50) + '…' : d.prog,
+                                    'Revenue: '  + fmtUSD(d.x),
+                                    'Pipeline: ' + fmtUSD(d.y),
+                                    'Successes: ' + fmt(d.successTotal),
+                                    'Members: '  + fmt(d.members),
+                                    'Channel: '  + d.channel,
+                                    'Region: '   + d.region + ' / ' + d.gbu
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Revenue Won ' + attrLabel + ' (USD)', font: { size: 11 } },
+                        ticks: { font: { size: 10 }, callback: function(v) { return fmtUSD(v); } },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Pipeline Created ' + attrLabel + ' (USD)', font: { size: 11 } },
+                        ticks: { font: { size: 10 }, callback: function(v) { return fmtUSD(v); } },
+                        grid: { color: '#f3f4f6' }
+                    }
+                }
+            }
+        });
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -3039,7 +3180,7 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
                     tooltip: {
                         mode: 'index', intersect: false,
                         callbacks: {
@@ -3149,7 +3290,7 @@
         const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
         if (!top.length) return;
         makeHBar('chartPipeline', top.map(s => truncate(s.program, 50)), top.map(s => s[key]),
-            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true });
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true, fullLabels: top.map(s => s.program) });
     }
 
     function renderTopRevenue(stats) {
@@ -3157,13 +3298,14 @@
         const top = Object.values(stats).sort((a, b) => b[key] - a[key]).filter(s => s[key] > 0).slice(0, 10);
         if (!top.length) return;
         makeHBar('chartRevenue', top.map(s => truncate(s.program, 50)), top.map(s => s[key]),
-            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true });
+            top.map((_, i) => PALETTE[i % PALETTE.length]), { usd: true, fullLabels: top.map(s => s.program) });
     }
 
     // ═══════════════════════════════════════════════════════════
     //  FT vs MT vs LT COMPARISON
     // ═══════════════════════════════════════════════════════════
-    var ftMtMeasure = 'pipeline'; // 'pipeline' | 'revenue'
+    var ftMtMeasure  = 'pipeline'; // 'pipeline' | 'revenue'
+    var ftMtGroupBy  = 'program';  // 'program' | 'channel'
     var _lastFTMTStats = null;
 
     function setFTMTMeasure(m) {
@@ -3173,42 +3315,80 @@
         if (_lastFTMTStats) renderFTvsMT(_lastFTMTStats);
     }
 
+    function setFTMTGroupBy(g) {
+        ftMtGroupBy = g;
+        document.getElementById('btnFTMTprogram').classList.toggle('active', g === 'program');
+        document.getElementById('btnFTMTchannel').classList.toggle('active', g === 'channel');
+        if (_lastFTMTStats) renderFTvsMT(_lastFTMTStats);
+    }
+
     function renderFTvsMT(stats) {
         _lastFTMTStats = stats;
-        const isPipe = ftMtMeasure === 'pipeline';
-        const ftKey  = isPipe ? 'pipelineFT' : 'revenueFT';
-        const mtKey  = isPipe ? 'pipelineMT' : 'revenueMT';
-        const ltKey  = isPipe ? 'pipelineLT' : 'revenueLT';
-        const label  = isPipe ? 'Pipeline' : 'Revenue';
+        const isPipe   = ftMtMeasure === 'pipeline';
+        const ftKey    = isPipe ? 'pipelineFT' : 'revenueFT';
+        const mtKey    = isPipe ? 'pipelineMT' : 'revenueMT';
+        const ltKey    = isPipe ? 'pipelineLT' : 'revenueLT';
+        const valLabel = isPipe ? 'Pipeline' : 'Revenue';
+        const byChannel = ftMtGroupBy === 'channel';
 
-        // Sort by sum of FT+MT+LT in chosen measure; include any program with at least one model > 0
-        const top = Object.values(stats)
-            .filter(s => s[ftKey] > 0 || s[mtKey] > 0 || s[ltKey] > 0)
-            .sort((a, b) => (b[ftKey] + b[mtKey] + b[ltKey]) - (a[ftKey] + a[mtKey] + a[ltKey]))
-            .slice(0, 10);
+        // Update title
+        const titleEl = document.getElementById('ftMtTitle');
+        if (titleEl) titleEl.textContent = 'FT vs MT vs LT — Top ' + (byChannel ? 'Channels' : 'Programs');
+
+        let top, fullNames, displayLabels;
+
+        if (byChannel) {
+            // Aggregate by programChannel
+            const byCh = {};
+            Object.values(stats).forEach(s => {
+                const ch = s.programChannel || 'Unknown';
+                if (!byCh[ch]) byCh[ch] = { ftKey: 0, mtKey: 0, ltKey: 0 };
+                byCh[ch].ftKey += s[ftKey] || 0;
+                byCh[ch].mtKey += s[mtKey] || 0;
+                byCh[ch].ltKey += s[ltKey] || 0;
+            });
+            top = Object.entries(byCh)
+                .filter(([, v]) => v.ftKey > 0 || v.mtKey > 0 || v.ltKey > 0)
+                .sort((a, b) => (b[1].ftKey + b[1].mtKey + b[1].ltKey) - (a[1].ftKey + a[1].mtKey + a[1].ltKey))
+                .slice(0, 12)
+                .map(([ch, v]) => ({ name: ch, ft: v.ftKey, mt: v.mtKey, lt: v.ltKey }));
+            fullNames    = top.map(t => t.name);
+            displayLabels = top.map(t => truncate(t.name, 28));
+        } else {
+            const rows = Object.values(stats)
+                .filter(s => s[ftKey] > 0 || s[mtKey] > 0 || s[ltKey] > 0)
+                .sort((a, b) => (b[ftKey] + b[mtKey] + b[ltKey]) - (a[ftKey] + a[mtKey] + a[ltKey]))
+                .slice(0, 10);
+            top = rows.map(s => ({ name: s.program, ft: s[ftKey], mt: s[mtKey], lt: s[ltKey] }));
+            fullNames    = top.map(t => t.name);
+            displayLabels = top.map(t => truncate(t.name, 28));
+        }
+
         if (!top.length) return;
 
-        const hasLT = top.some(s => s[ltKey] > 0);
-        const labels = top.map(s => truncate(s.program, 28));
+        const hasLT = top.some(t => t.lt > 0);
         const ctx = document.getElementById('chartFTvsMT').getContext('2d');
         if (charts['chartFTvsMT']) charts['chartFTvsMT'].destroy();
 
         const datasets = [
-            { label: label + ' FT', data: top.map(s => s[ftKey]), backgroundColor: 'rgba(0,99,172,0.80)',  borderRadius: 3 },
-            { label: label + ' MT', data: top.map(s => s[mtKey]), backgroundColor: 'rgba(0,162,143,0.80)', borderRadius: 3 },
+            { label: valLabel + ' FT', data: top.map(t => t.ft), backgroundColor: 'rgba(0,99,172,0.80)',  borderRadius: 3 },
+            { label: valLabel + ' MT', data: top.map(t => t.mt), backgroundColor: 'rgba(0,162,143,0.80)', borderRadius: 3 },
         ];
         if (hasLT) datasets.push(
-            { label: label + ' LT', data: top.map(s => s[ltKey]), backgroundColor: 'rgba(124,111,160,0.80)', borderRadius: 3 }
+            { label: valLabel + ' LT', data: top.map(t => t.lt), backgroundColor: 'rgba(124,111,160,0.80)', borderRadius: 3 }
         );
 
         charts['chartFTvsMT'] = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets },
+            data: { labels: displayLabels, datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-                    tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmtUSD(c.parsed.y) } }
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: { callbacks: {
+                        title: items => [fullNames[items[0].dataIndex]],
+                        label: c => ' ' + c.dataset.label + ': ' + fmtUSD(c.parsed.y)
+                    }}
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } },
@@ -3242,7 +3422,59 @@
     // ═══════════════════════════════════════════════════════════
     var _lastStats = null;
     var _lastLTOpps = [];
+    var _lastMems = [], _lastQuals = [], _lastPipes = [], _lastRevs = [];
     var _lastSankeyPipes = [], _lastSankeyRevs = [];
+    var _lazyRendered = new Set();  // section IDs that have been rendered at least once
+
+    // Map each page-section to its render function(s).
+    // Called lazily on first scroll-into-view; re-called immediately on filter change.
+    var SECTION_RENDERS = {
+        'sec-acquisition': function() {
+            renderNewNamesChart(_lastMems);
+            renderAcqTrend(_lastMems);
+        },
+        'sec-cost': function() {
+            renderCostScatter(_lastStats);
+        },
+        'sec-attribution': function() {
+            renderTopPipeline(_lastStats);
+            renderTopRevenue(_lastStats);
+            renderFTvsMT(_lastStats);
+            renderProgScatter(_lastStats);
+            renderSankey(_lastStats, _lastPipes, _lastRevs);
+        },
+        'sec-opportunity': function() {
+            renderStage(_lastPipes);
+            renderOppBubble(_lastPipes);
+            renderOppType(_lastPipes, _lastRevs);
+        },
+        'sec-channels': function() {
+            renderChannel(_lastMems);
+            renderGBURegion(_lastPipes, _lastRevs);
+        },
+        'sec-comparison': function() {
+            buildButterfly();
+            buildOppIndex(_lastPipes, _lastRevs);
+        },
+        'sec-programs': function() {
+            renderTable(_lastStats);
+            renderProgramHealth(_lastStats);
+        },
+        'sec-nc': function() {
+            renderNamingConvention(_lastMems);
+        },
+        'sec-icapture': function() {
+            if (rawIcEvents.length) {
+                renderIcCost(_lastMems);
+                renderIcTimeline();
+                renderIcSize();
+                renderIcBudgetSize();
+                renderIcTopEvents();
+                renderIcUsers();
+                buildIcButterfly();
+            }
+        }
+    };
     var sankeyActiveGroups = new Set(['Organic','Paid','Events','Webinar','Other']);
 
     function toggleSankeyGroup(g) {
@@ -3497,7 +3729,7 @@
             pathsSVG += rib(xProg, pn.yOut, pn.yOut + fhProg,
                             xGroup, gn.yIn, gn.yIn + fhGrp,
                             cxA1, cxA2, color, 0.28,
-                            `${f.label} → ${f.from}: ${fmtUSD(f.pipeline)}`);
+                            `${f.to} → ${f.from}: ${fmtUSD(f.pipeline)}`);
             pn.yOut += fhProg;
             gn.yIn  += fhGrp;
         });
@@ -3578,7 +3810,7 @@
             const pn    = progNodes[f.to];
             if (!pn) return;
             const color = ACQ_GROUP_COLORS[f.from] || '#9CA3AF';
-            progNodesSVG += `<rect x="${xProg}" y="${pn.y}" width="${NODE_W}" height="${pn.h}" fill="${color}" rx="2"/>`;
+            progNodesSVG += `<rect x="${xProg}" y="${pn.y}" width="${NODE_W}" height="${pn.h}" fill="${color}" rx="2"><title>${esc(f.to)}: ${fmtUSD(f.pipeline)}</title></rect>`;
             progLbls     += `<text x="${xProg-7}" y="${pn.y+pn.h/2}" text-anchor="end" dominant-baseline="middle" font-size="10" fill="#444"><title>${esc(f.to)}: ${fmtUSD(f.pipeline)}</title>${esc(pn.label)}</text>`;
         });
 
@@ -3751,7 +3983,7 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { font: { family: 'Asap', size: 11 }, boxWidth: 12 } },
+                    legend: { position: 'bottom', labels: { font: { family: 'Asap', size: 11 }, boxWidth: 12 } },
                     tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtUSD(ctx.raw) } }
                 },
                 scales: {
@@ -3989,7 +4221,7 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { font: { family: 'Asap', size: 11 }, boxWidth: 12 } },
+                    legend: { position: 'bottom', labels: { font: { family: 'Asap', size: 11 }, boxWidth: 12 } },
                     tooltip: {
                         callbacks: {
                             label: ctx => {
@@ -4506,6 +4738,7 @@
                 return `<div style="display:flex;align-items:flex-start;gap:5px;padding:1px 0">${dot}${name}${opt}</div>`;
             }).join('');
         }
+        initNavObserver();
     }
 
     document.addEventListener('click', () => {
@@ -4734,7 +4967,7 @@
         charts['chartIcBudgetSize'] = new Chart(ctx, {
             type: 'scatter',
             data: { datasets: entries.map(function([sz, d], i) { return { label: sz, data: [{ x: d.budget, y: d.leads }], backgroundColor: PALETTE[i % PALETTE.length], pointRadius: 7 }; }) },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 10 }}, tooltip: { callbacks: { label: c => c.dataset.label + ': $' + fmt(Math.round(c.parsed.x)) + ' budget · ' + fmt(c.parsed.y) + ' leads' }}}, scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Total Budget (USD)', font: { size: 10 }}, ticks: { font: { size: 10 }, callback: v => fmtUSD(v) }}, y: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Leads', font: { size: 10 }}, ticks: { font: { size: 10 }}}}}
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10 }}, tooltip: { callbacks: { label: c => c.dataset.label + ': $' + fmt(Math.round(c.parsed.x)) + ' budget · ' + fmt(c.parsed.y) + ' leads' }}}, scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Total Budget (USD)', font: { size: 10 }}, ticks: { font: { size: 10 }, callback: v => fmtUSD(v) }}, y: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Leads', font: { size: 10 }}, ticks: { font: { size: 10 }}}}}
         });
     }
 

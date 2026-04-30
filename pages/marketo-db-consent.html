@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Analysis | Marketo Database</title>
+    <link rel="stylesheet" href="../ansell.digital.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        /* ── Consent-specific table ── */
+        .consent-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .consent-table th {
+            text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb;
+            color: #555; font-weight: 600; position: sticky; top: 0;
+            background: #f8f9fa; z-index: 1; cursor: pointer; user-select: none; white-space: nowrap;
+        }
+        .consent-table th:hover { background: #edf0f3; }
+        .consent-table th .sort-arrow { font-size: 10px; margin-left: 4px; color: #bbb; }
+        .consent-table th.sorted .sort-arrow { color: #0063AC; }
+        .consent-table td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .consent-table tr:hover td { background: #f8f9fa; }
+        .consent-table td.prog-name { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+
+        /* ── Opt-in rate badge ── */
+        .rate-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 3px;
+            font-size: 11px; font-weight: 600; text-align: center; min-width: 48px;
+        }
+        .rate-hi  { background: #e0f5f2; color: #007a6a; }
+        .rate-mid { background: #fff3e0; color: #ef6c00; }
+        .rate-lo  { background: #fbe9e7; color: #c62828; }
+
+        /* ── Status badge ── */
+        .opt-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 3px;
+            font-size: 10px; font-weight: 600; white-space: nowrap;
+        }
+        .opt-in  { background: #e0f5f2; color: #007a6a; }
+        .opt-out { background: #fbe9e7; color: #c62828; }
+        .opt-nr  { background: #f5f6f7; color: #75787B; }
+
+        /* ── Program search ── */
+        .prog-search {
+            width: 280px; padding: 6px 10px; font-size: 12px; font-family: inherit;
+            border: 1px solid #dde0e7; border-radius: 5px; outline: none; color: #374151;
+        }
+        .prog-search:focus { border-color: #0063AC; }
+
+        /* ── KPI sub-stat ── */
+        .kpi-sub { font-size: 11px; color: var(--ansell-gray); margin-top: 2px; }
+
+        /* ── Chart wrap ── */
+        .chart-wrap-tall { position: relative; height: 340px; }
+        .chart-wrap-med  { position: relative; height: 280px; }
+        .chart-wrap-sm   { position: relative; height: 220px; }
+
+        /* ── Inconsistency rule cards ── */
+        .incon-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+        @media (max-width:900px) { .incon-grid { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:600px) { .incon-grid { grid-template-columns:1fr; } }
+        .incon-card { background:#fff; border:1px solid #e5e7eb; border-left:4px solid #ef6c00; padding:16px 18px; display:flex; flex-direction:column; gap:6px; }
+        .incon-card.clean { border-left-color:#00A28F; }
+        .incon-title { font-size:13px; font-weight:700; color:#374151; }
+        .incon-count { font-size:26px; font-weight:700; color:#ef6c00; }
+        .incon-count.clean { color:#00A28F; }
+        .incon-desc { font-size:11px; color:var(--ansell-gray); line-height:1.5; }
+        .incon-actions { display:flex; gap:8px; margin-top:6px; }
+        .incon-btn { font-size:11px; padding:4px 10px; border:1px solid #d1d5db; background:#f9fafb; border-radius:4px; cursor:pointer; font-family:inherit; color:#374151; transition:background .15s; }
+        .incon-btn:hover { background:#edf0f3; }
+        .incon-expand { display:none; margin-top:10px; overflow-x:auto; max-height:260px; overflow-y:auto; }
+        .incon-expand table { width:100%; font-size:11px; border-collapse:collapse; }
+        .incon-expand th { text-align:left; padding:5px 8px; background:#f8f9fa; border-bottom:2px solid #e5e7eb; font-weight:600; color:#555; position:sticky; top:0; z-index:1; white-space:nowrap; }
+        .incon-expand td { padding:4px 8px; border-bottom:1px solid #f0f0f0; white-space:nowrap; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+        .incon-expand tr:hover td { background:#f8f9fa; }
+
+        /* ── Unsub section ── */
+        .unsub-section-label { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ansell-gray); margin-bottom:14px; margin-top:28px; }
+
+        /* ── Reason heatmap ── */
+        .heatmap-table { border-collapse:collapse; font-size:11px; width:100%; }
+        .heatmap-table th { padding:5px 10px; white-space:nowrap; font-weight:600; color:#555; background:#f8f9fa; border-bottom:2px solid #e5e7eb; }
+        .heatmap-table th.hm-reason { text-align:left; min-width:220px; position:sticky; left:0; z-index:2; background:#f8f9fa; }
+        .heatmap-table th.hm-month { min-width:58px; text-align:center; }
+        .heatmap-table th.hm-total { min-width:58px; text-align:center; background:#f0f2f5; }
+        .heatmap-table td { padding:4px 10px; text-align:center; font-variant-numeric:tabular-nums; border-bottom:1px solid #f0f0f0; }
+        .heatmap-table td.hm-reason { text-align:left; font-weight:600; position:sticky; left:0; background:#fff; z-index:1; white-space:nowrap; max-width:220px; overflow:hidden; text-overflow:ellipsis; color:#374151; }
+        .heatmap-table td.hm-total { font-weight:700; background:#f0f2f5; }
+        .heatmap-table tr:hover td { filter:brightness(.96); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="ansell-logo">
+                <svg version="1.1" x="0px" y="0px" width="120px" height="37px" viewBox="0 0 446.028 137.747" xml:space="preserve">
+                    <g>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M313.973,83.691l9.064,11.105c-7.838,6.94-17.29,10.047-29.014,9.708c-10.473-0.302-18.345-3.009-23.277-8.931c-5.846-7.021-8.433-16.253-9.187-27.729c-0.791-11.999,2.876-21.513,8.614-28.46c5.757-6.947,13.624-10.889,23.59-10.411c9.251,0.445,17.296,1.575,22.724,10.25c4.286,6.849,6.837,16.55,6.837,29.175c0,1.409,0.032,4.314,0.032,4.314l-41.593-0.064c0.26,5.77,0.565,9.958,2.945,12.888c2.378,2.929,9.398,6.823,18.609,4.067C305.645,88.907,311.895,86.04,313.973,83.691z M282.647,58.423l20.682,0.222c-0.256-7.32,0.191-13.459-10.507-13.459c-4.005,0-7.341,1.469-8.628,3.399C282.27,51.474,282.521,54.637,282.647,58.423z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M201.643,81.479c0.027,0.451,13.803,8.434,20.676,8.335c14.844-0.214,15.236-11.396,3.94-13.935c-3.005-0.676-5.845-1.304-7.619-1.786c-8.98-2.447-13.345-6.008-16.835-9.348c-7.606-7.28-3.681-23.062,3.554-29.316c5.091-4.4,10.84-6.565,19.539-6.601c16.939-0.07,27.239,6.368,27.239,6.368l-7.912,13.808c-0.07-0.805-15.992-5.433-19.889-4.734c-1.81,0.325-3.6,1.112-4.385,1.741c-0.644,0.515-1.674,2.115-1.674,4.377c0,2.932,0.254,3.881,9.435,6.116c2.094,0.51,3.763,0.915,5.001,1.224c9.172,2.299,14.527,5.523,17.888,8.771c3.347,3.236,4.121,7.571,4.121,13.479c0,8.357-3.898,14.253-8.27,18.397c-10.03,9.515-35.42,8.385-46.456,0.291c-1.931-1.416-5.021-2.832-4.718-3.47C195.995,93.693,197.035,90.685,201.643,81.479z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M129.053,102.457V34.271l16.74-4.888l2.222,8.281c2.597-3.554,4.645-4.929,8.208-6.587c3.69-1.717,7.46-2.322,11.768-2.322c7.619,0,10.453,0.931,14.239,5.155c3.786,4.221,4.974,7.759,4.974,17.991v50.557h-19.35l0.444-44.433c-0.102-3.001-1.004-7.507-1.623-8.622c-1.363-2.455-4.373-3.922-8.137-3.838c-2.701,0.061-5.02,1.091-5.882,1.934c-2.581,2.521-3.808,6.358-3.808,11.333v43.626H129.053z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M72.238,5.496h22.185l29.679,96.935l-21.505-0.443l-7.229-23.141H67.62l-6.591,23.584H40.793L72.238,5.496z M82.518,27.216l-9.833,35.293h18.819L82.518,27.216z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M333.606,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.263,8.373,6.345,12.682,15.329,13.553l14.228-0.009l-1.786-14.21c-6.931,1.384-7.996-2.154-7.996-7.33L354.03,0L333.606,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#0061AD" d="M370.071,3.999c0.148,28.513,0.295,58.357,0.444,87.092c2.264,8.373,6.345,12.682,15.331,13.553l13.996,0.223l-1.557-14.441c-6.93,1.384-7.996-2.154-7.996-7.33L390.956,0L370.071,3.999z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" fill="#00A494" d="M59.885,117.309c40.828-5.293,80.378-8.487,120.143-7.019c28.077,1.035,58.089,3.309,87.814,4.795c22.219,1.038,49.768,2.964,74.651,3.11l30.218-0.444c25.442-1.676,51.674-5.894,71.539-9.774c0.592,1.036,1.185,2.073,1.778,3.109l-27.106,9.777c-29.96,10.718-61.096,13.329-94.647,14.662c-40.11,0.829-79.411-2.152-118.642-4.443c-60.116-2.983-132.096-12.43-191.517,3.11l-12.442,3.554C-10.292,126.896,45.331,119.566,59.885,117.309z"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <h1>Marketo | <span>Consent Analysis</span></h1>
+                <div class="header-sub">
+                    Ansell Global Consent Data
+                    <span class="export-badge" id="exportBadge" style="display:none">
+                        <span class="export-badge-dot"></span>
+                        <span id="exportDateLabel"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <button class="load-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+            <a href="../index.html" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Hub
+            </a>
+        </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar" style="display:none">
+        <span class="filter-label">Program filter:</span>
+
+        <!-- Region -->
+        <div class="ms-wrap" id="ms-f-region">
+            <button class="ms-btn" onclick="toggleMs('f-region', event)">
+                <span id="ms-f-region-label">Region</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-region-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-region')">Select All</button><button onclick="clearMs('f-region')">Clear</button></div>
+                <div class="ms-list" id="ms-f-region-list"></div>
+            </div>
+        </div>
+
+        <!-- Vertical -->
+        <div class="ms-wrap" id="ms-f-vertical">
+            <button class="ms-btn" onclick="toggleMs('f-vertical', event)">
+                <span id="ms-f-vertical-label">Vertical</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-vertical-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-vertical')">Select All</button><button onclick="clearMs('f-vertical')">Clear</button></div>
+                <div class="ms-list" id="ms-f-vertical-list"></div>
+            </div>
+        </div>
+
+        <!-- Channel -->
+        <div class="ms-wrap" id="ms-f-channel">
+            <button class="ms-btn" onclick="toggleMs('f-channel', event)">
+                <span id="ms-f-channel-label">Channel</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-channel-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-channel')">Select All</button><button onclick="clearMs('f-channel')">Clear</button></div>
+                <div class="ms-list" id="ms-f-channel-list"></div>
+            </div>
+        </div>
+
+        <!-- FY -->
+        <div class="ms-wrap" id="ms-f-fy">
+            <button class="ms-btn" onclick="toggleMs('f-fy', event)">
+                <span id="ms-f-fy-label">FY</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-fy-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-fy')">Select All</button><button onclick="clearMs('f-fy')">Clear</button></div>
+                <div class="ms-list" id="ms-f-fy-list"></div>
+            </div>
+        </div>
+
+        <!-- Sub-Region -->
+        <div class="ms-wrap" id="ms-f-subRegion">
+            <button class="ms-btn" onclick="toggleMs('f-subRegion', event)">
+                <span id="ms-f-subRegion-label">Sub-Region</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-subRegion-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions"><button onclick="selectAllMs('f-subRegion')">Select All</button><button onclick="clearMs('f-subRegion')">Clear</button></div>
+                <div class="ms-list" id="ms-f-subRegion-list"></div>
+            </div>
+        </div>
+
+        <span style="width:1px;height:18px;background:#e5e7eb;margin:0 2px;flex-shrink:0"></span>
+
+        <!-- Opted-In Status -->
+        <div class="ms-wrap" id="ms-f-status">
+            <button class="ms-btn" onclick="toggleMs('f-status', event)">
+                <span id="ms-f-status-label">Status</span>
+                <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+            </button>
+            <div class="ms-panel" id="ms-f-status-panel" onclick="event.stopPropagation()">
+                <div class="ms-actions">
+                    <button onclick="selectAllMs('f-status')">Select All</button>
+                    <button onclick="clearMs('f-status')">Clear</button>
+                </div>
+                <div class="ms-list" id="ms-f-status-list"></div>
+            </div>
+        </div>
+
+        <span style="width:1px;height:18px;background:#e5e7eb;margin:0 2px;flex-shrink:0"></span>
+
+        <!-- Time scale for trend -->
+        <span class="filter-label" style="margin-left:2px">Trend:</span>
+        <button class="quick-filter-btn active" id="btnMonth"   onclick="setTimeScale('month')"   style="padding:3px 10px;font-size:11px">Month</button>
+        <button class="quick-filter-btn"        id="btnQuarter" onclick="setTimeScale('quarter')" style="padding:3px 10px;font-size:11px">Quarter</button>
+        <button class="quick-filter-btn"        id="btnYear"    onclick="setTimeScale('year')"    style="padding:3px 10px;font-size:11px">Year</button>
+
+        <button class="filter-reset" onclick="resetFilters()">Reset All</button>
+        <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <input type="file" id="fileInput" accept=".csv" onchange="handleFileInput(event)" style="display:none">
+
+    <!-- Loading State -->
+    <div id="loadingState" style="display:none; padding:80px 30px; text-align:center">
+        <div class="loading-spinner"></div>
+        <p style="color:var(--ansell-gray); font-size:13px" id="loadingMsg">Loading...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState">
+        <div class="state-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <h2>No consent data loaded</h2>
+            <p>Place your <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">YYYY-MM-DD Dashboard_Export_Consent.csv</code> in the <code style="background:#f5f6f7;padding:1px 5px;border-radius:3px;font-size:12px">Reports/</code> folder for auto-load, or select a file manually.</p>
+            <button class="state-btn" onclick="document.getElementById('fileInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Load Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashContent" style="display:none">
+        <div class="main">
+
+            <!-- ── KPIs ── -->
+            <div class="section-label">Consent Overview</div>
+            <div class="kpi-grid" id="kpiRow"></div>
+
+            <!-- ── Status Distribution + Top Programs ── -->
+            <div class="chart-grid-2" style="margin-top:20px">
+                <div class="chart-card">
+                    <div class="chart-title">Status Distribution</div>
+                    <div class="chart-wrap-med"><canvas id="chartStatus"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                        <div class="chart-title" style="margin:0">Top Programs</div>
+                        <div style="display:flex;gap:5px">
+                            <button id="btnProgIn"  class="quick-filter-btn active" onclick="setProgMeasure('optedIn')"  style="margin:0;padding:2px 9px;font-size:11px">Opted-In</button>
+                            <button id="btnProgOut" class="quick-filter-btn"        onclick="setProgMeasure('optedOut')" style="margin:0;padding:2px 9px;font-size:11px">Opted-Out</button>
+                        </div>
+                    </div>
+                    <div id="chartProgWrap" style="position:relative;height:280px"><canvas id="chartProg"></canvas></div>
+                </div>
+            </div>
+
+            <!-- ── Opt-In Trend ── -->
+            <div class="chart-card" style="margin-top:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+                    <div>
+                        <div class="chart-title" style="margin:0" id="trendTitle">Opt-In Trend — by Original Consent Month</div>
+                        <div style="font-size:11px;color:var(--ansell-gray);margin-top:2px">When people first consented — shows your consent acquisition history</div>
+                    </div>
+                    <div style="display:flex;gap:5px">
+                        <button id="btnTrendOriginal" class="quick-filter-btn active" onclick="setTrendSource('original')" style="margin:0;padding:2px 9px;font-size:11px">Original</button>
+                        <button id="btnTrendCurrent"  class="quick-filter-btn"        onclick="setTrendSource('current')"  style="margin:0;padding:2px 9px;font-size:11px">Current</button>
+                    </div>
+                </div>
+                <div style="position:relative;height:300px"><canvas id="chartTrend"></canvas></div>
+            </div>
+
+            <!-- ── Country Map ── -->
+            <div class="chart-card" style="margin-top:16px">
+                <div class="chart-title">Consent by Country</div>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:11px">
+                    <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#00A28F;border-radius:2px;display:inline-block"></span>&gt;20% opted-in</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#FFA500;border-radius:2px;display:inline-block"></span>10–20%</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#c62828;border-radius:2px;display:inline-block"></span>&lt;10%</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#ececec;border:1px solid #ddd;border-radius:2px;display:inline-block"></span>No data</span>
+                    <span style="color:var(--ansell-gray);font-size:10px">Hover a country for details</span>
+                </div>
+                <div id="countryMapWrap" style="line-height:0;border-radius:4px;overflow:hidden"></div>
+                <div style="margin-top:14px;overflow-x:auto;max-height:260px;overflow-y:auto">
+                    <table class="consent-table" id="countryTable">
+                        <thead><tr>
+                            <th style="min-width:160px">Country</th>
+                            <th class="num-cell">Total</th>
+                            <th class="num-cell">Opted-In</th>
+                            <th class="num-cell">Opted-Out</th>
+                            <th class="num-cell">No Response</th>
+                            <th class="num-cell">Opt-In Rate</th>
+                        </tr></thead>
+                        <tbody id="countryTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Map tooltip -->
+            <div id="countryMapTooltip" style="position:fixed;background:rgba(30,30,30,.92);color:#fff;font-size:11px;line-height:1.6;padding:7px 11px;border-radius:5px;pointer-events:none;display:none;z-index:9999;max-width:200px"></div>
+
+            <!-- ── Unsubscribe Analysis ── -->
+            <div class="section-label" style="margin-top:28px">Unsubscribe Analysis</div>
+            <div class="kpi-grid" id="unsubKpiRow"></div>
+            <div class="chart-grid-2" style="margin-top:16px">
+                <div class="chart-card">
+                    <div class="chart-title">Unsubscribe Reasons</div>
+                    <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:10px">Breakdown of stated reasons for unsubscribing</div>
+                    <div style="position:relative;height:260px"><canvas id="chartUnsubReasons"></canvas></div>
+                    <div id="unsubNoReasonNote" style="font-size:11px;color:var(--ansell-gray);margin-top:10px;padding-top:8px;border-top:1px solid #f0f0f0"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Unsubscribe Trend by Month</div>
+                    <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:10px">Delivered emails (bars) vs unsubscribe rate % (line) — from Email Performance data</div>
+                    <div style="position:relative;height:260px"><canvas id="chartUnsubTrend"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-card" style="margin-top:16px">
+                <div class="chart-title">Unsubscribe Reasons by Month</div>
+                <div style="font-size:11px;color:var(--ansell-gray);margin-bottom:12px">Stated reasons per month — from December 2024. Darker cell = more unsubscribes.</div>
+                <div style="overflow-x:auto"><div id="unsubReasonHeatmap"></div></div>
+            </div>
+
+            <div class="chart-card" style="margin-top:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                    <div>
+                        <div class="chart-title" style="margin:0">Top Subject Lines Triggering Unsubscribes</div>
+                        <div style="font-size:11px;color:var(--ansell-gray);margin-top:2px">Emails most frequently identified as last email before unsubscribe</div>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;max-height:320px;overflow-y:auto">
+                    <table class="consent-table" id="unsubSubjectTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width:300px">Subject Line</th>
+                                <th class="num-cell" style="width:90px">Unsubscribes</th>
+                                <th class="num-cell" style="width:70px">% of Total</th>
+                                <th style="min-width:200px">Email Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unsubSubjectBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── Data Inconsistencies ── -->
+            <div class="section-label" style="margin-top:28px">Data Inconsistencies</div>
+            <div style="font-size:12px;color:var(--ansell-gray);margin-bottom:14px;line-height:1.6">
+                Cross-checks where the <strong>Opted-In</strong> status does not align with the raw consent fields
+                (<strong>1. Email Opt-In</strong> and <strong>Unsubscribed</strong>).
+                These run against the full dataset regardless of active filters.
+            </div>
+            <div class="incon-grid" id="incon-grid"></div>
+
+        </div><!-- /main -->
+
+        <!-- Source file note -->
+        <div style="text-align:center;padding:12px 30px 30px;font-size:11px;color:#b0b7c3" id="sourceNote"></div>
+    </div><!-- /dashContent -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════════
+const C_IN  = '#00A28F';   // teal  — Opted-In
+const C_OUT = '#c62828';   // red   — Opted-Out
+const C_NR  = '#9CA3AF';   // gray  — No Response
+
+const STATUS_OPTS = ['Opted-In', 'Opted-Out', 'No Response'];
+const STATUS_NORMALIZE = { 'optedin': 'Opted-In', 'optedout': 'Opted-Out', 'noresponse': 'No Response', 'no response': 'No Response' };
+
+let allData          = [];
+let charts           = {};
+let emailPerfByMonth = {};  // 'YYYY-MM' → { sent, delivered, unsubscribed }
+let msState      = { status: new Set(), region: new Set(), vertical: new Set(), channel: new Set(), fy: new Set(), subRegion: new Set() };
+let timeScale    = 'month';
+let trendSource  = 'original';    // 'original' | 'current'
+let progMeasure  = 'optedIn';     // 'optedIn' | 'optedOut'
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return Number(n).toLocaleString();
+}
+function fmtPct(n, total) {
+    if (!total || isNaN(n)) return '—';
+    return (n / total * 100).toFixed(1) + '%';
+}
+function fmtPctNum(n, total) {
+    if (!total || isNaN(n)) return 0;
+    return parseFloat((n / total * 100).toFixed(1));
+}
+function parseNum(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    const n = parseFloat(String(v).replace(/,/g, ''));
+    return isNaN(n) ? 0 : n;
+}
+
+// ── Month string parsing ──
+const MONTH_IDX = {
+    january:0, february:1, march:2, april:3, may:4, june:5,
+    july:6, august:7, september:8, october:9, november:10, december:11,
+    jan:0, feb:1, mar:2, apr:3, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
+};
+
+function parseMonthStr(s) {
+    if (!s || typeof s !== 'string') return null;
+    s = s.trim();
+    // ISO format: "2025-10" or "2025-10-01 ..."
+    const isoMatch = s.match(/^(\d{4})-(\d{2})/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1]), m = parseInt(isoMatch[2]) - 1;
+        if (y >= 2000 && y <= 2040 && m >= 0 && m <= 11) return new Date(y, m, 1);
+        return null;
+    }
+    // Legacy "Month Year" format: "April 2025"
+    const parts = s.split(/\s+/);
+    if (parts.length < 2) return null;
+    const m = MONTH_IDX[parts[0].toLowerCase()];
+    const y = parseInt(parts[1]);
+    if (m === undefined || isNaN(y) || y < 2000 || y > 2040) return null;
+    return new Date(y, m, 1);
+}
+
+function monthKey(s) {
+    const d = parseMonthStr(s);
+    if (!d) return null;
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+function quarterKey(s) {
+    const d = parseMonthStr(s);
+    if (!d) return null;
+    return d.getFullYear() + '-Q' + (Math.floor(d.getMonth() / 3) + 1);
+}
+function yearKey(s) {
+    const d = parseMonthStr(s);
+    if (!d) return null;
+    return String(d.getFullYear());
+}
+function getBucket(monthStr, scale) {
+    if (scale === 'quarter') return quarterKey(monthStr);
+    if (scale === 'year')    return yearKey(monthStr);
+    return monthKey(monthStr);
+}
+
+// Sort bucket keys chronologically
+function sortBucketKeys(keys) {
+    return keys.slice().sort((a, b) => {
+        // Keys are like "2024-03", "2024-Q2", "2024" — all sort lexicographically correctly
+        return a < b ? -1 : a > b ? 1 : 0;
+    });
+}
+
+function parseDate(v) {
+    if (!v) return null;
+    if (v instanceof Date) return isNaN(v) ? null : v;
+    const d = new Date(v);
+    return isNaN(d) ? null : d;
+}
+
+// ── Rate badge class ──
+function rateBadgeClass(rate) {
+    if (rate >= 60) return 'rate-hi';
+    if (rate >= 30) return 'rate-mid';
+    return 'rate-lo';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MULTI-SELECT (standard pattern)
+// ═══════════════════════════════════════════════════════════
+function toggleMs(id, e) {
+    if (e) e.stopPropagation();
+    const panel = document.getElementById('ms-' + id + '-panel');
+    const btn   = document.querySelector('#ms-' + id + ' .ms-btn');
+    const isOpen = panel.style.display === 'block';
+    // close all
+    document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) { panel.style.display = 'block'; btn.classList.add('open'); }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ms-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+});
+
+function buildMsItems(id, items) {
+    // items: [{ value, label, count }]
+    const list = document.getElementById('ms-' + id + '-list');
+    list.innerHTML = items.map(it =>
+        `<label class="ms-item">
+            <input type="checkbox" value="${it.value}" onchange="onMsChange('${id}')" checked>
+            <span>${it.label}</span>
+            <span class="ms-count">${fmt(it.count)}</span>
+        </label>`
+    ).join('');
+}
+
+function onMsChange(id) {
+    const key = id.replace('f-', '');
+    msState[key] = new Set();
+    document.querySelectorAll(`#ms-${id}-list input:not(:checked)`).forEach(cb => {
+        msState[key].add(cb.value);
+    });
+    updateMsLabel(id);
+    renderAll();
+}
+
+function updateMsLabel(id) {
+    const allInputs = document.querySelectorAll(`#ms-${id}-list input`);
+    const unchecked = document.querySelectorAll(`#ms-${id}-list input:not(:checked)`).length;
+    const btn = document.getElementById('ms-' + id + '-label');
+    const wrap = document.getElementById('ms-' + id);
+    const msBtn = wrap ? wrap.querySelector('.ms-btn') : null;
+    if (unchecked === 0) {
+        btn.textContent = btn.dataset.default || btn.textContent.replace(/ \(\d+\)/, '');
+        if (msBtn) msBtn.classList.remove('active');
+    } else {
+        const checked = allInputs.length - unchecked;
+        btn.textContent = (btn.dataset.default || 'Status') + ' (' + checked + ')';
+        if (msBtn) msBtn.classList.add('active');
+    }
+}
+
+function selectAllMs(id) {
+    document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = true);
+    onMsChange(id);
+}
+function clearMs(id) {
+    document.querySelectorAll(`#ms-${id}-list input`).forEach(cb => cb.checked = false);
+    onMsChange(id);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PAGE STATE MACHINE
+// ═══════════════════════════════════════════════════════════
+function showLoading(msg) {
+    document.getElementById('loadingMsg').textContent = msg || 'Loading...';
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('emptyState').style.display   = 'none';
+    document.getElementById('dashContent').style.display  = 'none';
+    document.getElementById('filterBar').style.display    = 'none';
+}
+function showEmpty() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display   = 'block';
+    document.getElementById('dashContent').style.display  = 'none';
+    document.getElementById('filterBar').style.display    = 'none';
+}
+function showDash() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display   = 'none';
+    document.getElementById('dashContent').style.display  = 'block';
+    document.getElementById('filterBar').style.display    = 'flex';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FILE DETECTION & LOADING
+// ═══════════════════════════════════════════════════════════
+async function detectLatestEmailPerf() {
+    const today = new Date();
+    for (let i = 0; i < 90; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const y  = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${mo}-${dd}`;
+        const candidates = [
+            `../Reports/${y}_${mo}_${dd}_Dashboard_Emails_Performance.xlsx`,
+            `../Reports/${dateStr} Dashboard_Emails_Performance.xlsx`
+        ];
+        for (const path of candidates) {
+            try {
+                const r = await fetch(path, { method: 'HEAD' });
+                if (r.ok) return { path, dateStr };
+            } catch { /* continue */ }
+        }
+    }
+    return null;
+}
+
+async function loadEmailPerf() {
+    const file = await detectLatestEmailPerf();
+    if (!file) return;
+    try {
+        const buf  = await fetch(file.path).then(r => r.arrayBuffer());
+        const wb   = XLSX.read(buf, { type: 'array', cellDates: true });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+        emailPerfByMonth = {};
+        rows.forEach(row => {
+            const sentDate = parseDate(row['Sent (Date)'] || row['Sent Date'] || row['SentDate'] || row['Date Sent'] || row['Send Date']);
+            if (!sentDate) return;
+            const key = sentDate.getFullYear() + '-' + String(sentDate.getMonth() + 1).padStart(2, '0');
+            if (!emailPerfByMonth[key]) emailPerfByMonth[key] = { sent: 0, delivered: 0, unsubscribed: 0 };
+            emailPerfByMonth[key].sent         += parseNum(row['Sent']);
+            emailPerfByMonth[key].delivered    += parseNum(row['Delivered']);
+            emailPerfByMonth[key].unsubscribed += parseNum(row['Unsubscribed']);
+        });
+    } catch (e) {
+        console.warn('[loadEmailPerf]', e);
+    }
+}
+
+async function detectLatestConsent() {
+    const today = new Date();
+    const candidates = [];
+    for (let i = 0; i < 90; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const y  = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dateStrDash  = `${y}-${mo}-${dd}`;
+        const dateStrUnder = `${y}_${mo}_${dd}`;
+        // Try new underscore format first, then legacy space-separator format
+        candidates.push(
+            { path: `../Reports/${dateStrUnder}_Dashboard_Export_Consent.csv`, dateStr: dateStrDash },
+            { path: `../Reports/${dateStrDash} Dashboard_Export_Consent.csv`,  dateStr: dateStrDash }
+        );
+    }
+    const results = await Promise.all(
+        candidates.map(async c => {
+            try {
+                const r = await fetch(c.path, { method: 'HEAD' });
+                return r.ok ? c : null;
+            } catch { return null; }
+        })
+    );
+    return results.find(Boolean) || null;
+}
+
+async function loadFile(fileObj) {
+    showLoading('Loading consent data…');
+    try {
+        const text = await fetch(fileObj.path).then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        });
+        processData(Papa.parse(text, {
+            header: true, skipEmptyLines: true,
+            transformHeader: h => h.trim()
+        }).data, fileObj.dateStr);
+    } catch (e) {
+        console.error('[loadFile]', e);
+        showEmpty();
+    }
+}
+
+async function handleFileInput(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showLoading('Reading file…');
+    const text = await file.text();
+    processData(Papa.parse(text, {
+        header: true, skipEmptyLines: true,
+        transformHeader: h => h.trim()
+    }).data, file.name.slice(0, 10));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA PROCESSING
+// ═══════════════════════════════════════════════════════════
+function normalizeStatus(v) {
+    if (!v) return 'No Response';
+    const key = v.trim().toLowerCase().replace(/\s+/g, ' ');
+    return STATUS_NORMALIZE[key] || v.trim();
+}
+
+function parseProgramDimensions(name) {
+    if (!name) return { region: '', vertical: '', channel: '', fy: '', subRegion: '' };
+    const parts = name.trim().split('_');
+    if (parts.length < 3) return { region: '', vertical: '', channel: '', fy: '', subRegion: '' };
+    return {
+        region:    (parts[0] || '').toUpperCase(),
+        vertical:  (parts[1] || '').toUpperCase(),
+        channel:   parts[2] || '',
+        fy:        (parts[3] || '').toUpperCase(),
+        subRegion: parts[4] || ''
+    };
+}
+
+function processData(rows, dateStr) {
+    if (!rows || !rows.length) { showEmpty(); return; }
+
+    allData = rows.map(r => {
+        const unsubRaw = (r['Unsubscribed'] || '').trim();
+        const program  = (r['Last Program Opted-In'] || '').trim();
+        const dims     = parseProgramDimensions(program);
+        return {
+            email:            (r['Email Address'] || r['Email'] || '').trim(),
+            created:          parseDate(r['Created At'] || r['Created']),
+            country:          (r['Country'] || '').trim(),
+            status:           normalizeStatus(r['Opted-In']),
+            currentMonth:     (r['1. Current Opt-In Timestamp Month']  || '').trim(),
+            originalMonth:    (r['1. Original Opt-In Timestamp Month'] || '').trim(),
+            optOutMonth:      (r['1. Opt-Out Timestamp Month'] || '').trim(),
+            program,
+            region:           dims.region,
+            vertical:         dims.vertical,
+            channel:          dims.channel,
+            fy:               dims.fy,
+            subRegion:        dims.subRegion,
+            unsubscribed:     unsubRaw === '1' || unsubRaw.toLowerCase() === 'true',
+            unsubReason:      (r['Unsubscribed Reason'] || '').trim(),
+            lastUnsubEmail:   (r['Last Email Unsubscribed From'] || '').trim(),
+            lastUnsubDate:    parseDate(r['Last Email Unsubscribed From Date']),
+            lastUnsubSubject: (r['Last Email Unsubscribed From Subject Line'] || '').trim(),
+            emailOptIn:       (r['1. Email Opt-In'] || '').trim()
+        };
+    }).filter(r => r.email || r.status !== 'No Response');
+
+    // Show export date badge
+    if (dateStr) {
+        document.getElementById('exportDateLabel').textContent = dateStr;
+        document.getElementById('exportBadge').style.display = 'inline-flex';
+    }
+    // Source note
+    document.getElementById('sourceNote').textContent =
+        `Source: ${dateStr ? dateStr + ' ' : ''}Dashboard_Export_Consent.csv · ${fmt(allData.length)} records`;
+
+    initFilters();
+    showDash();
+    requestAnimationFrame(() => renderAll());
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FILTERS
+// ═══════════════════════════════════════════════════════════
+function initFilters() {
+    // Status
+    const statusCount = {};
+    allData.forEach(r => { statusCount[r.status] = (statusCount[r.status] || 0) + 1; });
+    buildMsItems('f-status', STATUS_OPTS.filter(s => statusCount[s]).map(s => ({ value: s, label: s, count: statusCount[s] })));
+    const lbl = document.getElementById('ms-f-status-label');
+    lbl.dataset.default = 'Status'; lbl.textContent = 'Status';
+
+    // Program-dimension filters
+    const dims = [
+        { id: 'f-region',    field: 'region',    label: 'Region' },
+        { id: 'f-vertical',  field: 'vertical',  label: 'Vertical' },
+        { id: 'f-channel',   field: 'channel',   label: 'Channel' },
+        { id: 'f-fy',        field: 'fy',         label: 'FY' },
+        { id: 'f-subRegion', field: 'subRegion',  label: 'Sub-Region' }
+    ];
+    dims.forEach(({ id, field, label }) => {
+        const counts = {};
+        allData.forEach(r => { if (r[field]) counts[r[field]] = (counts[r[field]] || 0) + 1; });
+        const items = Object.entries(counts)
+            .sort((a, b) => {
+                // FY: sort descending (FY26 before FY25); others: sort by count desc
+                if (field === 'fy') return b[0].localeCompare(a[0]);
+                return b[1] - a[1];
+            })
+            .map(([v, c]) => ({ value: v, label: v, count: c }));
+        buildMsItems(id, items);
+        const el = document.getElementById('ms-' + id + '-label');
+        if (el) { el.dataset.default = label; el.textContent = label; }
+    });
+}
+
+function applyFilters() {
+    return allData.filter(r => {
+        if (msState.status.size    && msState.status.has(r.status))       return false;
+        if (msState.region.size    && msState.region.has(r.region))       return false;
+        if (msState.vertical.size  && msState.vertical.has(r.vertical))   return false;
+        if (msState.channel.size   && msState.channel.has(r.channel))     return false;
+        if (msState.fy.size        && msState.fy.has(r.fy))               return false;
+        if (msState.subRegion.size && msState.subRegion.has(r.subRegion)) return false;
+        return true;
+    });
+}
+
+function resetFilters() {
+    ['status', 'region', 'vertical', 'channel', 'fy', 'subRegion'].forEach(k => msState[k] = new Set());
+    ['f-status', 'f-region', 'f-vertical', 'f-channel', 'f-fy', 'f-subRegion'].forEach(id => selectAllMs(id));
+    renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOGGLE HANDLERS
+// ═══════════════════════════════════════════════════════════
+function setTimeScale(s) {
+    timeScale = s;
+    ['Month','Quarter','Year'].forEach(x =>
+        document.getElementById('btn' + x).classList.toggle('active', s === x.toLowerCase())
+    );
+    renderTrend(applyFilters());
+}
+
+function setTrendSource(s) {
+    trendSource = s;
+    document.getElementById('btnTrendOriginal').classList.toggle('active', s === 'original');
+    document.getElementById('btnTrendCurrent').classList.toggle('active',  s === 'current');
+    const titleEl = document.getElementById('trendTitle');
+    if (s === 'original') {
+        titleEl.textContent = 'Opt-In Trend — by Original Consent Month';
+    } else {
+        titleEl.textContent = 'Opt-In Trend — by Current Consent Month';
+    }
+    renderTrend(applyFilters());
+}
+
+function setProgMeasure(m) {
+    progMeasure = m;
+    document.getElementById('btnProgIn').classList.toggle('active',  m === 'optedIn');
+    document.getElementById('btnProgOut').classList.toggle('active', m === 'optedOut');
+    renderTopPrograms(applyFilters());
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+    const data = applyFilters();
+    const excl = allData.length - data.length;
+    document.getElementById('filterCount').textContent = excl > 0 ? fmt(excl) + ' excluded' : '';
+
+    renderKPIs(data);
+    renderStatusDoughnut(data);
+    renderTopPrograms(data);
+    renderTrend(data);
+    renderCountryBreakdown(data); // async, fires and updates map independently
+    renderUnsubscribeAnalysis(data);
+    renderDataInconsistencies(allData);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  KPIs
+// ═══════════════════════════════════════════════════════════
+function renderKPIs(data) {
+    const total   = data.length;
+    const inCount = data.filter(r => r.status === 'Opted-In').length;
+    const outCount= data.filter(r => r.status === 'Opted-Out').length;
+    const nrCount = data.filter(r => r.status === 'No Response').length;
+    const progs   = new Set(data.filter(r => r.program).map(r => r.program)).size;
+
+    const kpis = [
+        { label: 'Total Records', value: fmt(total), sub: 'in selection', color: '#0063AC' },
+        { label: 'Opted-In',      value: fmt(inCount),  sub: fmtPct(inCount, total) + ' of total', color: '#00A28F' },
+        { label: 'Opted-Out',     value: fmt(outCount), sub: fmtPct(outCount, total) + ' of total', color: '#c62828' },
+        { label: 'No Response',   value: fmt(nrCount),  sub: fmtPct(nrCount, total) + ' of total', color: '#75787B' },
+        { label: 'Unique Programs', value: fmt(progs),  sub: 'driving opt-ins', color: '#7030A0' }
+    ];
+
+    document.getElementById('kpiRow').innerHTML = kpis.map(k =>
+        `<div class="kpi-card">
+            <div class="kpi-label">${k.label}</div>
+            <div class="kpi-value" style="color:${k.color};font-size:28px">${k.value}</div>
+            <div class="kpi-sub">${k.sub}</div>
+        </div>`
+    ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATUS DOUGHNUT
+// ═══════════════════════════════════════════════════════════
+function renderStatusDoughnut(data) {
+    const total   = data.length;
+    const inCount = data.filter(r => r.status === 'Opted-In').length;
+    const outCount= data.filter(r => r.status === 'Opted-Out').length;
+    const nrCount = data.filter(r => r.status === 'No Response').length;
+
+    const ctx = document.getElementById('chartStatus').getContext('2d');
+    if (charts['chartStatus']) charts['chartStatus'].destroy();
+
+    charts['chartStatus'] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Opted-In', 'Opted-Out', 'No Response'],
+            datasets: [{
+                data: [inCount, outCount, nrCount],
+                backgroundColor: [C_IN, C_OUT, C_NR],
+                borderWidth: 3, borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 10 } },
+                tooltip: { callbacks: {
+                    label: c => ` ${c.label}: ${fmt(c.parsed)} (${fmtPct(c.parsed, total)})`
+                }}
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOP PROGRAMS CHART
+// ═══════════════════════════════════════════════════════════
+function renderTopPrograms(data) {
+    const byProg = {};
+    data.forEach(r => {
+        if (!r.program) return;
+        if (!byProg[r.program]) byProg[r.program] = { optedIn: 0, optedOut: 0, noResponse: 0, total: 0 };
+        byProg[r.program].total++;
+        if (r.status === 'Opted-In')     byProg[r.program].optedIn++;
+        else if (r.status === 'Opted-Out') byProg[r.program].optedOut++;
+        else                               byProg[r.program].noResponse++;
+    });
+
+    const sorted = Object.entries(byProg)
+        .sort((a, b) => b[1][progMeasure] - a[1][progMeasure])
+        .slice(0, 15);
+    if (!sorted.length) return;
+
+    const labels    = sorted.map(([name]) => name.length > 30 ? name.slice(0, 28) + '…' : name);
+    const fullNames = sorted.map(([name]) => name);
+    const values    = sorted.map(([, v]) => v[progMeasure]);
+    const color     = progMeasure === 'optedIn' ? C_IN : progMeasure === 'optedOut' ? C_OUT : '#0063AC';
+
+    const wrap = document.getElementById('chartProgWrap');
+    if (wrap) wrap.style.height = Math.max(220, sorted.length * 26) + 'px';
+
+    const ctx = document.getElementById('chartProg').getContext('2d');
+    if (charts['chartProg']) charts['chartProg'].destroy();
+
+    charts['chartProg'] = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: values, backgroundColor: color + 'cc', borderWidth: 0, borderRadius: 3 }] },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    title: items => [fullNames[items[0].dataIndex]],
+                    label: c => ` ${fmt(c.parsed.x)} records`
+                }}
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } },
+                y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TREND CHART
+// ═══════════════════════════════════════════════════════════
+function renderTrend(data) {
+    const monthField = trendSource === 'original' ? 'originalMonth' : 'currentMonth';
+
+    // Build buckets: key → { Opted-In, Opted-Out, No Response }
+    const buckets = {};
+    data.forEach(r => {
+        const key = getBucket(r[monthField], timeScale);
+        if (!key) return;
+        if (!buckets[key]) buckets[key] = { 'Opted-In': 0, 'Opted-Out': 0, 'No Response': 0 };
+        buckets[key][r.status] = (buckets[key][r.status] || 0) + 1;
+    });
+
+    const keys = sortBucketKeys(Object.keys(buckets));
+    if (!keys.length) return;
+
+    const ctx = document.getElementById('chartTrend').getContext('2d');
+    if (charts['chartTrend']) charts['chartTrend'].destroy();
+
+    charts['chartTrend'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: keys,
+            datasets: [
+                { label: 'Opted-In',    data: keys.map(k => buckets[k]['Opted-In']    || 0), backgroundColor: C_IN  + 'bb', borderWidth: 0, borderRadius: 2 },
+                { label: 'No Response', data: keys.map(k => buckets[k]['No Response'] || 0), backgroundColor: C_NR  + '99', borderWidth: 0, borderRadius: 2 },
+                { label: 'Opted-Out',   data: keys.map(k => buckets[k]['Opted-Out']   || 0), backgroundColor: C_OUT + 'bb', borderWidth: 0, borderRadius: 2 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+                tooltip: {
+                    mode: 'index', intersect: false,
+                    callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}` }
+                }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, maxTicksLimit: 24 } },
+                y: { stacked: true, beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } }
+            }
+        }
+    });
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS — HTML/CSV escaping
+// ═══════════════════════════════════════════════════════════
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function csvEscape(v) {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COUNTRY BREAKDOWN
+// ═══════════════════════════════════════════════════════════
+// ── Country name → ISO-3166-1 alpha-2 lookup (lowercase keys) ──
+const COUNTRY_ISO2 = {
+    'united states':'US','usa':'US','india':'IN','germany':'DE','australia':'AU',
+    'france':'FR','united kingdom':'GB','uk':'GB','united kingdom of great britain and northern ireland':'GB',
+    'canada':'CA','mexico':'MX','brazil':'BR','china':'CN','japan':'JP','italy':'IT',
+    'korea, republic of':'KR','south korea':'KR','korea':'KR','republic of korea':'KR',
+    'colombia':'CO','belgium':'BE','turkey':'TR','türkiye':'TR','netherlands':'NL',
+    'malaysia':'MY','indonesia':'ID','spain':'ES','russian federation':'RU','russia':'RU',
+    'poland':'PL','sweden':'SE','austria':'AT','philippines':'PH','portugal':'PT',
+    'thailand':'TH','switzerland':'CH','peru':'PE','czech republic':'CZ','czechia':'CZ',
+    'new zealand':'NZ','romania':'RO','singapore':'SG','united arab emirates':'AE',
+    'norway':'NO','denmark':'DK','ireland':'IE','saudi arabia':'SA','finland':'FI',
+    'chile':'CL','south africa':'ZA','egypt':'EG','viet nam':'VN','vietnam':'VN',
+    'morocco':'MA','sri lanka':'LK','pakistan':'PK','hungary':'HU','ecuador':'EC',
+    'qatar':'QA','argentina':'AR','algeria':'DZ','costa rica':'CR','slovakia':'SK',
+    'panama':'PA','dominican republic':'DO','hong kong':'HK','tunisia':'TN',
+    'taiwan':'TW','taiwan, province of china':'TW','guatemala':'GT','nigeria':'NG',
+    'kazakhstan':'KZ','ukraine':'UA','oman':'OM','israel':'IL','bangladesh':'BD',
+    'croatia':'HR','greece':'GR','luxembourg':'LU','bulgaria':'BG','kenya':'KE',
+    'el salvador':'SV','lithuania':'LT','kuwait':'KW','bahrain':'BH','belarus':'BY',
+    'honduras':'HN','iraq':'IQ','slovenia':'SI','azerbaijan':'AZ','latvia':'LV',
+    'estonia':'EE','ghana':'GH',"lao people's democratic republic":'LA','laos':'LA',
+    'jordan':'JO','serbia':'RS','nicaragua':'NI','uruguay':'UY','iceland':'IS',
+    'bolivia, plurinational state of':'BO','bolivia':'BO','libya':'LY','malta':'MT',
+    'paraguay':'PY','albania':'AL','cyprus':'CY','angola':'AO',
+    'tanzania, united republic of':'TZ','tanzania':'TZ',
+    'iran, islamic republic of':'IR','iran':'IR',
+    'venezuela, bolivarian republic of':'VE','venezuela':'VE','uganda':'UG',
+    'cambodia':'KH','myanmar':'MM','nepal':'NP','ethiopia':'ET','zimbabwe':'ZW',
+    'zambia':'ZM','senegal':'SN','ivory coast':'CI',"côte d'ivoire":'CI',
+    'cameroon':'CM','mozambique':'MZ','namibia':'NA','botswana':'BW','rwanda':'RW',
+    'brunei darussalam':'BN','brunei':'BN','maldives':'MV','mongolia':'MN',
+    'armenia':'AM','georgia':'GE','moldova':'MD','north macedonia':'MK',
+    'bosnia and herzegovina':'BA','montenegro':'ME','kosovo':'XK',
+    'liechtenstein':'LI','andorra':'AD','monaco':'MC','san marino':'SM',
+    'trinidad and tobago':'TT','jamaica':'JM','barbados':'BB','bahamas':'BS',
+    'haiti':'HT','cuba':'CU','puerto rico':'PR','ghana':'GH'
+};
+
+function countryToIso2(name) {
+    if (!name) return null;
+    const n = name.replace(/^["'\s]+|["'\s]+$/g, '').toLowerCase().trim();
+    // direct match
+    if (COUNTRY_ISO2[n]) return COUNTRY_ISO2[n];
+    // strip trailing comma-suffixes like "Korea, South" → "Korea"
+    const base = n.split(',')[0].trim();
+    return COUNTRY_ISO2[base] || null;
+}
+
+let _mapSvgText = null;
+
+async function renderCountryBreakdown(data) {
+    // Single aggregation keyed by normalised lowercase country name
+    const byName = {};
+    data.forEach(r => {
+        if (!r.country) return;
+        const rawName = r.country.replace(/^["'\s]+|["'\s]+$/g, '').trim();
+        if (!rawName) return;
+        const key = rawName.toLowerCase();
+        if (!byName[key]) byName[key] = { name: rawName, iso2: countryToIso2(rawName) || '', optedIn: 0, optedOut: 0, noResponse: 0, total: 0 };
+        byName[key].total++;
+        if (r.status === 'Opted-In')       byName[key].optedIn++;
+        else if (r.status === 'Opted-Out') byName[key].optedOut++;
+        else                                byName[key].noResponse++;
+    });
+
+    // Secondary lookup by ISO2 (same objects, no double-count)
+    const byIso = {};
+    Object.values(byName).forEach(s => { if (s.iso2) byIso[s.iso2] = s; });
+
+    // Load SVG once
+    if (!_mapSvgText) {
+        try { _mapSvgText = await fetch('../resources/world.svg').then(r => r.text()); }
+        catch (e) { console.error('world.svg load failed', e); return; }
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(_mapSvgText, 'image/svg+xml');
+    const svgEl = doc.documentElement.cloneNode(true);
+    svgEl.removeAttribute('width'); svgEl.removeAttribute('height');
+    svgEl.setAttribute('viewBox', '0 0 2000 857');
+    svgEl.style.cssText = 'width:100%;height:auto;display:block';
+
+    const tooltip = document.getElementById('countryMapTooltip');
+
+    const wireTooltip = (path, stats, label) => {
+        const rate = stats.total ? (stats.optedIn / stats.total * 100).toFixed(1) : '0.0';
+        path.addEventListener('mouseenter', () => {
+            tooltip.innerHTML = `<strong>${escapeHtml(label)}</strong><br>
+                Total: ${fmt(stats.total)}<br>
+                Opted-In: ${fmt(stats.optedIn)} (${rate}%)<br>
+                Opted-Out: ${fmt(stats.optedOut)}<br>
+                No Response: ${fmt(stats.noResponse)}`;
+            tooltip.style.display = 'block';
+        });
+    };
+    const wireNoData = (path, label) => {
+        path.addEventListener('mouseenter', () => {
+            tooltip.innerHTML = `<strong>${escapeHtml(label)}</strong><br><span style="color:#aaa">No data</span>`;
+            tooltip.style.display = 'block';
+        });
+    };
+    const wireMove = path => {
+        path.addEventListener('mousemove', e => {
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top  = (e.clientY - 10) + 'px';
+        });
+        path.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+    };
+
+    svgEl.querySelectorAll('path').forEach(path => {
+        const idAttr    = path.getAttribute('id') || '';
+        const classAttr = (path.getAttribute('class') || '').trim();
+        const nameAttr  = (path.getAttribute('name') || '').trim();
+
+        // Resolve stats: try ISO2 id first, then class name, then name attribute
+        let stats = null;
+        let label = classAttr || nameAttr || idAttr;
+
+        if (idAttr && byIso[idAttr]) {
+            stats = byIso[idAttr];
+            label = stats.name;
+        } else if (classAttr && byName[classAttr.toLowerCase()]) {
+            stats = byName[classAttr.toLowerCase()];
+            label = stats.name;
+        } else if (nameAttr && byName[nameAttr.toLowerCase()]) {
+            stats = byName[nameAttr.toLowerCase()];
+            label = stats.name;
+        }
+
+        if (stats) {
+            const rate = stats.total ? stats.optedIn / stats.total * 100 : 0;
+            path.style.fill = rate > 20 ? '#00A28F' : rate >= 10 ? '#FFA500' : '#c62828';
+            wireTooltip(path, stats, label);
+        } else if (label) {
+            wireNoData(path, label);
+        }
+        if (label) wireMove(path);
+    });
+
+    const wrap = document.getElementById('countryMapWrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(svgEl);
+
+    // Table — all countries sorted by total
+    document.getElementById('countryTableBody').innerHTML = Object.values(byName)
+        .sort((a, b) => b.total - a.total)
+        .map(c => {
+            const rate = c.total ? c.optedIn / c.total * 100 : 0;
+            return `<tr>
+                <td>${escapeHtml(c.name)}</td>
+                <td class="num-cell">${fmt(c.total)}</td>
+                <td class="num-cell"><span class="opt-badge opt-in">${fmt(c.optedIn)}</span></td>
+                <td class="num-cell"><span class="opt-badge opt-out">${fmt(c.optedOut)}</span></td>
+                <td class="num-cell"><span class="opt-badge opt-nr">${fmt(c.noResponse)}</span></td>
+                <td class="num-cell"><span class="rate-badge ${rateBadgeClass(rate)}">${rate.toFixed(1)}%</span></td>
+            </tr>`;
+        }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UNSUBSCRIBE ANALYSIS
+// ═══════════════════════════════════════════════════════════
+function renderUnsubscribeAnalysis(data) {
+    const unsub      = data.filter(r => r.unsubscribed);
+    const total      = data.length;
+    const withReason = unsub.filter(r => r.unsubReason);
+    const noReason   = unsub.filter(r => !r.unsubReason);
+
+    // KPIs — consent-data counts + email perf totals
+    const perfVals  = Object.values(emailPerfByMonth);
+    const totSent   = perfVals.reduce((s, m) => s + m.sent,        0);
+    const totDel    = perfVals.reduce((s, m) => s + m.delivered,   0);
+    const totPerfUs = perfVals.reduce((s, m) => s + m.unsubscribed, 0);
+    const avgRate   = totSent > 0 ? (totPerfUs / totSent * 100) : null;
+
+    const kpis = [
+        { label: 'Total Unsubscribed',  value: fmt(unsub.length),      sub: fmtPct(unsub.length, total) + ' of selection',               color: '#c62828' },
+        { label: 'With Stated Reason',  value: fmt(withReason.length), sub: fmtPct(withReason.length, unsub.length) + ' of unsubscribers', color: '#ef6c00' },
+        { label: 'No Reason Stated',    value: fmt(noReason.length),   sub: fmtPct(noReason.length, unsub.length)   + ' of unsubscribers', color: '#75787B' },
+        { label: 'Emails Delivered',    value: fmt(totDel),            sub: totSent ? fmtPct(totDel, totSent) + ' delivery rate' : 'from email performance data', color: '#0063AC' },
+        { label: 'Avg Unsub Rate',      value: avgRate !== null ? avgRate.toFixed(3) + '%' : '—', sub: fmt(totPerfUs) + ' unsubs from ' + fmt(totSent) + ' sent', color: '#c62828' }
+    ];
+    document.getElementById('unsubKpiRow').innerHTML = kpis.map(k =>
+        `<div class="kpi-card">
+            <div class="kpi-label">${k.label}</div>
+            <div class="kpi-value" style="color:${k.color};font-size:28px">${k.value}</div>
+            <div class="kpi-sub">${k.sub}</div>
+        </div>`
+    ).join('');
+
+    // Reasons bar chart — exclude "no reason", show it as footnote
+    const reasonCounts = {};
+    let noReasonCount = 0;
+    unsub.forEach(r => {
+        if (!r.unsubReason) { noReasonCount++; return; }
+        reasonCounts[r.unsubReason] = (reasonCounts[r.unsubReason] || 0) + 1;
+    });
+    const reasonsSorted = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]);
+    const ctx1 = document.getElementById('chartUnsubReasons').getContext('2d');
+    if (charts['chartUnsubReasons']) charts['chartUnsubReasons'].destroy();
+    if (reasonsSorted.length) {
+        charts['chartUnsubReasons'] = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: reasonsSorted.map(([r]) => r.length > 32 ? r.slice(0, 30) + '…' : r),
+                datasets: [{ data: reasonsSorted.map(([, c]) => c), backgroundColor: '#c6282899', borderWidth: 0, borderRadius: 3 }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        title: items => [reasonsSorted[items[0].dataIndex][0]],
+                        label: c => ` ${fmt(c.parsed.x)} unsubscribes`
+                    }}
+                },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => fmt(v) } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+    const noReasonEl = document.getElementById('unsubNoReasonNote');
+    if (noReasonEl) noReasonEl.textContent = `${fmt(noReasonCount)} unsubscribers (${fmtPct(noReasonCount, unsub.length)}) did not state a reason.`;
+
+    // Trend chart — delivered emails (bars) + unsub rate % (line) from email perf data
+    const perfMonths = Object.keys(emailPerfByMonth);
+    const trendKeys  = sortBucketKeys(perfMonths.length ? perfMonths : []);
+    const ctx2 = document.getElementById('chartUnsubTrend').getContext('2d');
+    if (charts['chartUnsubTrend']) charts['chartUnsubTrend'].destroy();
+    if (trendKeys.length) {
+        const delData  = trendKeys.map(k => emailPerfByMonth[k] ? emailPerfByMonth[k].delivered : 0);
+        const sentData = trendKeys.map(k => emailPerfByMonth[k] ? emailPerfByMonth[k].sent      : 0);
+        const rateData = trendKeys.map(k => {
+            const m = emailPerfByMonth[k];
+            if (!m || !m.sent) return null;
+            return parseFloat((m.unsubscribed / m.sent * 100).toFixed(3));
+        });
+        charts['chartUnsubTrend'] = new Chart(ctx2, {
+            data: {
+                labels: trendKeys,
+                datasets: [
+                    {
+                        type: 'bar', label: 'Delivered',
+                        data: delData,
+                        backgroundColor: '#0063AC33', borderColor: '#0063AC', borderWidth: 1, borderRadius: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'bar', label: 'Sent',
+                        data: sentData,
+                        backgroundColor: '#00A28F22', borderColor: '#00A28F', borderWidth: 1, borderRadius: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'line', label: 'Unsub Rate %',
+                        data: rateData,
+                        borderColor: '#c62828', backgroundColor: '#c6282820',
+                        borderWidth: 2, pointRadius: 3, pointHoverRadius: 5,
+                        fill: false, tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
+                    tooltip: {
+                        callbacks: {
+                            label: c => {
+                                if (c.dataset.label === 'Unsub Rate %') return ` Unsub Rate: ${c.parsed.y != null ? c.parsed.y.toFixed(3) + '%' : '—'}`;
+                                return ` ${c.dataset.label}: ${fmt(c.parsed.y)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, maxTicksLimit: 24 } },
+                    y: {
+                        beginAtZero: true, position: 'left',
+                        grid: { color: '#f0f0f0' },
+                        ticks: { font: { size: 11 }, callback: v => fmt(v) },
+                        title: { display: true, text: 'Emails', font: { size: 10 } }
+                    },
+                    y1: {
+                        beginAtZero: true, position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { font: { size: 11 }, callback: v => v.toFixed(2) + '%' },
+                        title: { display: true, text: 'Unsub Rate %', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // Reason × month heatmap — from Dec 2024, exclude preference-page and bad values
+    const HM_MIN = '2024-12';
+    const HM_EXCLUDE = new Set(['unsubscribed from the preference page', '1', 'unsubscribed reason', 'no response']);
+    const rbmData = {};   // reason → { month → count }
+    const rbmMonths = new Set();
+    unsub.forEach(r => {
+        if (!r.unsubReason) return;
+        if (HM_EXCLUDE.has(r.unsubReason.trim().toLowerCase())) return;
+        const key = monthKey(r.optOutMonth);
+        if (!key || key < HM_MIN) return;
+        rbmMonths.add(key);
+        if (!rbmData[r.unsubReason]) rbmData[r.unsubReason] = {};
+        rbmData[r.unsubReason][key] = (rbmData[r.unsubReason][key] || 0) + 1;
+    });
+    const rbmKeys = sortBucketKeys([...rbmMonths]);
+    const rbmReasons = Object.entries(rbmData)
+        .sort((a, b) => Object.values(b[1]).reduce((s,v) => s+v, 0) - Object.values(a[1]).reduce((s,v) => s+v, 0));
+    const hmEl = document.getElementById('unsubReasonHeatmap');
+    if (!rbmKeys.length || !rbmReasons.length) {
+        hmEl.innerHTML = '<p style="color:#75787B;font-size:12px;padding:12px 0">No data from December 2024 onwards.</p>';
+    } else {
+        const globalMax = rbmReasons.reduce((mx, [, md]) => Math.max(mx, ...Object.values(md)), 1);
+        const hmColor = (v) => {
+            if (!v) return 'background:#f8f9fa;color:#ccc';
+            const t = Math.min(v / globalMax, 1);
+            const r = Math.round(248 + (198 - 248) * t);
+            const g = Math.round(249 + (40  - 249) * t);
+            const b = Math.round(250 + (40  - 250) * t);
+            return `background:rgb(${r},${g},${b});color:${t > 0.45 ? '#fff' : '#374151'}`;
+        };
+        const colTotals = rbmKeys.map(m => rbmReasons.reduce((s, [, md]) => s + (md[m] || 0), 0));
+        hmEl.innerHTML = `<table class="heatmap-table">
+            <thead><tr>
+                <th class="hm-reason">Reason</th>
+                ${rbmKeys.map(m => `<th class="hm-month">${m}</th>`).join('')}
+                <th class="hm-total">Total</th>
+            </tr></thead>
+            <tbody>
+                ${rbmReasons.map(([reason, md]) => {
+                    const rowTotal = Object.values(md).reduce((s,v) => s+v, 0);
+                    return `<tr>
+                        <td class="hm-reason" title="${escapeHtml(reason)}">${escapeHtml(reason)}</td>
+                        ${rbmKeys.map(m => {
+                            const v = md[m] || 0;
+                            return `<td style="${hmColor(v)}">${v || ''}</td>`;
+                        }).join('')}
+                        <td class="hm-total">${fmt(rowTotal)}</td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+            <tfoot><tr>
+                <td class="hm-reason" style="font-weight:700">Total</td>
+                ${colTotals.map(t => `<td class="hm-total">${fmt(t)}</td>`).join('')}
+                <td class="hm-total">${fmt(colTotals.reduce((s,v)=>s+v,0))}</td>
+            </tr></tfoot>
+        </table>`;
+    }
+
+    // Subject lines table (top 20)
+    const subjectMap = {};
+    unsub.forEach(r => {
+        const key = r.lastUnsubSubject || '(No Subject Line)';
+        if (!subjectMap[key]) subjectMap[key] = { count: 0, email: r.lastUnsubEmail || '' };
+        subjectMap[key].count++;
+    });
+    const subjectSorted = Object.entries(subjectMap).sort((a, b) => b[1].count - a[1].count).slice(0, 20);
+    const unsubTotal = unsub.length;
+    document.getElementById('unsubSubjectBody').innerHTML = subjectSorted.length
+        ? subjectSorted.map(([subj, d]) =>
+            `<tr>
+                <td class="prog-name" title="${escapeHtml(subj)}">${escapeHtml(subj)}</td>
+                <td class="num-cell"><span class="opt-badge opt-out">${fmt(d.count)}</span></td>
+                <td class="num-cell">${fmtPct(d.count, unsubTotal)}</td>
+                <td class="prog-name" title="${escapeHtml(d.email)}">${escapeHtml(d.email) || '—'}</td>
+            </tr>`
+        ).join('')
+        : '<tr><td colspan="4" style="text-align:center;color:#75787B;padding:20px">No unsubscribe subject line data available</td></tr>';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA INCONSISTENCIES
+// ═══════════════════════════════════════════════════════════
+let _incons = [];
+
+const INCON_RULES = [
+    {
+        id: 'rule1',
+        name: 'Email Opt-In = Yes, but status ≠ Opted-In',
+        description: 'When "1. Email Opt-In" = Yes, the Opted-In status should be "Opted-In". These records may indicate a data sync issue.',
+        test: r => r.emailOptIn.toLowerCase() === 'yes' && r.status !== 'Opted-In'
+    },
+    {
+        id: 'rule2',
+        name: 'Unsubscribed = True, but status ≠ Opted-Out',
+        description: 'When "Unsubscribed" = True, the Opted-In status should be "Opted-Out". These records may be erroneously treated as active.',
+        test: r => r.unsubscribed && r.status !== 'Opted-Out'
+    },
+    {
+        id: 'rule3',
+        name: 'Not unsubscribed, no Email Opt-In, but status ≠ No Response',
+        description: 'When "Unsubscribed" is False/empty and "Email Opt-In" is blank, the Opted-In status should be "No Response".',
+        test: r => !r.unsubscribed && !r.emailOptIn && r.status !== 'No Response'
+    }
+];
+
+function renderDataInconsistencies(data) {
+    _incons = INCON_RULES.map(rule => ({
+        ...rule,
+        records: data.filter(rule.test)
+    }));
+
+    document.getElementById('incon-grid').innerHTML = _incons.map((rule, i) => {
+        const count   = rule.records.length;
+        const isClean = count === 0;
+        const previewRows = rule.records.slice(0, 50).map(r =>
+            `<tr>
+                <td title="${escapeHtml(r.email)}">${escapeHtml(r.email)}</td>
+                <td>${escapeHtml(r.country || '—')}</td>
+                <td><span class="opt-badge ${r.status === 'Opted-In' ? 'opt-in' : r.status === 'Opted-Out' ? 'opt-out' : 'opt-nr'}">${escapeHtml(r.status)}</span></td>
+                <td>${escapeHtml(r.emailOptIn || '—')}</td>
+                <td>${r.unsubscribed ? 'Yes' : 'No'}</td>
+                <td>${r.created ? r.created.toLocaleDateString() : '—'}</td>
+            </tr>`
+        ).join('');
+
+        return `<div class="incon-card${isClean ? ' clean' : ''}" id="incon-card-${i}">
+            <div class="incon-title">${rule.name}</div>
+            <div class="incon-count${isClean ? ' clean' : ''}">${fmt(count)}</div>
+            <div class="incon-desc">${rule.description}</div>
+            ${count > 0 ? `
+            <div class="incon-actions">
+                <button class="incon-btn" onclick="toggleInconExpand(${i})">View Records</button>
+                <button class="incon-btn" onclick="exportInconsistency(${i})">Export CSV</button>
+            </div>
+            <div class="incon-expand" id="incon-expand-${i}">
+                <div style="font-size:11px;color:#75787B;margin-bottom:6px">Showing ${Math.min(count, 50)} of ${fmt(count)} records — export for full list</div>
+                <table>
+                    <thead><tr>
+                        <th>Email</th><th>Country</th><th>Opted-In Status</th>
+                        <th>Email Opt-In</th><th>Unsubscribed</th><th>Created</th>
+                    </tr></thead>
+                    <tbody>${previewRows}</tbody>
+                </table>
+            </div>` : `<div style="font-size:11px;color:#00A28F;font-weight:600;margin-top:4px">✓ No inconsistencies found</div>`}
+        </div>`;
+    }).join('');
+}
+
+function toggleInconExpand(i) {
+    const el  = document.getElementById('incon-expand-' + i);
+    const btn = document.querySelector('#incon-card-' + i + ' .incon-btn');
+    if (!el) return;
+    const opening = el.style.display !== 'block';
+    el.style.display = opening ? 'block' : 'none';
+    if (btn) btn.textContent = opening ? 'Hide Records' : 'View Records';
+}
+
+function exportInconsistency(i) {
+    const rule = _incons[i];
+    if (!rule || !rule.records.length) return;
+    const header = 'Email,Country,Opted-In Status,Email Opt-In,Unsubscribed,Unsubscribed Reason,Last Unsub Email,Last Unsub Subject,Created';
+    const rows = rule.records.map(r => [
+        csvEscape(r.email),
+        csvEscape(r.country),
+        csvEscape(r.status),
+        csvEscape(r.emailOptIn),
+        r.unsubscribed ? 'True' : 'False',
+        csvEscape(r.unsubReason),
+        csvEscape(r.lastUnsubEmail),
+        csvEscape(r.lastUnsubSubject),
+        r.created ? r.created.toLocaleDateString() : ''
+    ].join(','));
+    const blob = new Blob([header + '\n' + rows.join('\n')], { type: 'text/csv' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `inconsistency-rule${i + 1}.csv` });
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async function () {
+    showLoading('Auto-loading latest consent export…');
+    const [file] = await Promise.all([
+        detectLatestConsent(),
+        loadEmailPerf()
+    ]);
+    if (file) {
+        await loadFile(file);
+    } else {
+        showEmpty();
+    }
+});
+</script>
+</body>
+</html>

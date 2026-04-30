@@ -213,7 +213,11 @@
                 <p>Email performance by program — delivery rate, open rate, click rate, click-to-open, bounce rate, unsubscribes, and complaints across all sending channels.</p>
                 <div class="data-file">
                     <span class="status-dot" id="dotEmail"></span>
-                    <code id="emailFileLabel">Dashboard_Export_Emails.xlsx</code>
+                    <code id="emailFileLabel">Dashboard_Emails_Performance.xlsx</code>
+                </div>
+                <div class="data-file">
+                    <span class="status-dot" id="dotEmailURL"></span>
+                    <code id="emailURLFileLabel">Dashboard_Emails_URL.xlsx</code>
                 </div>
             </a>
 
@@ -290,7 +294,8 @@
         findLatest('Dashboard_Export.csv',           'dotDQ',       'dqFileLabel');
         findLatest('Dashboard_Export.csv',           'dotLeadGen',  'leadGenFileLabel');
         findLatest('Dashboard_Export_Consent.csv',   'dotConsent',  'consentFileLabel');
-        findLatest('Dashboard_Export_Emails.xlsx',   'dotEmail',    'emailFileLabel');
+        findLatest('Dashboard_Emails_Performance.xlsx',     'dotEmail',    'emailFileLabel');
+        findLatest('Dashboard_Emails_URL.xlsx',        'dotEmailURL', 'emailURLFileLabel');
         findLatest('iCapture Events.csv',            'dotEvt1',     'evtFile1');
         findLatest('iCapture Users.csv',             'dotEvt2',     'evtFile2');
         findLatest('iCapture Membership.xlsx',       'dotEvt3',     'evtFile3');

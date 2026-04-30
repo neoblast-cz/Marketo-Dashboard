@@ -8,6 +8,82 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <style>
+    /* ── Match program analytics: static header + filter bar so sidenav top:0 works ── */
+    .header     { position: static !important; }
+    .filter-bar { position: static; }
+
+    /* ── Sidebar navigation ─────────────────────────────────── */
+    #pageLayout { display: flex; align-items: flex-start; }
+    #sidenav {
+        position: sticky; top: 0; flex-shrink: 0; width: 200px;
+        max-height: 100vh; overflow-y: auto;
+        border-right: 1px solid #e5e7eb; background: #fff;
+        padding: 14px 0 16px; box-sizing: border-box;
+    }
+    #navSearch {
+        display: block; width: calc(100% - 24px); margin: 0 12px 10px;
+        padding: 5px 8px; font-size: 12px;
+        border: 1px solid #e5e7eb; border-radius: 4px; color: #374151;
+        outline: none;
+    }
+    #navSearch:focus { border-color: #0063AC; }
+    .nav-group { margin-bottom: 4px; }
+    .nav-group-label {
+        padding: 6px 12px 3px;
+        font-size: 9px; font-weight: 700; letter-spacing: .6px;
+        text-transform: uppercase; color: #9ca3af;
+    }
+    .nav-link {
+        display: flex; align-items: center;
+        padding: 4px 12px; font-size: 12px; font-weight: 500;
+        color: #374151; text-decoration: none;
+        border-left: 3px solid transparent;
+        transition: background .1s, color .1s;
+    }
+    .nav-link:hover, .nav-sub-link:hover { background: #f8fafc; color: #0063AC; }
+    .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; }
+    .nav-sub-link {
+        display: flex; align-items: center;
+        padding: 3px 12px 3px 26px;
+        font-size: 11px; color: #9ca3af;
+        text-decoration: none; border-left: 3px solid transparent;
+        line-height: 1.3; transition: background .1s, color .1s;
+    }
+    .nav-sub-link.active { border-left-color: #93c5fd; background: #f0f5fc; color: #0063AC; }
+    #sections { flex: 1; min-width: 0; }
+    .section-label { scroll-margin-top: 16px; }
+    .chart-anchor { scroll-margin-top: 16px; }
+
+    /* ── Attribution Health card ───────────────────────────── */
+    .ah-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .ah-grid { grid-template-columns: 1fr 1fr; } }
+    .ah-field { }
+    .ah-field-title {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; color: #6b7280; margin-bottom: 12px;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .ah-field-title span {
+        font-size: 9px; font-weight: 500; text-transform: none; letter-spacing: 0;
+        color: #9ca3af; padding: 1px 5px; background: #f3f4f6;
+        border-radius: 3px;
+    }
+    .ah-big-pct { font-size: 28px; font-weight: 700; color: #111827; line-height: 1; }
+    .ah-big-pct .ah-pct-label { font-size: 12px; font-weight: 500; color: #6b7280; margin-left: 4px; }
+    .ah-bar-wrap { height: 7px; background: #f3f4f6; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+    .ah-bar-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+    .ah-meta { font-size: 11px; color: #9ca3af; }
+    .ah-meta strong { color: #374151; }
+    .ah-divider { border: none; border-top: 1px solid #f0f0f0; margin: 14px 0; }
+    .ah-dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .ah-dist-label { font-size: 10px; color: #6b7280; width: 20px; flex-shrink: 0; text-align: right; }
+    .ah-dist-bar-wrap { flex: 1; height: 10px; background: #f3f4f6; border-radius: 3px; overflow: hidden; }
+    .ah-dist-bar { height: 100%; border-radius: 3px; }
+    .ah-dist-count { font-size: 10px; color: #9ca3af; width: 52px; text-align: right; flex-shrink: 0; }
+    .ah-hist-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 10px; }
+    .ah-hist-col-title { font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    </style>
 </head>
 <body>
 
@@ -309,6 +385,21 @@
                     </div>
                 </div>
 
+                <!-- Person Status -->
+                <div class="ms-wrap" id="dms-personStatus">
+                    <button class="ms-btn" onclick="toggleDms('personStatus',event)">
+                        <span id="dms-personStatus-label">Person Status</span>
+                        <svg class="ms-chevron" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="ms-panel" id="dms-personStatus-panel" onclick="event.stopPropagation()">
+                        <div class="ms-actions">
+                            <button onclick="selectAllDms('personStatus')">Select All</button>
+                            <button onclick="clearDms('personStatus')">Clear</button>
+                        </div>
+                        <div class="ms-list" id="dms-personStatus-list"></div>
+                    </div>
+                </div>
+
                 <button class="filter-reset" onclick="resetDemandFilters()">Reset All</button>
                 <span class="filter-count" id="demandFilterCount"></span>
             </div>
@@ -422,10 +513,46 @@
                 <button class="quick-filter-btn" id="lgPreset_all" onclick="setLgDatePreset('all')"  style="margin:0;padding:3px 9px;font-size:11px">All time</button>
             </div>
 
-        </div>
+        </div><!-- /demandFilterBar -->
 
+        <div id="pageLayout">
+        <nav id="sidenav">
+            <input id="navSearch" type="search" placeholder="Search…" oninput="navSearch(this.value)">
+            <div class="nav-group">
+                <div class="nav-group-label">Lead Management</div>
+                <a class="nav-link" href="#sec-lmp">Lead Management Process</a>
+                <a class="nav-sub-link" href="#sec-lmp">Funnel stages &amp; transitions</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Funnel</div>
+                <a class="nav-link" href="#sec-funnel">Marketing Funnel</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Attribution</div>
+                <a class="nav-link" href="#sec-attrhealth">Attribution Health</a>
+                <a class="nav-sub-link" href="#sec-attrhealth">Field completeness</a>
+                <a class="nav-sub-link" href="#sec-attrhealth">Touchpoint distribution</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Scoring</div>
+                <a class="nav-link" href="#sec-scoring">Lead Scoring Matrix</a>
+                <a class="nav-sub-link" href="#sec-scoring">Urgency × Score matrix</a>
+                <a class="nav-sub-link" href="#sec-scoring">Scoring methodology</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Flow</div>
+                <a class="nav-link" href="#sec-sankey">Lead Flow</a>
+                <a class="nav-sub-link" href="#sec-sankey">Channel → Funnel stage</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">Analysis</div>
+                <a class="nav-link" href="#sec-constellation">Program Constellation</a>
+                <a class="nav-sub-link" href="#sec-constellation">Co-occurrence network</a>
+            </div>
+        </nav>
+        <div id="sections">
         <div class="main">
-            <div class="section-label">Lead Management Process
+            <div id="sec-lmp" class="section-label">Lead Management Process
                 <span class="section-label-note" id="demandLeadCount"></span>
             </div>
             <div class="chart-card">
@@ -455,7 +582,7 @@
                                 <div class="lmp-stage-explore" id="lmpExploreAssigned"><svg viewBox="0 0 12 8" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 6 7 11 1"/></svg></div>
                             </div>
                             <div class="lmp-stage lmp-prospect" id="lmpBoxProspect">
-                                <div class="lmp-stage-name">People</div>
+                                <div class="lmp-stage-name">Prospects</div>
                                 <div class="lmp-stage-val" id="ffProspect">—</div>
                                 <div class="lmp-stage-pct" id="ffProspectPct"></div>
                             </div>
@@ -527,10 +654,15 @@
                 <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
-            <div class="section-label" style="margin-top:24px">Marketing Funnel</div>
+            <div id="sec-funnel" class="section-label" style="margin-top:24px">Marketing Funnel</div>
             <div class="chart-card" id="simpleFunnelCard" style="padding:20px 28px"></div>
 
-            <div class="section-label" style="margin-top:24px">Lead Scoring Matrix
+            <div id="sec-attrhealth" class="section-label" style="margin-top:24px">Attribution Field Health
+                <span class="section-label-note">Field completeness &amp; touchpoint coverage</span>
+            </div>
+            <div class="chart-card" id="attrHealthCard" style="padding:20px 24px"></div>
+
+            <div id="sec-scoring" class="section-label" style="margin-top:24px">Lead Scoring Matrix
                 <span class="section-label-note">Relative Urgency × Relative Score</span>
             </div>
             <div class="chart-card" style="overflow-x:auto">
@@ -789,7 +921,7 @@
             </div>
 
             <!-- ── Sankey: Channel → Funnel Stage ── -->
-            <div class="section-label" style="margin-top:28px">Lead Flow — Acquisition Channel → Funnel Stage</div>
+            <div id="sec-sankey" class="section-label" style="margin-top:28px">Lead Flow — Acquisition Channel → Funnel Stage</div>
             <div class="chart-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
                     <div class="chart-title" style="margin:0">Which channels feed which funnel stages</div>
@@ -808,8 +940,54 @@
                 <div style="font-size:10px;color:#bbb;margin-top:8px">Link width proportional to lead count. Responds to all demand filters above.</div>
             </div>
 
-        </div>
-    </div>
+            <!-- ── Program Constellation ── -->
+            <div id="sec-constellation" class="section-label" style="margin-top:28px">Program Constellation
+                <span class="section-label-note">Historical program co-occurrence network</span>
+            </div>
+            <div class="chart-card">
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                    <div class="chart-title" style="margin:0">Which programs appear together in a lead's history</div>
+                    <div style="display:flex;gap:0;border:1px solid #dde0e7;border-radius:5px;overflow:hidden;flex-shrink:0">
+                        <button id="btnConstellSuccess"   onclick="setConstellMode('success')"   class="lmp-period-btn active" style="font-size:10px;border-radius:0;border:none;border-right:1px solid #dde0e7">Success</button>
+                        <button id="btnConstellQualified" onclick="setConstellMode('qualified')" class="lmp-period-btn"        style="font-size:10px;border-radius:0;border:none">Qualified</button>
+                    </div>
+                    <label style="font-size:11px;color:#888;display:flex;align-items:center;gap:5px;cursor:pointer">
+                        Top
+                        <select id="constellTopN" onchange="renderConstellationChart()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;background:#fff;color:#374151;cursor:pointer">
+                            <option value="20">20</option>
+                            <option value="30" selected>30</option>
+                            <option value="50">50</option>
+                            <option value="80">80</option>
+                        </select>
+                        programs
+                    </label>
+                    <label style="font-size:11px;color:#888;display:flex;align-items:center;gap:5px;cursor:pointer">
+                        Min. co-occurrences
+                        <select id="constellMinEdge" onchange="renderConstellationChart()" style="font-size:11px;border:1px solid #dde0e7;border-radius:4px;padding:2px 6px;background:#fff;color:#374151;cursor:pointer">
+                            <option value="1">1</option>
+                            <option value="2" selected>2</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                        </select>
+                    </label>
+                    <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap" id="constellLegend">
+                        <button onclick="toggleConstellGroup('Organic')"  id="cleg-Organic"  style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;background:none;border:1px solid #e2e6ea;border-radius:4px;padding:2px 7px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:#00A28F;display:inline-block;flex-shrink:0"></span>Organic</button>
+                        <button onclick="toggleConstellGroup('Paid')"     id="cleg-Paid"     style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;background:none;border:1px solid #e2e6ea;border-radius:4px;padding:2px 7px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:#0063AC;display:inline-block;flex-shrink:0"></span>Paid</button>
+                        <button onclick="toggleConstellGroup('Events')"   id="cleg-Events"   style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;background:none;border:1px solid #e2e6ea;border-radius:4px;padding:2px 7px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:#3B82F6;display:inline-block;flex-shrink:0"></span>Events</button>
+                        <button onclick="toggleConstellGroup('Webinar')"  id="cleg-Webinar"  style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;background:none;border:1px solid #e2e6ea;border-radius:4px;padding:2px 7px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:#7C3AED;display:inline-block;flex-shrink:0"></span>Webinar</button>
+                        <button onclick="toggleConstellGroup('Other')"    id="cleg-Other"    style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;background:none;border:1px solid #e2e6ea;border-radius:4px;padding:2px 7px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:#9CA3AF;display:inline-block;flex-shrink:0"></span>Other</button>
+                    </div>
+                </div>
+                <canvas id="chartConstellation" style="display:block;width:100%"></canvas>
+                <div id="constellEmpty" style="display:none;padding:40px;text-align:center;color:#aaa;font-size:13px">No co-occurrence data found. Leads need at least 2 historical programs.</div>
+                <div id="constellNote" style="font-size:10px;color:#bbb;margin-top:8px">Node size = number of leads with that program in history. Edge thickness = number of leads with both programs in their history. Hover for details.</div>
+            </div>
+
+        </div><!-- /main -->
+        </div><!-- /sections -->
+        </div><!-- /pageLayout -->
+    </div><!-- /demandContent -->
 
     <div class="footer" id="footerEl" style="display:none">Ansell Healthcare &middot; Marketo Lead Generation</div>
 
@@ -862,6 +1040,24 @@
         '#00695c','#6a1b9a','#01579b','#004d40','#4a148c',
         '#0d47a1','#006064','#311b92','#37474f','#546e7a'
     ];
+
+    // Acquisition channel group colours (for constellation + scatter charts)
+    const ACQ_GROUPS = {
+        Organic: ['Organic-social-LN','Organic-social-FB','Organic-social-WCH','Organic-social-other',
+                  'Web-form-ORG','Web-form-DIR','Web-form-AI','Web Form','Referral-INT','Chatbot','Highspot','Online'],
+        Paid:    ['Paid-search','Paid-social-LN','Paid-social-FB','Paid-social-other',
+                  'Paid-display','Paid-video','Paid-list','Paid-msg','Paid-mix'],
+        Events:  ['Events','Offline'],
+        Webinar: ['Webinar'],
+        Other:   []
+    };
+    const ACQ_GROUP_COLORS = { Organic:'#00A28F', Paid:'#0063AC', Events:'#3B82F6', Webinar:'#7C3AED', Other:'#9CA3AF' };
+    function getAcqGroup(channel) {
+        for (var g in ACQ_GROUPS) {
+            if (ACQ_GROUPS[g].indexOf(channel) !== -1) return g;
+        }
+        return 'Other';
+    }
 
     // Acquisition Channel colour map
 
@@ -950,6 +1146,8 @@
     //  STATE
     // ═══════════════════════════════════════════════════════════
     let allData = [];
+    let rawLeads    = [];   // sfdcType === 'Lead' or blank — pre-split at parse time
+    let rawContacts = [];   // sfdcType === 'Contact'       — pre-split at parse time
     let charts = {};
     let exportDateStr = '';
 
@@ -1298,69 +1496,87 @@
 
     function processData(raw) {
         demandFiltersInitialized = false; // force filter rebuild on next demand tab visit
-        allData = raw.map(r => ({
-            createdYear:  parseYear(r['Created At']),
-            createdMonth: parseMonth(r['Created At']),
-            country:      (r['Country'] || '').trim(),
-            sfdcType:     (r['SFDC Type'] || '').trim(),
-            acqProgram:   (r['Acquisition Program Name'] || '').trim(),
-            deliverability:(r['Deliverability Segment'] || '').trim(),
-            language:     (r['Language 2025 Segment'] || '').trim(),
-            org:          (r['Organisation'] || '').trim(),
-            optInYear:    parseYear(r['1. Current Opt-In Timestamp']),
-            optInMonth:   parseMonth(r['1. Current Opt-In Timestamp']),
-            vertical:     (r['Vertical'] || '').trim(),
-            subVertical:  (r['Sub Vertical'] || '').trim(),
-            gbu:          (r['1. GBU'] || '').trim(),
-            recordType:   RECORD_TYPE_MAP[r['Record Type ID (A)']] || (r['Record Type ID (A)'] ? 'Other' : ''),
-            channel:      deriveChannel(r['Acquisition Program Name']),
-            accountId18:  (r['Account ID 18'] || '').trim(),
-            personStatus:      (r['Person Status'] || '').trim(),
-            relUrgency:        (r['Relative Urgency'] || '').trim(),
-            relScore:          (r['Relative Score'] || '').trim(),
-            recycledReason:    (r['Recycled Reason'] || '').trim(),
-            inNurture:         (r['In Nurture'] || '').toString().trim(),
-            unqualifiedReason: (r['Unqualified Reason'] || '').trim(),
-            assignedQueue:     (r['Queue Name'] || '').trim(),
-            mqlDate:           (r['MQL Date'] || '').trim(),
-            workingDate:       (r['Working Date'] || '').trim(),
-            nurtureDate:       (r['Nurture Date'] || '').trim(),
-            unqualifiedDate:   (r['Unqualified Date'] || '').trim(),
-            convertedDate:     (r['Converted Date'] || '').trim(),
-            referralStatus:    (r['Referral'] || '').trim(),
-            referralDate:      (r['Referral Date'] || '').trim(),
-            salesOwner:        (r['Sales Owner Email Address'] || '').trim(),
-            createdDate:       (r['Created At'] || '').trim(),
-            region:            (r['Region'] || '').trim(),
-            leadRecordType:    (function() { const v = (r['Record Type ID'] || '').trim(); if (!v) return ''; return LEAD_RT_MAP[v] || v; })(),
-            phone:             (r['Phone Number'] || '').trim(),
-            roleDescription:   (r['Role Description'] || '').trim(),
-            jobTitle:          (r['Job Title'] || '').trim(),
-            lastProgram:       (r['Last Program Name'] || '').trim(),
-            lastQualProgram:   (r['Last Qualified Program Name'] || '').trim(),
-            histSuccess:       parseHistoryField(r['History Last Successful Program']),
-            histQualified:     parseHistoryField(r['History Program Membership Qualified'])
-        }));
 
-        // Normalize casing on all free-text fields: group by lowercase, keep most-common casing
-        // so "INDUSTRIAL" and "Industrial" are treated as the same value everywhere
+        // Map raw rows — skip expensive parseHistoryField for Contacts (they have no funnel history)
+        allData = raw.map(r => {
+            const sfdcType = (r['SFDC Type'] || '').trim();
+            const isContact = sfdcType === 'Contact';
+            return {
+                createdYear:  parseYear(r['Created At']),
+                createdMonth: parseMonth(r['Created At']),
+                country:      (r['Country'] || '').trim(),
+                sfdcType,
+                acqProgram:   (r['Acquisition Program Name'] || '').trim(),
+                deliverability:(r['Deliverability Segment'] || '').trim(),
+                language:     (r['Language 2025 Segment'] || '').trim(),
+                org:          (r['Organisation'] || '').trim(),
+                optInYear:    parseYear(r['1. Current Opt-In Timestamp']),
+                optInMonth:   parseMonth(r['1. Current Opt-In Timestamp']),
+                vertical:     (r['Vertical'] || '').trim(),
+                subVertical:  (r['Sub Vertical'] || '').trim(),
+                gbu:          (r['1. GBU'] || '').trim(),
+                recordType:   RECORD_TYPE_MAP[r['Record Type ID (A)']] || (r['Record Type ID (A)'] ? 'Other' : ''),
+                channel:      deriveChannel(r['Acquisition Program Name']),
+                accountId18:  (r['Account ID 18'] || '').trim(),
+                personStatus:      (r['Person Status'] || '').trim(),
+                relUrgency:        (r['Relative Urgency'] || '').trim(),
+                relScore:          (r['Relative Score'] || '').trim(),
+                recycledReason:    (r['Recycled Reason'] || '').trim(),
+                inNurture:         (r['In Nurture'] || '').toString().trim(),
+                unqualifiedReason: (r['Unqualified Reason'] || '').trim(),
+                assignedQueue:     (r['Queue Name'] || '').trim(),
+                mqlDate:           (r['MQL Date'] || '').trim(),
+                workingDate:       (r['Working Date'] || '').trim(),
+                nurtureDate:       (r['Nurture Date'] || '').trim(),
+                unqualifiedDate:   (r['Unqualified Date'] || '').trim(),
+                convertedDate:     (r['Converted Date'] || '').trim(),
+                referralStatus:    (r['Referral'] || '').trim(),
+                referralDate:      (r['Referral Date'] || '').trim(),
+                salesOwner:        (r['Sales Owner Email Address'] || '').trim(),
+                createdDate:       (r['Created At'] || '').trim(),
+                region:            (r['Region'] || '').trim(),
+                leadRecordType:    (function() { const v = (r['Record Type ID'] || '').trim(); if (!v) return ''; return LEAD_RT_MAP[v] || v; })(),
+                phone:             (r['Phone Number'] || '').trim(),
+                roleDescription:   (r['Role Description'] || '').trim(),
+                jobTitle:          (r['Job Title'] || '').trim(),
+                lastProgram:       (r['Last Program Name'] || '').trim(),
+                lastQualProgram:   (r['Last Qualified Program Name'] || '').trim(),
+                histSuccess:  parseHistoryField(r['History Program Membership Success']),
+                histQualified: parseHistoryField(r['History Program Membership Qualified'])
+            };
+        });
+
+        // Normalize casing on free-text fields: group by lowercase, keep most-common casing
+        // 2 passes over allData regardless of field count (was 14 fields × 2 = 28 passes)
         const NORMALIZE_FIELDS = ['org','gbu','country','sfdcType','deliverability',
                                    'language','vertical','subVertical','acqProgram','channel','personStatus',
                                    'region','roleDescription','lastProgram','lastQualProgram'];
-        NORMALIZE_FIELDS.forEach(field => {
-            const casings = {};
-            allData.forEach(r => {
+        const _casings = {};
+        NORMALIZE_FIELDS.forEach(f => { _casings[f] = {}; });
+        allData.forEach(r => {                                          // pass 1: collect
+            NORMALIZE_FIELDS.forEach(field => {
                 const v = r[field]; if (!v) return;
                 const k = v.toLowerCase();
-                if (!casings[k]) casings[k] = {};
-                casings[k][v] = (casings[k][v] || 0) + 1;
+                if (!_casings[field][k]) _casings[field][k] = {};
+                _casings[field][k][v] = (_casings[field][k][v] || 0) + 1;
             });
-            const canonical = {};
-            Object.entries(casings).forEach(([k, counts]) => {
-                canonical[k] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-            });
-            allData.forEach(r => { if (r[field]) r[field] = canonical[r[field].toLowerCase()]; });
         });
+        const _canonical = {};
+        NORMALIZE_FIELDS.forEach(field => {
+            _canonical[field] = {};
+            Object.entries(_casings[field]).forEach(([k, cnts]) => {
+                _canonical[field][k] = Object.entries(cnts).sort((a, b) => b[1] - a[1])[0][0];
+            });
+        });
+        allData.forEach(r => {                                          // pass 2: apply
+            NORMALIZE_FIELDS.forEach(field => {
+                if (r[field]) r[field] = _canonical[field][r[field].toLowerCase()];
+            });
+        });
+
+        // Pre-split for fast demand-tab filtering — done once, reused on every render
+        rawLeads    = allData.filter(r => r.sfdcType !== 'Contact');
+        rawContacts = allData.filter(r => r.sfdcType === 'Contact');
 
         demandFiltersInitialized = false;
         showDash();
@@ -2522,6 +2738,8 @@
             }
             document.getElementById('exportBadge').style.display = 'inline-flex';
         }
+        // Initialise sidebar nav observer once content is visible
+        setTimeout(initNavObserver, 50);
     }
 
     let globalLeadsOnly    = false;
@@ -2644,8 +2862,8 @@
     // ═══════════════════════════════════════════════════════════
 
     // ── Demand filter state ──────────────────────────────────────
-    const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set(), acqProgram: new Set(), lastProgram: new Set(), lastQualProgram: new Set(), mtProgram: new Set() };
-    const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country', acqProgram: 'Acquisition Program', lastProgram: 'Last Program', lastQualProgram: 'Last Qualified Program', mtProgram: 'Multi-Touch Program' };
+    const dmsState = { org: new Set(), gbu: new Set(), deliv: new Set(), vertical: new Set(), country: new Set(), personStatus: new Set(), acqProgram: new Set(), lastProgram: new Set(), lastQualProgram: new Set(), mtProgram: new Set() };
+    const DMS_LABELS = { org: 'Organisation', gbu: 'GBU', deliv: 'Deliverability', vertical: 'Vertical', country: 'Country', personStatus: 'Person Status', acqProgram: 'Acquisition Program', lastProgram: 'Last Program', lastQualProgram: 'Last Qualified Program', mtProgram: 'Multi-Touch Program' };
     let lastTouchMode = 'success'; // 'success' | 'qualified'
     let mtMode        = 'success'; // 'success' | 'qualified'
     let demandFiltersInitialized = false;
@@ -2726,11 +2944,9 @@
     }
 
     function buildMtProgramList() {
-        const leads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType);
         const field  = mtMode === 'success' ? 'histSuccess' : 'histQualified';
         const counts = {};
-        leads.forEach(r => {
-            // Count each program once per lead (not per occurrence)
+        [...rawLeads, ...rawContacts].forEach(r => {
             new Set(r[field] || []).forEach(p => { if (p) counts[p] = (counts[p] || 0) + 1; });
         });
         const opts = Object.entries(counts).sort(([,a],[,b]) => b - a);
@@ -2790,13 +3006,23 @@
     }
 
     function buildDemandFilters() {
-        // Base population: all leads (before demand filters, but using same allData)
-        const leads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType);
+        // Base population: pre-split rawLeads (Lead + blank sfdcType)
+        const leads = rawLeads;
         buildDmsList('org',      [...new Set(leads.map(r => r.org))].filter(v => v).sort());
         buildDmsList('gbu',      [...new Set(leads.map(r => r.gbu))].filter(v => v).sort());
         buildDmsList('deliv',    [...new Set(leads.map(r => r.deliverability))].filter(v => v).sort());
         buildDmsList('vertical', [...new Set(leads.map(r => r.vertical))].filter(v => v).sort());
         buildDmsList('country',  [...new Set(leads.map(r => r.country))].filter(v => v).sort());
+        // Person Status — in funnel order, blank = unassigned demand gen pool
+        (function() {
+            const order = ['', 'Assigned', 'Prospect', 'Working', 'Converted', 'Nurture', 'Referral', 'Unqualified'];
+            const counts = {};
+            leads.forEach(r => { const v = r.personStatus !== undefined ? r.personStatus : ''; counts[v] = (counts[v] || 0) + 1; });
+            const opts = order.filter(s => counts[s] !== undefined).map(s => [s === '' ? '(blank)' : s, counts[s]]);
+            // Also catch any values not in the order list
+            Object.keys(counts).forEach(s => { if (!order.includes(s)) opts.push([s || '(blank)', counts[s]]); });
+            buildDmsListWithCounts('personStatus', opts);
+        })();
         // Program filters — sorted by count descending so biggest campaigns appear first
         function buildProgList(id, field) {
             const counts = {};
@@ -2813,13 +3039,13 @@
     }
 
     function applyDemandFilters() {
-        return allData.filter(r => {
-            if (r.sfdcType !== 'Lead' && r.sfdcType !== '') return false;
+        return rawLeads.filter(r => {
             if (dmsState.org.size             && !dmsState.org.has(r.org                  || '(blank)')) return false;
             if (dmsState.gbu.size             && !dmsState.gbu.has(r.gbu                  || '(blank)')) return false;
             if (dmsState.deliv.size           && !dmsState.deliv.has(r.deliverability      || '(blank)')) return false;
             if (dmsState.vertical.size        && !dmsState.vertical.has(r.vertical         || '(blank)')) return false;
             if (dmsState.country.size         && !dmsState.country.has(r.country           || '(blank)')) return false;
+            if (dmsState.personStatus.size    && !dmsState.personStatus.has(r.personStatus || '(blank)')) return false;
             if (dmsState.acqProgram.size      && !dmsState.acqProgram.has(r.acqProgram     || '(blank)')) return false;
             if (dmsState.lastProgram.size     && !dmsState.lastProgram.has(r.lastProgram    || '(blank)')) return false;
             if (dmsState.lastQualProgram.size && !dmsState.lastQualProgram.has(r.lastQualProgram || '(blank)')) return false;
@@ -2832,13 +3058,14 @@
     }
 
     function applyDemandFiltersContacts() {
-        return allData.filter(r => {
-            if (r.sfdcType !== 'Contact' || !r.convertedDate) return false;
+        return rawContacts.filter(r => {
+            if (!r.convertedDate) return false;
             if (dmsState.org.size             && !dmsState.org.has(r.org                  || '(blank)')) return false;
             if (dmsState.gbu.size             && !dmsState.gbu.has(r.gbu                  || '(blank)')) return false;
             if (dmsState.deliv.size           && !dmsState.deliv.has(r.deliverability      || '(blank)')) return false;
             if (dmsState.vertical.size        && !dmsState.vertical.has(r.vertical         || '(blank)')) return false;
             if (dmsState.country.size         && !dmsState.country.has(r.country           || '(blank)')) return false;
+            if (dmsState.personStatus.size    && !dmsState.personStatus.has(r.personStatus || '(blank)')) return false;
             if (dmsState.acqProgram.size      && !dmsState.acqProgram.has(r.acqProgram     || '(blank)')) return false;
             if (dmsState.lastProgram.size     && !dmsState.lastProgram.has(r.lastProgram    || '(blank)')) return false;
             if (dmsState.lastQualProgram.size && !dmsState.lastQualProgram.has(r.lastQualProgram || '(blank)')) return false;
@@ -3113,8 +3340,8 @@
         setBadge('tBadgeNurture',     countPeriod('nurtureDate',     currFrom, currTo), countPeriod('nurtureDate',     prevFrom, prevTo));
         setBadge('tBadgeUnqualified', countPeriod('unqualifiedDate', currFrom, currTo), countPeriod('unqualifiedDate', prevFrom, prevTo));
         function countConverted(from, to) {
-            return allData.filter(r => {
-                if (r.sfdcType !== 'Contact' || !r.convertedDate) return false;
+            return rawContacts.filter(r => {
+                if (!r.convertedDate) return false;
                 if (dmsState.org.size      && !dmsState.org.has(r.org             || '(blank)')) return false;
                 if (dmsState.gbu.size      && !dmsState.gbu.has(r.gbu             || '(blank)')) return false;
                 if (dmsState.deliv.size    && !dmsState.deliv.has(r.deliverability || '(blank)')) return false;
@@ -3134,13 +3361,13 @@
         if (!demandFiltersInitialized) buildDemandFilters();
 
         // All leads (before demand filters)
-        const totalLeads = allData.filter(r => r.sfdcType === 'Lead' || !r.sfdcType).length;
+        const totalLeads = rawLeads.length;
 
         // Filtered leads
         const leads = applyDemandFilters();
 
         // Contacts with convertedDate (before and after filters)
-        const totalContacts    = allData.filter(r => r.sfdcType === 'Contact' && r.convertedDate).length;
+        const totalContacts    = rawContacts.filter(r => r.convertedDate).length;
         const convertedContacts = applyDemandFiltersContacts();
 
         // Update count badges
@@ -3151,7 +3378,7 @@
         // ── Lead management process flow diagram ─────────────────
         const n = leads.length;
         const stageCounts = {
-            demand:      leads.filter(r => r.personStatus === '').length,
+            demand:      leads.filter(r => r.personStatus === '' && !r.sfdcType).length,
             assigned:    leads.filter(r => r.personStatus === 'Assigned').length,
             prospect:    leads.filter(r => r.personStatus === 'Prospect').length,
             working:     leads.filter(r => r.personStatus === 'Working').length,
@@ -3324,17 +3551,28 @@
         const sankeyLeads = lgDateFrom
             ? leads.filter(r => { const d = parseDate(r.createdDate); return d && d >= lgDateFrom && d <= lgDateTo; })
             : leads;
-        renderLeadSankey(sankeyLeads);
+        const sankeyContacts = lgDateFrom
+            ? convertedContacts.filter(r => { const d = parseDate(r.createdDate); return d && d >= lgDateFrom && d <= lgDateTo; })
+            : convertedContacts;
+        renderLeadSankey(sankeyLeads, sankeyContacts);
+
+        // Attribution field health
+        renderAttributionHealth(leads);
+
+        // Program constellation (uses all filtered leads with histSuccess)
+        renderConstellation(leads);
     }
 
     // ═══════════════════════════════════════════════════════════
     //  CHANNEL → FUNNEL SANKEY (SVG, 5 columns)
     // ═══════════════════════════════════════════════════════════
-    var _lgLastLeads = [];
+    var _lgLastLeads    = [];
+    var _lgLastContacts = [];
 
-    function renderLeadSankey(leads) {
-        if (leads !== undefined) _lgLastLeads = leads;
-        const data  = _lgLastLeads;
+    function renderLeadSankey(leads, contacts) {
+        if (leads    !== undefined) _lgLastLeads    = leads;
+        if (contacts !== undefined) _lgLastContacts = contacts;
+        const data = [..._lgLastLeads, ..._lgLastContacts];
         const wrap  = document.getElementById('lgSankeyWrap');
         const empty = document.getElementById('lgSankeyEmpty');
         if (!wrap) return;
@@ -3350,9 +3588,10 @@
 
         // ── Palette & outcome definitions ──────────────────────
         const CHAN_PALETTE   = ['#0063AC','#00A28F','#7030A0','#ED7D31','#70AD47','#4472C4','#FF6B6B','#20B2AA','#F0A500','#DC143C','#6495ED','#8B7355','#DDA0DD','#B8860B','#FF7F50','#3CB371','#9370DB','#CD853F','#00CED1','#FF6347'];
-        const OUTCOME_ORDER  = ['Converted','Nurture','Referral','Unqualified','Working'];
-        const OUTCOME_LABELS = { Converted:'Converted', Nurture:'Nurture', Referral:'Referral', Unqualified:'Unqualified', Working:'Active (SQL)' };
-        const OUTCOME_COLORS = { Converted:'#27ae60', Nurture:'#f39c12', Referral:'#e67e22', Unqualified:'#e74c3c', Working:'#5dade2' };
+        // Working is intentionally excluded — it stays in SQL as "in progress" (shown as flow loss)
+        const OUTCOME_ORDER  = ['Converted','Nurture','Referral','Unqualified'];
+        const OUTCOME_LABELS = { Converted:'Converted', Nurture:'Nurture', Referral:'Referral', Unqualified:'Unqualified' };
+        const OUTCOME_COLORS = { Converted:'#27ae60', Nurture:'#f39c12', Referral:'#e67e22', Unqualified:'#e74c3c' };
 
         // ── Channel counts (top N) ──────────────────────────────
         const chanAllCounts = {};
@@ -3362,34 +3601,30 @@
         const chanColors = {};
         topChans.forEach((ch,i) => { chanColors[ch] = CHAN_PALETTE[i % CHAN_PALETTE.length]; });
 
-        // Only count leads from top-N channels for consistency
+        // Only count people from top-N channels for consistency
         const chanCounts = {};
         topChans.forEach(ch => { chanCounts[ch] = 0; });
         data.forEach(r => { const ch = r.channel || '(blank)'; if (chanSet.has(ch)) chanCounts[ch]++; });
-        const totalLeads = topChans.reduce((s,ch) => s + chanCounts[ch], 0);
+        const totalPeople = topChans.reduce((s,ch) => s + chanCounts[ch], 0);
 
         // ── Funnel counts ───────────────────────────────────────
-        // Only consider leads from top-N channels
-        const inScope = data.filter(r => chanSet.has(r.channel || '(blank)'));
+        const inScope  = data.filter(r => chanSet.has(r.channel || '(blank)'));
         const mqlCount = inScope.filter(r => r.mqlDate).length;
-        const sqlLeads = inScope.filter(r => r.workingDate);
+        const sqlLeads = inScope.filter(r => r.workingDate || r.convertedDate);
         const sqlCount = sqlLeads.length;
 
-        const outcomeCounts = { Converted:0, Nurture:0, Referral:0, Unqualified:0, Working:0 };
+        const outcomeCounts = { Converted:0, Nurture:0, Referral:0, Unqualified:0 };
         sqlLeads.forEach(r => {
             const ps = r.personStatus;
-            if      (ps === 'Converted')   outcomeCounts.Converted++;
-            else if (ps === 'Nurture')     outcomeCounts.Nurture++;
-            else if (ps === 'Referral')    outcomeCounts.Referral++;
-            else if (ps === 'Unqualified') outcomeCounts.Unqualified++;
-            else                           outcomeCounts.Working++;  // still being worked
+            if      (r.convertedDate || ps === 'Converted') outcomeCounts.Converted++;
+            else if (ps === 'Nurture')                      outcomeCounts.Nurture++;
+            else if (ps === 'Referral')                     outcomeCounts.Referral++;
+            else if (ps === 'Unqualified')                  outcomeCounts.Unqualified++;
+            // Working/in-progress: no ribbon drawn — visible as flow loss on SQL node
         });
         const activeOutcomes = OUTCOME_ORDER.filter(o => outcomeCounts[o] > 0);
 
-        // Active (MQL) = ever MQL'd but never SQL'd
-        const activeMqlCount = mqlCount - sqlCount;
-
-        if (!totalLeads) {
+        if (!totalPeople) {
             wrap.style.display  = 'none';
             empty.style.display = '';
             return;
@@ -3403,11 +3638,10 @@
         const N_COLS      = 5;
         const LEFT_LBL_W  = 164;
         const RIGHT_LBL_W = 128;
-        const PAD_T       = 38;   // space above for mid-column labels
+        const PAD_T       = 38;
         const PAD_B       = 12;
         const GAP_CHAN    = 6;
         const GAP_OUT     = 8;
-        const GAP_MQL_SQL = 18;   // visual separator between Active(MQL) and SQL outcomes
 
         // Evenly space 5 columns across usable width
         const usable  = W - LEFT_LBL_W - RIGHT_LBL_W - N_COLS * NODE_W;
@@ -3416,17 +3650,11 @@
 
         // Scale: fit channel column in H_CONTENT
         const H_CHAN    = Math.max(200, topChans.length * 26);
-        const scale     = (H_CHAN - (topChans.length - 1) * GAP_CHAN) / totalLeads;
+        const scale     = (H_CHAN - (topChans.length - 1) * GAP_CHAN) / totalPeople;
 
-        // Active MQL node height
-        const activeMqlH = activeMqlCount > 0 ? Math.max(2, activeMqlCount * scale) : 0;
-
-        // Outcome column height = Active(MQL) section + separator + SQL outcomes
-        const sqlOutcomeH = activeOutcomes.reduce((s,o) => s + Math.max(2, outcomeCounts[o] * scale), 0)
-                          + Math.max(0, activeOutcomes.length - 1) * GAP_OUT;
-        const outcomeH  = activeMqlH
-                        + (activeMqlH > 0 && sqlOutcomeH > 0 ? GAP_MQL_SQL : 0)
-                        + sqlOutcomeH;
+        // Outcome column height = only final outcomes (Working is a loss, not drawn)
+        const outcomeH  = activeOutcomes.reduce((s,o) => s + Math.max(2, outcomeCounts[o] * scale), 0)
+                        + Math.max(0, activeOutcomes.length - 1) * GAP_OUT;
         const H_CONTENT      = Math.max(H_CHAN, outcomeH);
         const hasNurtureLoop = outcomeCounts.Nurture > 0;
         const LOOP_PAD       = hasNurtureLoop ? 48 : 0;
@@ -3446,8 +3674,8 @@
             y += h + GAP_CHAN;
         });
 
-        // Col 1: Demand Gen (single, top-aligned with channel column)
-        const dgH = Math.max(4, totalLeads * scale);
+        // Col 1: Demand Gen (top-aligned with channel column)
+        const dgH = Math.max(4, totalPeople * scale);
         const dgY = PAD_T;
 
         // Col 2: MQL
@@ -3458,17 +3686,10 @@
         const sqlH = Math.max(4, sqlCount * scale);
         const sqlY = centerY(sqlH);
 
-        // Col 4: output items — Active(MQL) at top, then SQL outcomes
-        const outStartY = centerY(outcomeH);
-        y = outStartY;
-
-        // Active MQL position
-        const activeMqlPos = activeMqlCount > 0 ? { y, h: activeMqlH } : null;
-        if (activeMqlPos) y += activeMqlH + (sqlOutcomeH > 0 ? GAP_MQL_SQL : 0);
-
-        // SQL outcome positions
+        // Col 4: final outcome nodes
         const outPos = {};
         const outYIn = {};
+        y = centerY(outcomeH);
         activeOutcomes.forEach(o => {
             const h = Math.max(2, outcomeCounts[o] * scale);
             outPos[o]  = { y, h };
@@ -3501,26 +3722,19 @@
             svg += rib(xC[1], dgY, dgY+mqlH, xC[2], mqlY, mqlY+mqlH, '#3498db', 0.38,
                        `Demand Gen → MQL: ${mqlCount.toLocaleString()}`);
 
-        // 3. MQL → SQL (top portion of MQL node)
+        // 3. MQL → SQL
         if (sqlCount > 0)
             svg += rib(xC[2], mqlY, mqlY+sqlH, xC[3], sqlY, sqlY+sqlH, '#1a6eb5', 0.38,
-                       `MQL → SQL (Working): ${sqlCount.toLocaleString()}`);
+                       `MQL → SQL: ${sqlCount.toLocaleString()}`);
 
-        // 3b. MQL → Active (MQL) — long-range ribbon skipping col 3 (bottom portion of MQL node)
-        if (activeMqlPos) {
-            const mqlRibTop = mqlY + sqlH;
-            svg += rib(xC[2], mqlRibTop, mqlRibTop+activeMqlH, xC[4], activeMqlPos.y, activeMqlPos.y+activeMqlH,
-                       '#85c1e9', 0.38, `MQL → Active (MQL): ${activeMqlCount.toLocaleString()}`);
-        }
-
-        // 4. SQL → outcomes
+        // 4. SQL → final outcomes only (Working stays in SQL as flow loss)
         let sqlYOut = sqlY;
         activeOutcomes.forEach(o => {
             const fh = Math.max(1, outcomeCounts[o] * scale);
             svg += rib(xC[3], sqlYOut, sqlYOut+fh, xC[4], outYIn[o], outYIn[o]+fh, OUTCOME_COLORS[o], 0.38,
                        `SQL → ${OUTCOME_LABELS[o]}: ${outcomeCounts[o].toLocaleString()}`);
-            sqlYOut      += fh;
-            outYIn[o]    += fh;
+            sqlYOut   += fh;
+            outYIn[o] += fh;
         });
 
         // ── Nodes ───────────────────────────────────────────────
@@ -3534,23 +3748,16 @@
             svg += `<text x="${xC[0]-7}" y="${n.y+n.h/2}" text-anchor="end" dominant-baseline="middle" font-size="10" font-weight="600" fill="${col}"><title>${esc(ch)}: ${chanCounts[ch].toLocaleString()}</title>${esc(lbl)}</text>`;
         });
 
-        // Intermediate nodes with label above + count below label
         function midNode(col, x, nodeY, nodeH, label, count) {
             svg += `<rect x="${x}" y="${nodeY}" width="${NODE_W}" height="${nodeH}" fill="${col}" rx="2"/>`;
             svg += `<text x="${x+NODE_W/2}" y="${nodeY-18}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}">${label}</text>`;
             svg += `<text x="${x+NODE_W/2}" y="${nodeY-6}" text-anchor="middle" font-size="9" fill="${col}" opacity="0.8">${Number(count).toLocaleString()}</text>`;
         }
-        midNode('#9b59b6', xC[1], dgY,  dgH,  'Demand Gen', totalLeads);
+        midNode('#9b59b6', xC[1], dgY,  dgH,  'Demand Gen', totalPeople);
         midNode('#3498db', xC[2], mqlY, mqlH, 'MQL',        mqlCount);
         midNode('#1a6eb5', xC[3], sqlY, sqlH, 'SQL',        sqlCount);
 
-        // Active (MQL) node + label
-        if (activeMqlPos) {
-            svg += `<rect x="${xC[4]}" y="${activeMqlPos.y}" width="${NODE_W}" height="${activeMqlPos.h}" fill="#85c1e9" rx="2"/>`;
-            svg += `<text x="${xC[4]+NODE_W+7}" y="${activeMqlPos.y+activeMqlPos.h/2}" dominant-baseline="middle" font-size="10" font-weight="700" fill="#2e86c1">Active (MQL) <tspan font-size="9" font-weight="400" fill="#888">${activeMqlCount.toLocaleString()}</tspan></text>`;
-        }
-
-        // SQL outcome nodes + labels
+        // Final outcome nodes + labels
         activeOutcomes.forEach(o => {
             const n   = outPos[o];
             const col = OUTCOME_COLORS[o];
@@ -3694,7 +3901,7 @@
     }
 
     function renderDemandDetail() {
-        const leads = applyDemandFilters().filter(r => r.personStatus === '');
+        const leads = applyDemandFilters().filter(r => r.personStatus === '' && !r.sfdcType);
         const n     = leads.length;
         document.getElementById('stageDetailTitle').textContent = 'Demand Capture  ·  ' + fmt(n) + ' leads';
 
@@ -5153,6 +5360,399 @@
             loadCSV(allExports[0].path, allExports[0].dateStr);
         }
     });
+
+    // ═══════════════════════════════════════════════════════════
+    //  ATTRIBUTION FIELD HEALTH
+    // ═══════════════════════════════════════════════════════════
+    function renderAttributionHealth(leads) {
+        var card = document.getElementById('attrHealthCard');
+        if (!card) return;
+        var n = leads.length;
+        if (!n) { card.innerHTML = '<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">No data</div>'; return; }
+
+        function pct(v) { return n > 0 ? (v / n * 100).toFixed(1) : '0.0'; }
+        function fmtN(v) { return v.toLocaleString(); }
+
+        // ── Acquisition Program ──────────────────────────────────
+        var acqFilled = leads.filter(function(r) { return r.acqProgram && r.acqProgram !== ''; }).length;
+        var acqEmpty  = n - acqFilled;
+
+        // ── Last Program (success) ───────────────────────────────
+        var ltFilled = leads.filter(function(r) { return r.lastProgram && r.lastProgram !== ''; }).length;
+        var ltEmpty  = n - ltFilled;
+
+        // ── History distributions ────────────────────────────────
+        var histSuccDist = [0, 0, 0, 0, 0, 0]; // 0,1,2,3,4,5+
+        var histQualDist = [0, 0, 0, 0, 0, 0];
+        leads.forEach(function(r) {
+            var sl = r.histSuccess ? r.histSuccess.length : 0;
+            var ql = r.histQualified ? r.histQualified.length : 0;
+            histSuccDist[Math.min(sl, 5)]++;
+            histQualDist[Math.min(ql, 5)]++;
+        });
+        var histSuccFilled = n - histSuccDist[0];
+        var histQualFilled = n - histQualDist[0];
+
+        function fieldBlock(title, tag, filled, total, barColor) {
+            var empty = total - filled;
+            var pctFilled = (filled / total * 100).toFixed(1);
+            var pctEmpty  = (empty  / total * 100).toFixed(1);
+            return '<div class="ah-field">'
+                + '<div class="ah-field-title">' + title + ' <span>' + tag + '</span></div>'
+                + '<div class="ah-big-pct">' + pctFilled + '<span class="ah-pct-label">% filled</span></div>'
+                + '<div class="ah-bar-wrap"><div class="ah-bar-fill" style="width:' + pctFilled + '%;background:' + barColor + '"></div></div>'
+                + '<div class="ah-meta"><strong>' + fmtN(filled) + '</strong> with value &nbsp;·&nbsp; <strong>' + fmtN(empty) + '</strong> empty (' + pctEmpty + '%)</div>'
+                + '</div>';
+        }
+
+        function distRows(dist, total, color) {
+            var maxVal = Math.max.apply(null, dist);
+            var labels = ['0','1','2','3','4','5+'];
+            var html = '';
+            labels.forEach(function(lbl, i) {
+                var v = dist[i];
+                var barW = maxVal > 0 ? (v / maxVal * 100).toFixed(1) : 0;
+                html += '<div class="ah-dist-row">'
+                    + '<div class="ah-dist-label">' + lbl + '</div>'
+                    + '<div class="ah-dist-bar-wrap"><div class="ah-dist-bar" style="width:' + barW + '%;background:' + color + (i === 0 ? '66' : '') + '"></div></div>'
+                    + '<div class="ah-dist-count">' + fmtN(v) + '</div>'
+                    + '</div>';
+            });
+            return html;
+        }
+
+        var histBlock = '<div class="ah-field">'
+            + '<div class="ah-field-title">History <span>multi-touch</span></div>'
+            + '<div class="ah-hist-row">'
+            // Success history
+            + '<div>'
+            + '<div class="ah-hist-col-title">Success</div>'
+            + '<div class="ah-big-pct" style="font-size:20px">' + pct(histSuccFilled) + '<span class="ah-pct-label">% have history</span></div>'
+            + '<div class="ah-bar-wrap" style="margin:6px 0"><div class="ah-bar-fill" style="width:' + pct(histSuccFilled) + '%;background:#7C3AED"></div></div>'
+            + '<div class="ah-meta"><strong>' + fmtN(histSuccFilled) + '</strong> with ≥1 program &nbsp;·&nbsp; <strong>' + fmtN(histSuccDist[0]) + '</strong> empty</div>'
+            + '</div>'
+            // Qualified history
+            + '<div>'
+            + '<div class="ah-hist-col-title">Qualified</div>'
+            + '<div class="ah-big-pct" style="font-size:20px">' + pct(histQualFilled) + '<span class="ah-pct-label">% have history</span></div>'
+            + '<div class="ah-bar-wrap" style="margin:6px 0"><div class="ah-bar-fill" style="width:' + pct(histQualFilled) + '%;background:#3B82F6"></div></div>'
+            + '<div class="ah-meta"><strong>' + fmtN(histQualFilled) + '</strong> with ≥1 program &nbsp;·&nbsp; <strong>' + fmtN(histQualDist[0]) + '</strong> empty</div>'
+            + '</div>'
+            + '</div>'
+            + '<hr class="ah-divider">'
+            + '<div style="font-size:10px;font-weight:600;color:#374151;margin-bottom:8px">Touchpoint distribution <span style="font-weight:400;color:#9ca3af">(# programs in history)</span></div>'
+            + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+            + '<div>'
+            + '<div style="font-size:10px;color:#7C3AED;font-weight:600;margin-bottom:5px">Success</div>'
+            + distRows(histSuccDist, n, '#7C3AED')
+            + '</div>'
+            + '<div>'
+            + '<div style="font-size:10px;color:#3B82F6;font-weight:600;margin-bottom:5px">Qualified</div>'
+            + distRows(histQualDist, n, '#3B82F6')
+            + '</div>'
+            + '</div>'
+            + '</div>';
+
+        card.innerHTML = '<div class="ah-grid">'
+            + fieldBlock('Acquisition Program', 'First Touch', acqFilled, n, '#00A28F')
+            + fieldBlock('Last Program', 'Last Touch', ltFilled, n, '#0063AC')
+            + histBlock
+            + '</div>';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  SIDEBAR NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    function navSearch(q) {
+        q = q.trim().toLowerCase();
+        document.querySelectorAll('#sidenav .nav-group').forEach(function(grp) {
+            var anyVisible = false;
+            grp.querySelectorAll('.nav-link, .nav-sub-link').forEach(function(a) {
+                var match = !q || a.textContent.toLowerCase().includes(q);
+                a.style.display = match ? '' : 'none';
+                if (match) anyVisible = true;
+            });
+            grp.querySelector('.nav-group-label').style.display = anyVisible ? '' : 'none';
+        });
+    }
+
+    var _navObserver = null;
+    function initNavObserver() {
+        if (_navObserver) _navObserver.disconnect();
+        var targets = document.querySelectorAll('.section-label[id], .chart-anchor[id]');
+        var links   = document.querySelectorAll('#sidenav .nav-link[href^="#"], #sidenav .nav-sub-link[href^="#"]');
+        _navObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var id = entry.target.id;
+                    links.forEach(function(a) {
+                        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-10% 0px -75% 0px', threshold: 0 });
+        targets.forEach(function(t) { _navObserver.observe(t); });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  PROGRAM CONSTELLATION  (co-occurrence network)
+    // ═══════════════════════════════════════════════════════════
+    var _constellRAF = null;
+    var _constellLeads = [];
+    var constellMode = 'success';
+    var constellHidden = new Set();
+
+    function toggleConstellGroup(grp) {
+        if (constellHidden.has(grp)) constellHidden.delete(grp); else constellHidden.add(grp);
+        var btn = document.getElementById('cleg-' + grp);
+        if (btn) btn.style.opacity = constellHidden.has(grp) ? '0.35' : '1';
+        renderConstellation(_constellLeads);
+    }
+
+    function setConstellMode(mode) {
+        constellMode = mode;
+        document.getElementById('btnConstellSuccess').classList.toggle('active',   mode === 'success');
+        document.getElementById('btnConstellQualified').classList.toggle('active', mode === 'qualified');
+        var note = document.getElementById('constellNote');
+        if (note) note.textContent = 'Node size = number of leads with that program in history. Edge thickness = number of leads with both programs in their history. Hover for details.';
+        renderConstellation(_constellLeads);
+    }
+
+    function renderConstellationChart() {
+        renderConstellation(_constellLeads);
+    }
+
+    function renderConstellation(leads) {
+        _constellLeads = leads;
+        var canvas = document.getElementById('chartConstellation');
+        var emptyEl = document.getElementById('constellEmpty');
+        if (!canvas) return;
+
+        // Cancel any running animation
+        if (_constellRAF) { cancelAnimationFrame(_constellRAF); _constellRAF = null; }
+
+        var topN    = parseInt((document.getElementById('constellTopN')    || {value:'30'}).value) || 30;
+        var minEdge = parseInt((document.getElementById('constellMinEdge') || {value:'2'}).value)  || 2;
+        var histField = constellMode === 'qualified' ? 'histQualified' : 'histSuccess';
+
+        // ── Build node counts ────────────────────────────────────
+        var nodeCounts = {};
+        leads.forEach(function(r) {
+            if (!r[histField] || !r[histField].length) return;
+            r[histField].forEach(function(p) {
+                if (p) nodeCounts[p] = (nodeCounts[p] || 0) + 1;
+            });
+        });
+
+        // Top N programs, excluding hidden groups
+        var sortedNodes = Object.entries(nodeCounts)
+            .sort(function(a, b) { return b[1] - a[1]; })
+            .filter(function(n) { return !constellHidden.has(getAcqGroup(deriveChannel(n[0]))); })
+            .slice(0, topN);
+
+        if (!sortedNodes.length) {
+            canvas.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        canvas.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        var nodeSet = {};
+        sortedNodes.forEach(function(n, i) { nodeSet[n[0]] = i; });
+
+        // ── Build edge co-occurrences ────────────────────────────
+        var edgeCounts = {};
+        leads.forEach(function(r) {
+            if (!r[histField] || r[histField].length < 2) return;
+            var progs = r[histField].filter(function(p) { return p && nodeSet[p] !== undefined; });
+            for (var i = 0; i < progs.length; i++) {
+                for (var j = i + 1; j < progs.length; j++) {
+                    var a = progs[i], b = progs[j];
+                    if (a > b) { var t = a; a = b; b = t; }
+                    var key = a + '\x00' + b;
+                    edgeCounts[key] = (edgeCounts[key] || 0) + 1;
+                }
+            }
+        });
+
+        var edges = Object.entries(edgeCounts)
+            .filter(function(kv) { return kv[1] >= minEdge; })
+            .map(function(kv) {
+                var parts = kv[0].split('\x00');
+                return { a: parts[0], b: parts[1], count: kv[1] };
+            });
+
+        if (!edges.length && sortedNodes.length > 1) {
+            // Show nodes but warn
+        }
+
+        // ── Build node objects ───────────────────────────────────
+        var maxCount = sortedNodes[0][1];
+        var maxEdge  = edges.length ? Math.max.apply(null, edges.map(function(e) { return e.count; })) : 1;
+
+        // Size canvas to container
+        var container = canvas.parentElement;
+        var W = container ? container.clientWidth - 2 : 800;
+        var H = Math.max(400, Math.min(680, Math.round(W * 0.58)));
+        canvas.width  = W;
+        canvas.height = H;
+        canvas.style.height = H + 'px';
+        var cx = W / 2, cy = H / 2;
+
+        var nodes = sortedNodes.map(function(entry) {
+            var name = entry[0], count = entry[1];
+            var ch  = deriveChannel(name);
+            var grp = getAcqGroup(ch);
+            return {
+                name:  name,
+                count: count,
+                r:     Math.max(5, Math.min(22, Math.sqrt(count / maxCount) * 22)),
+                color: ACQ_GROUP_COLORS[grp] || '#9CA3AF',
+                x:     cx + (Math.random() - 0.5) * W * 0.6,
+                y:     cy + (Math.random() - 0.5) * H * 0.6,
+                vx: 0, vy: 0
+            };
+        });
+
+        var nodeIdx = {};
+        nodes.forEach(function(n, i) { nodeIdx[n.name] = i; });
+
+        var hoverNode = null;
+        var iter = 0, maxIter = 300;
+
+        function tick() {
+            // Reset velocities
+            nodes.forEach(function(n) { n.vx = 0; n.vy = 0; });
+
+            // Node–node repulsion
+            for (var i = 0; i < nodes.length; i++) {
+                for (var j = i + 1; j < nodes.length; j++) {
+                    var ni = nodes[i], nj = nodes[j];
+                    var dx = ni.x - nj.x, dy = ni.y - nj.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy) || 0.1;
+                    var minDist = ni.r + nj.r + 10;
+                    var force = Math.max(1500 / (dist * dist), dist < minDist ? (minDist - dist) * 2 : 0);
+                    var fx = (dx / dist) * force, fy = (dy / dist) * force;
+                    ni.vx += fx; ni.vy += fy;
+                    nj.vx -= fx; nj.vy -= fy;
+                }
+            }
+
+            // Edge attraction
+            edges.forEach(function(e) {
+                var ni = nodes[nodeIdx[e.a]], nj = nodes[nodeIdx[e.b]];
+                if (!ni || !nj) return;
+                var dx = nj.x - ni.x, dy = nj.y - ni.y;
+                var dist = Math.sqrt(dx * dx + dy * dy) || 0.1;
+                var target = 60 + (1 - e.count / maxEdge) * 140;
+                var force  = (dist - target) * 0.04 * (e.count / maxEdge + 0.3);
+                var fx = (dx / dist) * force, fy = (dy / dist) * force;
+                ni.vx += fx; ni.vy += fy;
+                nj.vx -= fx; nj.vy -= fy;
+            });
+
+            // Centre gravity
+            nodes.forEach(function(n) {
+                n.vx += (cx - n.x) * 0.008;
+                n.vy += (cy - n.y) * 0.008;
+            });
+
+            // Integrate
+            var damping = Math.max(0.05, 0.8 - iter / maxIter * 0.75);
+            nodes.forEach(function(n) {
+                n.x = Math.max(n.r + 4, Math.min(W - n.r - 4, n.x + n.vx * damping));
+                n.y = Math.max(n.r + 4, Math.min(H - n.r - 4, n.y + n.vy * damping));
+            });
+
+            draw();
+            iter++;
+            if (iter < maxIter) _constellRAF = requestAnimationFrame(tick);
+        }
+
+        function draw() {
+            var ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, W, H);
+
+            // Draw edges
+            edges.forEach(function(e) {
+                var ni = nodes[nodeIdx[e.a]], nj = nodes[nodeIdx[e.b]];
+                if (!ni || !nj) return;
+                var alpha = 0.08 + (e.count / maxEdge) * 0.55;
+                ctx.beginPath();
+                ctx.moveTo(ni.x, ni.y);
+                ctx.lineTo(nj.x, nj.y);
+                ctx.strokeStyle = 'rgba(160,175,200,' + alpha.toFixed(2) + ')';
+                ctx.lineWidth = Math.max(0.5, (e.count / maxEdge) * 4);
+                ctx.stroke();
+            });
+
+            // Draw nodes
+            nodes.forEach(function(n) {
+                var isHover = hoverNode === n;
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.r + (isHover ? 3 : 0), 0, Math.PI * 2);
+                // fill with alpha
+                var hex = n.color;
+                ctx.fillStyle = hex + (isHover ? 'ff' : 'cc');
+                ctx.fill();
+                if (isHover) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                // Label for large nodes or hovered
+                if (n.r > 11 || isHover) {
+                    var label = n.name.length > 32 ? n.name.slice(0, 30) + '…' : n.name;
+                    ctx.fillStyle = isHover ? '#1e293b' : '#6b7280';
+                    ctx.font = (isHover ? 'bold ' : '') + '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(label, n.x, n.y + n.r + 3);
+                }
+            });
+
+            // Tooltip
+            if (hoverNode) {
+                var n = hoverNode;
+                var ch = deriveChannel(n.name);
+                var lines = [n.name, fmt(n.count) + ' leads', 'Channel: ' + (ch || '—')];
+                var padX = 8, padY = 5, lh = 15;
+                var bw = 0;
+                lines.forEach(function(l) { bw = Math.max(bw, l.length * 6.3 + padX * 2); });
+                var bh = lines.length * lh + padY * 2;
+                var bx = Math.min(n.x + n.r + 8, W - bw - 4);
+                var by = Math.max(4, n.y - bh / 2);
+                ctx.fillStyle = 'rgba(15,23,42,0.88)';
+                if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 4); ctx.fill(); }
+                else { ctx.fillRect(bx, by, bw, bh); }
+                ctx.fillStyle = '#f1f5f9';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                lines.forEach(function(l, i) { ctx.fillText(l, bx + padX, by + padY + i * lh); });
+            }
+        }
+
+        // Mouse events
+        canvas.onmousemove = function(e) {
+            var rect = canvas.getBoundingClientRect();
+            var scaleX = W / rect.width, scaleY = H / rect.height;
+            var mx = (e.clientX - rect.left) * scaleX;
+            var my = (e.clientY - rect.top)  * scaleY;
+            var found = null;
+            nodes.forEach(function(n) {
+                var dx = n.x - mx, dy = n.y - my;
+                if (Math.sqrt(dx * dx + dy * dy) <= n.r + 6) found = n;
+            });
+            if (found !== hoverNode) { hoverNode = found; draw(); }
+            canvas.style.cursor = found ? 'pointer' : 'default';
+        };
+        canvas.onmouseleave = function() { hoverNode = null; draw(); canvas.style.cursor = 'default'; };
+
+        tick();
+    }
+
     </script>
 
     <!-- DQ Fix Floating Panel -->
