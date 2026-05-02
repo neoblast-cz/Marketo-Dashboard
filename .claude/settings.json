@@ -3,7 +3,10 @@
     "allow": [
       "Bash(node -e \":*)",
       "Bash(curl -s \"https://615-TNW-071.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_id=3ccf3b31-aa0c-4755-94b7-32890b8e324a&client_secret=xhgLqzdUE7IWyoa2obHj1mcXa5YYS4od\")",
-      "Bash(curl -si -X OPTIONS \"https://615-TNW-071.mktorest.com/identity/oauth/token\" -H \"Origin: null\" -H \"Access-Control-Request-Method: GET\")"
+      "Bash(curl -si -X OPTIONS \"https://615-TNW-071.mktorest.com/identity/oauth/token\" -H \"Origin: null\" -H \"Access-Control-Request-Method: GET\")",
+      "Bash(git commit -m ' *)",
+      "Bash(grep -v \"^+.*nav-\\\\|^+.*kpi-\\\\|^+.*sec-narrative\\\\|^+.*kpi-flip\\\\|^+.*kpiNudge\\\\|^+.*kpiFlip\\\\|^+.*kpi-back\\\\|^+.*kpi-front\\\\|^+.*kpi-val\\\\|^+.*score-matrix-cell\\\\|^+.*drill-th\\\\|^+.*drill-sort\\\\|^+.*ah-\\\\|^+.*@media\\\\|^+.*@keyframes\\\\|^+.*scoring.*Info\\\\|^+ \\\\{$\\\\|^+ \\\\}$\")",
+      "Bash(node -e ' *)"
     ]
   }
 }

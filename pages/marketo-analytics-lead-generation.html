@@ -22,38 +22,42 @@
         padding: 14px 0 16px; box-sizing: border-box;
     }
     #navSearch {
-        display: block; width: calc(100% - 24px); margin: 0 12px 10px;
-        padding: 5px 8px; font-size: 12px;
-        border: 1px solid #e5e7eb; border-radius: 4px; color: #374151;
-        outline: none;
+        display: block; width: calc(100% - 20px); margin: 0 10px 10px;
+        padding: 6px 10px; font-size: 12px; font-family: inherit; color: #374151;
+        border: 1px solid #dde0e7; border-radius: 5px; outline: none; box-sizing: border-box;
     }
     #navSearch:focus { border-color: #0063AC; }
+    #navSearch::placeholder { color: #b0b7c3; }
     .nav-group { margin-bottom: 4px; }
     .nav-group-label {
-        padding: 6px 12px 3px;
-        font-size: 9px; font-weight: 700; letter-spacing: .6px;
-        text-transform: uppercase; color: #9ca3af;
+        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+        color: #b0b7c3; padding: 10px 12px 3px;
     }
     .nav-link {
-        display: flex; align-items: center;
-        padding: 4px 12px; font-size: 12px; font-weight: 500;
-        color: #374151; text-decoration: none;
-        border-left: 3px solid transparent;
-        transition: background .1s, color .1s;
+        display: flex; align-items: center; gap: 6px;
+        padding: 5px 12px 5px 15px; font-size: 10px;
+        color: #b0b7c3; text-decoration: none; border-left: 3px solid transparent;
+        line-height: 1.35; transition: background .1s, color .1s;
     }
-    .nav-link:hover, .nav-sub-link:hover { background: #f8fafc; color: #0063AC; }
-    .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; }
+    .nav-link:hover { background: #f4f7fb; color: #0063AC; }
+    .nav-link.active { border-left-color: #0063AC; background: #f0f5fc; color: #0063AC; font-weight: 600; }
     .nav-sub-link {
         display: flex; align-items: center;
-        padding: 3px 12px 3px 26px;
-        font-size: 11px; color: #9ca3af;
+        padding: 3px 12px 3px 26px; font-size: 11px; color: #4b5563;
         text-decoration: none; border-left: 3px solid transparent;
         line-height: 1.3; transition: background .1s, color .1s;
     }
+    .nav-sub-link:hover { background: #f4f7fb; color: #0063AC; font-weight: bold; }
     .nav-sub-link.active { border-left-color: #93c5fd; background: #f0f5fc; color: #0063AC; }
     #sections { flex: 1; min-width: 0; }
     .section-label { scroll-margin-top: 16px; }
     .chart-anchor { scroll-margin-top: 16px; }
+
+    /* ── Scoring matrix cell selection ─────────────────────── */
+    .score-matrix-cell { transition: outline .1s; }
+    .score-matrix-cell.score-matrix-selected { outline: 3px solid #0063AC; outline-offset: -2px; z-index: 1; position: relative; }
+    .drill-th:hover { color: #374151 !important; }
+    .drill-sort-ind { font-size: 9px; opacity: .5; }
 
     /* ── Attribution Health card ───────────────────────────── */
     .ah-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 24px; align-items: start; }
@@ -83,6 +87,60 @@
     .ah-dist-count { font-size: 10px; color: #9ca3af; width: 52px; text-align: right; flex-shrink: 0; }
     .ah-hist-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 10px; }
     .ah-hist-col-title { font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+
+    /* ── Section narrative ── */
+    .sec-narrative { padding: 44px 0 32px; max-width: 660px; }
+    .sec-narrative-row { display:flex; gap:48px; align-items:flex-start; padding:94px 0 32px; }
+    .sec-narrative-row .sec-narrative { padding:0; flex:1; min-width:0; }
+    .sec-narrative-kpis { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; padding-top:10px; }
+    .sec-narrative-kpis::before { content:'KPIs to pay attention to'; flex-basis:100%; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:-2px; }
+    .sec-narrative-kpis .kpi-card { border-radius:12px; border-top-width:4px; width:180px; flex-shrink:0; }
+    @media (max-width:860px) { .sec-narrative-row { flex-direction:column; } }
+    .kpi-val { font-size:26px; font-weight:700; color:#1a2230; line-height:1.1; }
+    .sec-narrative-eyebrow { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.11em; color:var(--ansell-dark); margin-bottom:10px; }
+    .sec-narrative-title { font-size:22px; font-weight:700; color:var(--ansell-teal); line-height:1.25; margin:0 0 14px; text-transform:uppercase; }
+    .sec-narrative-body { font-size:14px; line-height:1.85; color:#4b5563; margin:0; }
+    .sec-narrative-body strong { color:#1a2230; }
+    .sec-narrative-body em { font-style:normal; color:#0063AC; font-weight:600; }
+
+    /* ── Flip KPI cards ── */
+    .kpi-flip { width:180px; flex-shrink:0; perspective:1100px; cursor:default; }
+    .kpi-flip-inner { position:relative; width:100%; transform-style:preserve-3d; }
+    @keyframes kpiNudge {
+        0%,70%,100% { transform:rotateY(0deg); }
+        78%          { transform:rotateY(-18deg); }
+        86%          { transform:rotateY(10deg); }
+        93%          { transform:rotateY(-6deg); }
+    }
+    @keyframes kpiFlipIn {
+        0%   { transform:rotateY(0deg);    animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+        50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+        100% { transform:rotateY(-180deg); }
+    }
+    @keyframes kpiFlipOut {
+        0%   { transform:rotateY(-180deg); animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+        50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+        100% { transform:rotateY(0deg); }
+    }
+    .kpi-front, .kpi-back { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+    .kpi-front { border-radius:12px; border-top-width:4px !important; width:100%; }
+    .kpi-back {
+        position:absolute; inset:0;
+        transform:rotateY(180deg);
+        border-radius:12px;
+        border-top:4px solid var(--ansell-blue);
+        background:#fff;
+        box-shadow:0 1px 4px rgba(0,0,0,.07);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center; text-align:center;
+        padding:16px 14px; gap:4px;
+    }
+    .kpi-back.teal   { border-top-color:#00A28F; }
+    .kpi-back.orange { border-top-color:#D97706; }
+    .kpi-back.red    { border-top-color:#c62828; }
+    .kpi-back-eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:2px; }
+    .kpi-back-val { font-size:26px; font-weight:700; color:var(--ansell-dark); line-height:1.1; }
+    .kpi-back-note { font-size:10px; color:#6b7280; line-height:1.35; margin-top:4px; }
     </style>
 </head>
 <body>
@@ -528,30 +586,64 @@
                 <a class="nav-link" href="#sec-funnel">Marketing Funnel</a>
             </div>
             <div class="nav-group">
-                <div class="nav-group-label">Attribution</div>
-                <a class="nav-link" href="#sec-attrhealth">Attribution Health</a>
-                <a class="nav-sub-link" href="#sec-attrhealth">Field completeness</a>
-                <a class="nav-sub-link" href="#sec-attrhealth">Touchpoint distribution</a>
-            </div>
-            <div class="nav-group">
                 <div class="nav-group-label">Scoring</div>
                 <a class="nav-link" href="#sec-scoring">Lead Scoring Matrix</a>
                 <a class="nav-sub-link" href="#sec-scoring">Urgency × Score matrix</a>
                 <a class="nav-sub-link" href="#sec-scoring">Scoring methodology</a>
             </div>
             <div class="nav-group">
-                <div class="nav-group-label">Flow</div>
+                <div class="nav-group-label">Other</div>
+                <a class="nav-link" href="#sec-attrhealth">Attribution Health</a>
                 <a class="nav-link" href="#sec-sankey">Lead Flow</a>
-                <a class="nav-sub-link" href="#sec-sankey">Channel → Funnel stage</a>
-            </div>
-            <div class="nav-group">
-                <div class="nav-group-label">Analysis</div>
                 <a class="nav-link" href="#sec-constellation">Program Constellation</a>
-                <a class="nav-sub-link" href="#sec-constellation">Co-occurrence network</a>
             </div>
         </nav>
         <div id="sections">
         <div class="main">
+
+            <!-- ── Narrative: Lead Management ── -->
+            <div class="sec-narrative-row">
+                <div class="sec-narrative">
+                    <div class="sec-narrative-eyebrow">Lead Management</div>
+                    <div class="sec-narrative-title">Where do your leads go?</div>
+                    <p class="sec-narrative-body">
+                        Every inbound record moves through a defined process — from raw
+                        <strong>Demand Capture</strong> through qualification to <strong>Converted</strong>
+                        contacts in Salesforce. The flow diagram shows how leads are distributed
+                        across statuses right now. Click any stage to explore the records inside it,
+                        slice by GBU, channel, or deliverability to spot gaps.
+                    </p>
+                </div>
+                <div class="sec-narrative-kpis">
+                    <div class="kpi-flip">
+                        <div class="kpi-flip-inner">
+                            <div class="kpi-card teal kpi-front">
+                                <div class="kpi-label">MQLs (Assigned)</div>
+                                <div class="kpi-val" id="narAssigned">—</div>
+                                <div class="kpi-sub">leads in Assigned status</div>
+                            </div>
+                            <div class="kpi-back teal">
+                                <div class="kpi-back-eyebrow">What this means</div>
+                                <div class="kpi-back-note">Leads that marketing has qualified and passed to sales. A healthy pipeline keeps this number growing relative to total demand.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-flip">
+                        <div class="kpi-flip-inner">
+                            <div class="kpi-card kpi-front">
+                                <div class="kpi-label">% Converted</div>
+                                <div class="kpi-val" id="narConvertedPct">—</div>
+                                <div class="kpi-sub">of all leads converted</div>
+                            </div>
+                            <div class="kpi-back">
+                                <div class="kpi-back-eyebrow">What this means</div>
+                                <div class="kpi-back-note">Share of all leads that have been converted to Contacts in Salesforce. Higher is better — low rates may indicate qualification or handoff friction.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="sec-lmp" class="section-label">Lead Management Process
                 <span class="section-label-note" id="demandLeadCount"></span>
             </div>
@@ -654,13 +746,81 @@
                 <div class="stage-detail-body" id="stageDetailContent"></div>
             </div>
 
+            <!-- ── Narrative: Marketing Funnel ── -->
+            <div class="sec-narrative-row">
+                <div class="sec-narrative">
+                    <div class="sec-narrative-eyebrow">Marketing Funnel</div>
+                    <div class="sec-narrative-title">How fast are leads maturing?</div>
+                    <p class="sec-narrative-body">
+                        The funnel tracks every lead from first touch through
+                        <strong>MQL → SQL → Converted</strong>. Conversion rates at each stage
+                        reveal where volume is lost; velocity numbers show whether the journey
+                        is getting faster or slower. A long <em>time-to-MQL</em> often signals
+                        that nurture content or scoring thresholds need tuning.
+                    </p>
+                </div>
+                <div class="sec-narrative-kpis">
+                    <div class="kpi-flip">
+                        <div class="kpi-flip-inner">
+                            <div class="kpi-card teal kpi-front">
+                                <div class="kpi-label">People → MQL</div>
+                                <div class="kpi-val" id="narPctMQL">—</div>
+                                <div class="kpi-sub">of people reach MQL</div>
+                            </div>
+                            <div class="kpi-back teal">
+                                <div class="kpi-back-eyebrow">What this means</div>
+                                <div class="kpi-back-note">Percentage of leads in the selected period that have reached MQL status. Benchmark against industry norms (typically 5–15%).</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-flip">
+                        <div class="kpi-flip-inner">
+                            <div class="kpi-card kpi-front">
+                                <div class="kpi-label">Avg Days to MQL</div>
+                                <div class="kpi-val" id="narVelToMQL">—</div>
+                                <div class="kpi-sub">from creation to MQL</div>
+                            </div>
+                            <div class="kpi-back">
+                                <div class="kpi-back-eyebrow">What this means</div>
+                                <div class="kpi-back-note">Average days from lead creation to reaching MQL. Shorter cycles indicate effective nurture programs and timely sales follow-up.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="sec-funnel" class="section-label" style="margin-top:24px">Marketing Funnel</div>
             <div class="chart-card" id="simpleFunnelCard" style="padding:20px 28px"></div>
 
-            <div id="sec-attrhealth" class="section-label" style="margin-top:24px">Attribution Field Health
-                <span class="section-label-note">Field completeness &amp; touchpoint coverage</span>
+            <!-- ── Narrative: Lead Scoring ── -->
+            <div class="sec-narrative-row">
+                <div class="sec-narrative">
+                    <div class="sec-narrative-eyebrow">Lead Scoring</div>
+                    <div class="sec-narrative-title">Which leads deserve attention now?</div>
+                    <p class="sec-narrative-body">
+                        Marketo combines <strong>behavioural urgency</strong> (website visits,
+                        form fills, email clicks) with <strong>demographic score</strong> (data
+                        completeness, role, company fit) to rank every lead. The matrix surfaces
+                        the hottest combinations — top-left is your best bets. Click any cell
+                        to drill into the exact records.
+                    </p>
+                </div>
+                <div class="sec-narrative-kpis">
+                    <div class="kpi-flip">
+                        <div class="kpi-flip-inner">
+                            <div class="kpi-card red kpi-front" style="border-top-color:#c0392b">
+                                <div class="kpi-label">Hot Leads</div>
+                                <div class="kpi-val" id="narHotLeads">—</div>
+                                <div class="kpi-sub">urgency + score ≥ 4</div>
+                            </div>
+                            <div class="kpi-back red" style="border-top-color:#c0392b">
+                                <div class="kpi-back-eyebrow">What this means</div>
+                                <div class="kpi-back-note">Leads with combined urgency + score ≥ 4 (out of 6). These are your highest-priority prospects for immediate sales outreach.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="chart-card" id="attrHealthCard" style="padding:20px 24px"></div>
 
             <div id="sec-scoring" class="section-label" style="margin-top:24px">Lead Scoring Matrix
                 <span class="section-label-note">Relative Urgency × Relative Score</span>
@@ -918,6 +1078,40 @@
                         <div style="margin-top:10px;font-size:9px;color:var(--ansell-light-gray);font-style:italic">Partially confirmed — remaining weights and thresholds to be added</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ── Scoring Matrix Drill-Down ── -->
+            <div id="scoringDrillPanel" style="display:none;margin-top:10px">
+                <div class="chart-card" style="padding:16px 20px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px">
+                        <span id="scoringDrillTitle" style="font-size:13px;font-weight:700;color:var(--ansell-dark)"></span>
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                            <button onclick="exportScoringDrill()" style="height:28px;padding:0 12px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;font-weight:600;background:#fff;cursor:pointer;color:#374151">Export CSV</button>
+                            <button onclick="closeScoringDrill()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#9ca3af;padding:0;line-height:1">×</button>
+                        </div>
+                    </div>
+                    <div id="scoringDrillBody"></div>
+                </div>
+            </div>
+
+            <!-- ── Attribution Field Health (moved here, under "Other") ── -->
+            <div id="sec-attrhealth" class="section-label" style="margin-top:28px">Attribution Field Health
+                <span class="section-label-note">Field completeness &amp; touchpoint coverage</span>
+            </div>
+            <div class="chart-card" id="attrHealthCard" style="padding:20px 24px"></div>
+
+            <!-- ── Narrative: Other ── -->
+            <div class="sec-narrative">
+                <div class="sec-narrative-eyebrow">Other</div>
+                <div class="sec-narrative-title">More ways to explore.</div>
+                <p class="sec-narrative-body">
+                    These additional views give context to the numbers above.
+                    <strong>Lead Flow</strong> maps acquisition channels to funnel stages — useful
+                    for understanding which channels produce the most qualified leads.
+                    <strong>Program Constellation</strong> reveals co-occurrence patterns: which
+                    programs tend to appear together in a lead's history, pointing to effective
+                    multi-touch sequences.
+                </p>
             </div>
 
             <!-- ── Sankey: Channel → Funnel Stage ── -->
@@ -1224,18 +1418,32 @@
     function parseDate(str) {
         if (!str || !str.trim()) return null;
         str = str.trim();
+        // ISO: YYYY-MM-DD [time]
         if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
             const d = new Date(str); return isNaN(d) ? null : d;
         }
-        const m = str.match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM))?/i);
-        if (m) {
-            let h = m[4] ? parseInt(m[4]) : 0;
-            const min = m[5] ? parseInt(m[5]) : 0;
-            const sec = m[6] ? parseInt(m[6]) : 0;
-            const ap  = m[7] ? m[7].toUpperCase() : null;
+        // DD-MM-YYYY with optional HH:MM:SS AM/PM
+        const m4 = str.match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM))?/i);
+        if (m4) {
+            let h = m4[4] ? parseInt(m4[4]) : 0;
+            const min = m4[5] ? parseInt(m4[5]) : 0;
+            const sec = m4[6] ? parseInt(m4[6]) : 0;
+            const ap  = m4[7] ? m4[7].toUpperCase() : null;
             if (ap === 'PM' && h !== 12) h += 12;
             if (ap === 'AM' && h === 12) h = 0;
-            return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]), h, min, sec);
+            return new Date(parseInt(m4[3]), parseInt(m4[2]) - 1, parseInt(m4[1]), h, min, sec);
+        }
+        // DD-MM-YY with optional HH:MM[:SS] — new Marketo export format (Apr 2026+)
+        const m2 = str.match(/^(\d{2})-(\d{2})-(\d{2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?/i);
+        if (m2) {
+            const yr = 2000 + parseInt(m2[3]);
+            let h = m2[4] ? parseInt(m2[4]) : 0;
+            const min = m2[5] ? parseInt(m2[5]) : 0;
+            const sec = m2[6] ? parseInt(m2[6]) : 0;
+            const ap  = m2[7] ? m2[7].toUpperCase() : null;
+            if (ap === 'PM' && h !== 12) h += 12;
+            if (ap === 'AM' && h === 12) h = 0;
+            return new Date(yr, parseInt(m2[2]) - 1, parseInt(m2[1]), h, min, sec);
         }
         return null;
     }
@@ -1506,6 +1714,7 @@
                 createdMonth: parseMonth(r['Created At']),
                 country:      (r['Country'] || '').trim(),
                 sfdcType,
+                leadSource:   (r['Lead Source'] || '').trim(),
                 acqProgram:   (r['Acquisition Program Name'] || '').trim(),
                 deliverability:(r['Deliverability Segment'] || '').trim(),
                 language:     (r['Language 2025 Segment'] || '').trim(),
@@ -2872,7 +3081,8 @@
     let demandStackField    = '';   // '' | 'deliverability' | 'gbu' | 'vertical' | 'channel' | 'org'
     let timeScale = 'month'; // 'week' | 'month' | 'quarter' | 'year' | 'fy'
     let _nurtureLeadsCache     = null;
-    let scoringStatusFilter = new Set(); // empty = all statuses
+    let scoringStatusFilter  = new Set(); // empty = all statuses
+    let _scoringMatrixLeads  = [];        // rows for the currently rendered matrix (used by drill-down)
 
     function toggleDms(id, e) {
         e.stopPropagation();
@@ -3106,6 +3316,207 @@
         renderDemandTab();
     }
 
+    let _scoringDrillRows  = []; // held for CSV export
+    let _drillSortField    = '';
+    let _drillSortAsc      = true;
+
+    const DRILL_PIE_COLORS = ['#0063AC','#00A28F','#f39c12','#e74c3c','#9b59b6','#5b9bd5','#1abc9c','#e67e22','#2ecc71','#95a5a6'];
+
+    function _drillTopN(totals, n) {
+        const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+        if (sorted.length <= n) return { labels: sorted.map(e => e[0]), data: sorted.map(e => e[1]) };
+        const top = sorted.slice(0, n);
+        const rest = sorted.slice(n).reduce((s, e) => s + e[1], 0);
+        if (rest > 0) top.push(['Other', rest]);
+        return { labels: top.map(e => e[0]), data: top.map(e => e[1]) };
+    }
+
+    function openScoringDrill(u, s) {
+        const panel   = document.getElementById('scoringDrillPanel');
+        const titleEl = document.getElementById('scoringDrillTitle');
+        const body    = document.getElementById('scoringDrillBody');
+        if (!panel) return;
+
+        _scoringDrillRows = _scoringMatrixLeads.filter(r => r.relUrgency === u && r.relScore === s);
+        const sum      = parseInt(u) + parseInt(s);
+        const category = sum >= 4 ? 'Hot' : sum >= 2 ? 'Warm' : 'Cold';
+        const catColor = sum >= 4 ? '#c0392b' : sum >= 2 ? '#e67e22' : '#5b9bd5';
+
+        // Highlight selected cells in both matrices
+        document.querySelectorAll('.score-matrix-cell').forEach(td => td.classList.remove('score-matrix-selected'));
+        document.querySelectorAll(`.score-matrix-cell[data-u="${u}"][data-s="${s}"]`).forEach(td => td.classList.add('score-matrix-selected'));
+
+        titleEl.innerHTML = `Urgency&nbsp;<strong>${u}</strong>&nbsp;×&nbsp;Score&nbsp;<strong>${s}</strong>`
+            + `&ensp;<span style="color:${catColor};font-weight:600">${category}</span>`
+            + `&ensp;<span style="color:var(--ansell-light-gray);font-weight:400">·&nbsp;${fmt(_scoringDrillRows.length)} records</span>`;
+
+        // Destroy previous drill charts
+        ['scoringDrillCountry', 'scoringDrillChannel', 'scoringDrillGbu', 'scoringDrillVertical', 'scoringDrillDeliverability', 'scoringDrillRegion'].forEach(id => {
+            if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+        });
+
+        if (!_scoringDrillRows.length) {
+            body.innerHTML = '<p style="color:#9ca3af;font-size:12px;margin:0">No records in this cell.</p>';
+        } else {
+            // Aggregate for pie charts
+            const countryTotals = {}, channelTotals = {}, gbuTotals = {}, verticalTotals = {},
+                  delivTotals = {}, regionTotals = {};
+            _scoringDrillRows.forEach(r => {
+                const c  = r.country       || '(blank)';
+                const ch = r.channel       || '(blank)';
+                const g  = r.gbu           || '(blank)';
+                const v  = r.vertical      || '(blank)';
+                const d  = r.deliverability|| '(blank)';
+                const rg = r.region        || '(blank)';
+                countryTotals[c]  = (countryTotals[c]  || 0) + 1;
+                channelTotals[ch] = (channelTotals[ch] || 0) + 1;
+                gbuTotals[g]      = (gbuTotals[g]      || 0) + 1;
+                verticalTotals[v] = (verticalTotals[v] || 0) + 1;
+                delivTotals[d]    = (delivTotals[d]    || 0) + 1;
+                regionTotals[rg]  = (regionTotals[rg]  || 0) + 1;
+            });
+
+            const n = _scoringDrillRows.length;
+            const pieOpts = {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 6 } },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} (${(ctx.raw / n * 100).toFixed(1)}%)` } }
+                }
+            };
+
+            const thBase  = `text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;white-space:nowrap;cursor:pointer;user-select:none`;
+            const thStyle = `${thBase};padding:6px 10px 6px 0`;
+            const thP     = `${thBase};padding:6px 10px`;
+            _drillSortField = '';
+            _drillSortAsc   = true;
+
+            body.innerHTML = `
+                <div style="display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap">
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By Country</div>
+                        <canvas id="scoringDrillCountry"></canvas>
+                    </div>
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By Acquisition Channel</div>
+                        <canvas id="scoringDrillChannel"></canvas>
+                    </div>
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By GBU</div>
+                        <canvas id="scoringDrillGbu"></canvas>
+                    </div>
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By Vertical</div>
+                        <canvas id="scoringDrillVertical"></canvas>
+                    </div>
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By Deliverability</div>
+                        <canvas id="scoringDrillDeliverability"></canvas>
+                    </div>
+                    <div style="flex:1;min-width:200px;max-width:300px">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">By Region</div>
+                        <canvas id="scoringDrillRegion"></canvas>
+                    </div>
+                </div>
+                <div style="max-height:360px;overflow-y:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:12px">
+                        <thead style="position:sticky;top:0;background:#fff;z-index:1">
+                            <tr style="border-bottom:2px solid #e5e7eb">
+                                <th style="text-align:right;padding:6px 10px 6px 0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;white-space:nowrap">#</th>
+                                <th style="${thP}" class="drill-th" data-field="country"    onclick="sortScoringDrill('country')">Country <span class="drill-sort-ind">⇅</span></th>
+                                <th style="${thP}" class="drill-th" data-field="channel"    onclick="sortScoringDrill('channel')">Acquisition Channel <span class="drill-sort-ind">⇅</span></th>
+                                <th style="${thP}" class="drill-th" data-field="gbu"        onclick="sortScoringDrill('gbu')">GBU <span class="drill-sort-ind">⇅</span></th>
+                                <th style="${thP}" class="drill-th" data-field="vertical"   onclick="sortScoringDrill('vertical')">Vertical <span class="drill-sort-ind">⇅</span></th>
+                                <th style="${thP}" class="drill-th" data-field="acqProgram" onclick="sortScoringDrill('acqProgram')">Acquisition Program <span class="drill-sort-ind">⇅</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoringDrillTbody"></tbody>
+                    </table>
+                </div>`;
+
+            // Populate table body (after innerHTML so tbody exists)
+            _renderDrillTableBody();
+
+            // Render pie charts (after innerHTML so canvases exist)
+            [
+                ['scoringDrillCountry',       countryTotals],
+                ['scoringDrillChannel',        channelTotals],
+                ['scoringDrillGbu',            gbuTotals],
+                ['scoringDrillVertical',       verticalTotals],
+                ['scoringDrillDeliverability', delivTotals],
+                ['scoringDrillRegion',         regionTotals],
+            ].forEach(([id, totals]) => {
+                const d = _drillTopN(totals, 9);
+                charts[id] = new Chart(document.getElementById(id), {
+                    type: 'pie',
+                    data: { labels: d.labels, datasets: [{ data: d.data, backgroundColor: DRILL_PIE_COLORS, borderWidth: 1, borderColor: '#fff' }] },
+                    options: pieOpts
+                });
+            });
+        }
+
+        panel.style.display = '';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function _renderDrillTableBody() {
+        const tbody = document.getElementById('scoringDrillTbody');
+        if (!tbody) return;
+        let rows = _scoringDrillRows.slice();
+        if (_drillSortField) {
+            rows.sort((a, b) => {
+                const av = (a[_drillSortField] || '').toLowerCase();
+                const bv = (b[_drillSortField] || '').toLowerCase();
+                return _drillSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
+        }
+        tbody.innerHTML = rows.map((r, i) => `<tr style="border-bottom:1px solid #f3f4f6;background:${i % 2 ? '#fafafa' : '#fff'}">
+            <td style="padding:6px 10px 6px 0;color:#9ca3af;font-size:11px;text-align:right;white-space:nowrap">${i + 1}</td>
+            <td style="padding:6px 10px;color:#374151;white-space:nowrap">${r.country   || '<span style="color:#d1d5db">—</span>'}</td>
+            <td style="padding:6px 10px;color:#374151;white-space:nowrap">${r.channel   || '<span style="color:#d1d5db">—</span>'}</td>
+            <td style="padding:6px 10px;color:#374151;white-space:nowrap">${r.gbu       || '<span style="color:#d1d5db">—</span>'}</td>
+            <td style="padding:6px 10px;color:#374151;white-space:nowrap">${r.vertical  || '<span style="color:#d1d5db">—</span>'}</td>
+            <td style="padding:6px 0 6px 10px;color:#6b7280;font-size:11px">${r.acqProgram || '<span style="color:#d1d5db">—</span>'}</td>
+        </tr>`).join('');
+    }
+
+    function sortScoringDrill(field) {
+        _drillSortAsc = (_drillSortField === field) ? !_drillSortAsc : true;
+        _drillSortField = field;
+        _renderDrillTableBody();
+        document.querySelectorAll('.drill-th .drill-sort-ind').forEach(el => {
+            el.textContent = el.closest('.drill-th').dataset.field === field
+                ? (_drillSortAsc ? '▲' : '▼')
+                : '⇅';
+        });
+    }
+
+    function closeScoringDrill() {
+        const panel = document.getElementById('scoringDrillPanel');
+        if (panel) panel.style.display = 'none';
+        document.querySelectorAll('.score-matrix-cell').forEach(td => td.classList.remove('score-matrix-selected'));
+        ['scoringDrillCountry', 'scoringDrillChannel', 'scoringDrillGbu', 'scoringDrillVertical'].forEach(id => {
+            if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+        });
+        _scoringDrillRows = [];
+    }
+
+    function exportScoringDrill() {
+        if (!_scoringDrillRows.length) return;
+        const titleEl = document.getElementById('scoringDrillTitle');
+        const header  = ['Country', 'Acquisition Channel', 'GBU', 'Vertical', 'Acquisition Program'];
+        const csvRows = [header.join(',')];
+        _scoringDrillRows.forEach(r => {
+            csvRows.push([r.country, r.channel, r.gbu, r.vertical, r.acqProgram].map(v => '"' + (v || '').replace(/"/g, '""') + '"').join(','));
+        });
+        const blob = new Blob([csvRows.join('\r\n')], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'scoring-drill-' + (titleEl ? titleEl.textContent.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : 'export') + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
     function toggleScoringInfo() {
         const panel   = document.getElementById('scoringInfoPanel');
         const chevron = document.getElementById('scoringInfoChevron');
@@ -3207,6 +3618,12 @@
         const velToMQL  = avgDays(mqlLeads,  'createdDate', 'mqlDate');
         const velToSQL  = avgDays(sqlLeads.filter(r => r.mqlDate), 'mqlDate', 'workingDate');
         const velToConv = avgDays(convLeads.filter(r => r.workingDate && r.convertedDate), 'workingDate', 'convertedDate');
+
+        // Narrative KPIs
+        const _narPctMQL = document.getElementById('narPctMQL');
+        if (_narPctMQL) _narPctMQL.textContent = total > 0 ? (pctMQL * 100).toFixed(1) + '%' : '—';
+        const _narVelMQL = document.getElementById('narVelToMQL');
+        if (_narVelMQL) _narVelMQL.textContent = velToMQL !== null ? velToMQL + 'd' : '—';
 
         // ── Helpers ───────────────────────────────────────────────
         const maxN = total;
@@ -3393,6 +3810,12 @@
             if (v) v.textContent = fmt(count);
             if (p) p.textContent = n > 0 ? pct(count, n) + ' of leads' : '';
         }
+        // Narrative KPIs
+        const _narAssignedEl = document.getElementById('narAssigned');
+        if (_narAssignedEl) _narAssignedEl.textContent = fmt(stageCounts.assigned);
+        const _narConvPctEl = document.getElementById('narConvertedPct');
+        if (_narConvPctEl) _narConvPctEl.textContent = n > 0 ? (stageCounts.converted / n * 100).toFixed(1) + '%' : '—';
+
         setFF('ffDemand',      'ffDemandPct',      stageCounts.demand);
         setFF('ffAssigned',    'ffAssignedPct',    stageCounts.assigned);
         setFF('ffProspect',    'ffProspectPct',    stageCounts.prospect);
@@ -3448,6 +3871,8 @@
         const matrixLeads = lgDateFrom
             ? matrixLeadsBase.filter(r => { const d = parseDate(r.createdDate); return d && d >= lgDateFrom && d <= lgDateTo; })
             : matrixLeadsBase;
+        _scoringMatrixLeads = matrixLeads;
+        closeScoringDrill(); // reset drill-down when data changes
 
         // Rows = Relative Urgency (3 top → 0 bottom), Cols = Relative Score (0 left → 3 right)
         const matrix = {};
@@ -3482,7 +3907,9 @@
                     const category = sum >= 4 ? 'hot' : sum >= 2 ? 'warm' : 'cold';
                     const bg = (sum === 6 && cnt > 0) ? '#922b21' : cellHeatColor(intensity, category);
                     const textColor = (intensity > 0.55 || (sum === 6 && cnt > 0)) ? '#ffffff' : 'var(--ansell-dark)';
-                    t += `<td class="score-matrix-cell" style="background:${bg};color:${textColor}">${displayFn(cnt)}</td>`;
+                    const clickable = cnt > 0 ? `cursor:pointer;` : '';
+                    const onclick   = cnt > 0 ? `onclick="openScoringDrill('${u}','${s}')"` : '';
+                    t += `<td class="score-matrix-cell" data-u="${u}" data-s="${s}" ${onclick} style="background:${bg};color:${textColor};${clickable}">${displayFn(cnt)}</td>`;
                 });
                 t += '</tr>';
             });
@@ -3508,6 +3935,11 @@
             else coldCount++;
         });
         const scoredCount = hotCount + warmCount + coldCount;
+
+        // Narrative KPI
+        const _narHotEl = document.getElementById('narHotLeads');
+        if (_narHotEl) _narHotEl.textContent = fmt(hotCount);
+
         const scoreSummaryEl = document.getElementById('scoringMatrixSummary');
         if (scoreSummaryEl) {
             const spct = n => scoredCount > 0 ? (n / scoredCount * 100).toFixed(1) + '%' : '—';
@@ -5752,6 +6184,30 @@
 
         tick();
     }
+
+    // ── Flip KPI cards ─────────────────────────────────────────────────
+    (function initFlipCards() {
+        document.querySelectorAll('.kpi-flip').forEach(function(wrap) {
+            var inner = wrap.querySelector('.kpi-flip-inner');
+            var flipped = false;
+            function setAnim(value) { inner.style.animation = 'none'; void inner.offsetWidth; inner.style.animation = value; }
+            function startIdle() {
+                var dur   = (3.5 + Math.random() * 4).toFixed(2) + 's';
+                var delay = (Math.random() * 6).toFixed(2) + 's';
+                setAnim('kpiNudge ' + dur + ' ' + delay + ' ease-in-out infinite');
+            }
+            startIdle();
+            wrap.addEventListener('mouseenter', function() {
+                if (flipped) return; flipped = true;
+                setAnim('kpiFlipIn 0.45s ease-in-out both');
+            });
+            wrap.addEventListener('mouseleave', function() {
+                if (!flipped) return; flipped = false;
+                setAnim('kpiFlipOut 0.45s ease-in-out both');
+                inner.addEventListener('animationend', function() { startIdle(); }, { once: true });
+            });
+        });
+    })();
 
     </script>
 

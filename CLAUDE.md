@@ -19,10 +19,12 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 | File | Purpose |
 |------|---------|
 | `index.html` | Navigation hub with dashboard cards and FAQ |
+| `pages/marketo-analytics-email.html` | Email performance: KPIs, trendline, engagement heatmap, hour-of-day, reputation, content topics, country map |
 | `pages/marketo-analytics-program.html` | Program performance: KPIs, trendline, butterfly (FT/MT attribution), iCapture events, fixed costs |
 | `pages/marketo-analytics-lead-generation.html` | Lead gen funnel: pipeline stages (People→MQL→SQL→Converted), transitions, multi-touch programs, omnichannel |
 | `pages/marketo-analytics-user-activity.html` | Marketo audit trail viewer |
 | `pages/marketo-db-analysis.html` | Database analysis: deliverability, GBU, acquisition channel, growth trends, record types. Has People/Leads/Contacts quick-filter buttons in filter bar. |
+| `pages/marketo-db-consent.html` | Consent analysis: opt-in rates, consent status by country/GBU, program-level breakdown |
 | `pages/marketo-db-quality.html` | Data quality scoring: field coverage, blank rates, org/country mismatches, picklist anomalies, live Marketo fix panel |
 | `pages/marketo-tools-landing-pages.html` | Landing page inventory + bulk operations |
 | `pages/marketo-tools-forms.html` | Forms inventory |
@@ -30,6 +32,7 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 | `pages/marketo-tools-smartcampaigns.html` | Smart campaigns inventory |
 | `TEST-marketo-analytics.html` | Dev sandbox (do not deploy) |
 | `ansell.digital.css` | Shared Ansell brand design system (never edit unless explicitly asked) |
+| `resources/world.svg` | SVG world map used by country choropleth charts |
 | `mkto-proxy.ps1` | Local CORS proxy on port 3791 for Marketo API calls |
 | `Preprocess-DashboardExport.ps1` | Pre-processing script: reads latest `Dashboard_Export.csv` → writes `_slim.csv` + `_agg.json` to Reports/ |
 
@@ -67,13 +70,22 @@ Files are loaded via `fetch()` from the `Reports/` folder (served by Live Server
 
 ### Reports/ (root)
 ```
-YYYY-MM-DD Dashboard_Export.csv
+YYYY-MM-DD Dashboard_Export.csv              ← lead/contact data for most dashboards
+YYYY-MM-DD Dashboard_Export_Consent.csv      ← consent analysis (marketo-db-consent.html)
+YYYY-MM-DD Dashboard_Emails_Performance.xlsx ← email send metrics (marketo-analytics-email.html)
+YYYY-MM-DD Dashboard_Emails_URL.xlsx         ← URL click activity (marketo-analytics-email.html)
 YYYY-MM-DD Audit_Trail_Asset.csv
 YYYY-MM-DD iCapture Events.csv
 YYYY-MM-DD iCapture Users.csv
 YYYY-MM-DD iCapture Membership.xlsx
 YYYY-MM-DD iCapture Revenue Created.xlsx
 ```
+
+`Dashboard_Emails_Performance.xlsx` has one row per email × device type × send date. Key columns: `Sent (Date)`, `Sent Hour` (format: `9 AM`), `Program Name`, `Email Name`, `Sent`, `Delivered`, `Opened`, `Unique Clicks`. `Sent Hour` is separate from the date and must be parsed with `parseHour12()`, not `parseDate()`.
+
+`Dashboard_Emails_URL.xlsx` has one row per URL × email × clicked date. Key columns: `Clicked (Date)`, `Clicked Hour`, `Email Name`, `URL`, `Clicked`.
+
+`Dashboard_Export_Consent.csv` uses underscore-separated date prefix (`YYYY_MM_DD_`) in addition to the standard space-separated form. The consent page tries both variants when auto-detecting.
 
 ### Reports/omnichannel/
 ```
@@ -154,11 +166,19 @@ records.forEach(r => {
 | `fmtUSD(n)` | `$1.2M` / `$450K` / `$123` format |
 | `parseMoney(v)` | Strip `$`, commas → float |
 | `parseNum(v)` | Strip commas → float |
-| `parseDate(v)` | String or Excel serial → Date |
+| `parseDate(v)` | String or Excel serial → Date — see format note below |
+| `parseHour12(v)` | `"9 AM"` / `"11 PM"` → 0–23 integer (email analytics only) |
 | `getBucket(date, scale)` | Date → bucket key string (e.g. `2025-03`) |
 | `getCostTotal(c)` | `agencyCosts + otherCosts + thirdPartySpend` |
 | `toUSD(amount, currency)` | EUR→USD using `EUR_USD_RATE = 0.917431` |
 | `STAGE_PROB` | File-level constant: stage → win probability |
+
+**`parseDate` handles three formats** (in priority order):
+1. `YYYY-MM-DD [time]` — ISO, used by older Dashboard_Export.csv exports
+2. `DD-MM-YYYY [HH:MM:SS AM|PM]` — legacy 4-digit year format
+3. `DD-MM-YY [HH:MM[:SS]]` — **current Marketo export format as of Apr 2026** (2-digit year → 2000+YY, time without seconds)
+
+Marketo changed the CSV date format from ISO to `DD-MM-YY` in April 2026. All three formats must remain supported.
 
 ### Naming conventions
 - `load*()` — async file loading
@@ -198,6 +218,61 @@ Ansell's fiscal year ends **June 30**. FY end lines on trendline charts are draw
 
 ## Currency
 All monetary values stored in USD. EUR→USD conversion uses fixed rate `EUR_USD_RATE = 0.917431` via `toUSD(amount, currency)`.
+
+---
+
+## Marketo Subscription Timezone
+
+Ansell's Marketo subscription is set to **Europe/Brussels (CET/CEST — UTC+1 in winter, UTC+2 in summer)**. All timestamps exported from Marketo RCE (including `Sent Hour` and `Clicked Hour` in the email performance files) are in this timezone, regardless of the locale setting (which is English/Australia).
+
+### Timezone offset control (email analytics)
+
+`pages/marketo-analytics-email.html` exposes a `tzOffset` module variable (integer hours, default `0`) that shifts all hour-of-day charts relative to the Brussels base. Fixed offsets from Brussels that remain constant year-round (both regions observe DST together):
+
+| Region | Offset |
+|---|---|
+| Brussels (base) | 0 |
+| London / Lisbon | −1 |
+| US Eastern | −6 |
+| US Central | −7 |
+| US Pacific | −9 |
+| UAE / Gulf | +2 |
+| Singapore | +6 |
+| Tokyo / Seoul | +7 |
+| Sydney AEST (winter) | +8 |
+| Sydney AEDT (summer) | +10 |
+
+`setTzOffset(n)` updates the value and re-renders only the three affected charts. Hour wrapping: `((h + tzOffset) % 24 + 24) % 24`. The heatmap also adjusts the day-of-week when the offset crosses midnight.
+
+---
+
+## Narrative + KPI Flip Card Pattern
+
+Both `marketo-analytics-email.html` and `marketo-analytics-lead-generation.html` use a section-level narrative layout:
+
+```html
+<div class="sec-narrative-row">
+    <div class="sec-narrative">
+        <div class="sec-narrative-eyebrow">Section Name</div>
+        <div class="sec-narrative-title">Headline question</div>
+        <p class="sec-narrative-body">Explanatory text…</p>
+    </div>
+    <div class="sec-narrative-kpis">
+        <div class="kpi-flip">
+            <div class="kpi-flip-inner">
+                <div class="kpi-card teal kpi-front">
+                    <div class="kpi-label">Metric Name</div>
+                    <div class="kpi-val" id="narSomeId">—</div>
+                    <div class="kpi-sub">context label</div>
+                </div>
+                <div class="kpi-back teal">…back face content…</div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+`.kpi-flip` cards idle-nudge (CSS `kpiNudge` animation) and flip on hover (`kpiFlipIn`/`kpiFlipOut`). The `initFlipCards()` IIFE at the end of `<script>` wires up the animations. KPI values in `.kpi-val` elements are populated by `id` in the relevant render functions after data is computed.
 
 ---
 
@@ -314,9 +389,3 @@ Discovered via `GET /rest/v1/activities/types.json`.
 ## Path-with-Spaces Constraint
 
 The working directory contains spaces (`Team-Marketo - Documents`, `Marketo Documentation`). When running shell commands, always quote paths. On Windows, use `bash` shell syntax with forward slashes.
-
----
-
-## Git Status Notes
-
-New dashboard files (`marketo-analytics-*.html`, `marketo-tools-*.html`, `marketo-db-*.html`, `index.html`) are **untracked** — they replaced older files with different names. `git diff` will only show deletions of the old files; the new files won't appear in diffs until staged.

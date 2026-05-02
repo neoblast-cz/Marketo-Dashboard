@@ -276,6 +276,22 @@
 
         <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
 
+        <span class="filter-label">Hours in:</span>
+        <select id="tzOffsetSel" onchange="setTzOffset(+this.value)" title="Shifts hour-of-day charts relative to Brussels subscription timezone" style="font-size:11px;padding:3px 6px;border:1px solid #dde0e7;border-radius:4px;color:#374151;font-family:inherit;cursor:pointer;background:#fff">
+            <option value="0">Brussels (base)</option>
+            <option value="-1">London / Lisbon</option>
+            <option value="-6">US Eastern</option>
+            <option value="-7">US Central</option>
+            <option value="-9">US Pacific</option>
+            <option value="2">UAE / Gulf</option>
+            <option value="6">Singapore</option>
+            <option value="7">Tokyo / Seoul</option>
+            <option value="8">Sydney (AEST)</option>
+            <option value="10">Sydney (AEDT)</option>
+        </select>
+        
+        <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
+
         <span class="filter-label">Batch size:</span>
         <button class="quick-filter-btn active" id="btnBsAll"  onclick="toggleBatchSize('all')"   style="margin:0">All</button>
         <button class="quick-filter-btn"        id="btnBs100"  onclick="toggleBatchSize('lt100')" style="margin:0" title="0 – 99 recipients">&lt; 100</button>
@@ -290,6 +306,7 @@
         <button class="quick-filter-btn active" id="btnTypeAll"     onclick="setEmailType('all')"     style="margin:0">All</button>
         <button class="quick-filter-btn"         id="btnTypeBatch"   onclick="setEmailType('batch')"   style="margin:0" title="Sent once — one-off campaigns">Batch</button>
         <button class="quick-filter-btn"         id="btnTypeNurture" onclick="setEmailType('nurture')" style="margin:0">Nurture</button><span class="info-tip" tabindex="0">?<span class="info-tip-box">An email is classified as <strong>Nurture</strong> when the same email name appears on <strong>2 or more distinct send dates</strong>. This typically indicates a drip or automation sequence where the same content is delivered to different contacts over time — as opposed to a one-off batch send.</span></span>
+
 
         <button class="filter-reset" onclick="resetFilters()" style="margin-left:auto">Reset All</button>
         <span class="filter-count" id="filterCount"></span>
@@ -1393,6 +1410,7 @@ var _linkRows        = [];
 var _currentLinkType = null;
 var heatmapMetric    = 'openRate';
 var tScatterX        = 'month';
+var tzOffset         = 0; // hours offset from subscription TZ (Brussels CEST/CET)
 var tScatterY        = 'openRate';
 var sortField    = 'sent';
 var sortDir      = 'desc';
@@ -3100,6 +3118,7 @@ function renderHourOfDay(data) {
     data.forEach(function(r) {
         var h = r.sentHour;
         if (h === null || h === undefined || isNaN(h)) return;
+        h = ((h + tzOffset) % 24 + 24) % 24;
         if (!byHour[h]) byHour[h] = { sent:0, delivered:0, opened:0, uniqueClicks:0 };
         byHour[h].sent        += r.sent;
         byHour[h].delivered   += r.delivered;
@@ -3619,6 +3638,17 @@ function escHtml(s) {
 // ═══════════════════════════════════════════════════════
 // UI CONTROLS
 // ═══════════════════════════════════════════════════════
+function setTzOffset(n) {
+    tzOffset = n;
+    var sel = document.getElementById('tzOffsetSel');
+    if (sel) sel.value = String(n);
+    var data    = applyFilters();
+    var urlData = getUrlData(data);
+    renderHourOfDay(data);
+    renderHeatmap(data, urlData);
+    renderClickHourDist(urlData);
+}
+
 function setTimeScale(s) {
     timeScale = s;
     ['Week','Month','Quarter','Year','FY'].forEach(function(x) {
@@ -3681,6 +3711,9 @@ function resetFilters() {
     batchSizeFilter.clear();
     document.getElementById('btnBsAll').classList.add('active');
     Object.values(BS_BTNS).forEach(function(id) { document.getElementById(id).classList.remove('active'); });
+    tzOffset = 0;
+    var tzSel = document.getElementById('tzOffsetSel');
+    if (tzSel) tzSel.value = '0';
     onMsChange();
 }
 
@@ -3761,6 +3794,12 @@ function renderHeatmap(data, urlData) {
         urlData.forEach(function(r) {
             if (r.clickedDate === null || r.clickedHour === null || isNaN(r.clickedHour)) return;
             var d = r.clickedDate.getDay(), h = r.clickedHour;
+            if (tzOffset !== 0) {
+                var raw = h + tzOffset;
+                h = ((raw % 24) + 24) % 24;
+                var ds = raw < 0 ? -1 : raw >= 24 ? 1 : 0;
+                d = ((d + ds) % 7 + 7) % 7;
+            }
             if (h < 0 || h >= 24 || !grid[d]) return;
             grid[d][h].clicks += r.clicked;
         });
@@ -3769,6 +3808,12 @@ function renderHeatmap(data, urlData) {
             if (!r.sentDate) return;
             var d = r.sentDate.getDay();
             var h = (r.sentHour !== null && !isNaN(r.sentHour)) ? r.sentHour : r.sentDate.getHours();
+            if (tzOffset !== 0) {
+                var raw = h + tzOffset;
+                h = ((raw % 24) + 24) % 24;
+                var ds = raw < 0 ? -1 : raw >= 24 ? 1 : 0;
+                d = ((d + ds) % 7 + 7) % 7;
+            }
             if (h < 0 || h >= 24 || !grid[d]) return;
             grid[d][h].sent += r.sent;
             grid[d][h].del  += r.delivered;
@@ -4191,7 +4236,7 @@ function renderTopicAnalysis(data, urlData) {
         },
         options: {
             indexAxis: 'y', responsive:true, maintainAspectRatio:false,
-            interaction: { mode:'index', intersect:false },
+            interaction: { mode:'index', axis:'y', intersect:false },
             onClick: function(evt, elements) {
                 if (!elements.length) return;
                 var t = topics[elements[0].index];
@@ -4518,7 +4563,10 @@ function renderClickHourDist(urlData) {
     var hourBuckets = new Array(24).fill(0);
     urlData.forEach(function(r) {
         var h = r.clickedHour;
-        if (h !== null && !isNaN(h) && h >= 0 && h < 24) hourBuckets[h] += r.clicked;
+        if (h !== null && !isNaN(h) && h >= 0 && h < 24) {
+            var adjH = ((h + tzOffset) % 24 + 24) % 24;
+            hourBuckets[adjH] += r.clicked;
+        }
     });
     var hourLabels = Array.from({length: 24}, function(_, i) {
         return i === 0 ? '12am' : i < 12 ? i + 'am' : i === 12 ? '12pm' : (i - 12) + 'pm';
