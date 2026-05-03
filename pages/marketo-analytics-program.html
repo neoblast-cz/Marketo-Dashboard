@@ -109,6 +109,64 @@
         .acc-chip.green  { color: #1a7a4a; background: #e4f5ee; }
         .acc-chip.gray   { color: #6b7280; background: #f3f4f6; }
         .acc-chip.purple { color: #6d28d9; background: #ede9fe; }
+
+        /* ── KPI color variants (used by flip cards & narrative) ── */
+        .kpi-card.green  { border-top-color: #2e7d32; }
+        .kpi-card.purple { border-top-color: #7C3AED; }
+        .kpi-card.orange { border-top-color: #D97706; }
+        .kpi-val { font-size: 26px; font-weight: 700; color: #1a2230; line-height: 1.1; }
+
+        /* ── Section narrative ── */
+        .sec-narrative { padding: 44px 0 32px; max-width: 660px; }
+        .sec-narrative-row { display:flex; gap:48px; align-items:flex-start; padding:44px 0 32px; }
+        .sec-narrative-row .sec-narrative { padding:0; flex:1; min-width:0; }
+        .sec-narrative-kpis { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; padding-top:10px; }
+        .sec-narrative-kpis::before { content:'KPIs to pay attention to'; flex-basis:100%; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:-2px; }
+        .sec-narrative-kpis .kpi-card { border-radius:12px; border-top-width:4px; width:180px; flex-shrink:0; }
+        @media (max-width:860px) { .sec-narrative-row { flex-direction:column; } }
+        .sec-narrative-eyebrow { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.11em; color:var(--ansell-dark); margin-bottom:10px; }
+        .sec-narrative-title { font-size:22px; font-weight:700; color:var(--ansell-teal); line-height:1.25; margin:0 0 14px; text-transform:uppercase; }
+        .sec-narrative-body { font-size:14px; line-height:1.85; color:#4b5563; margin:0; }
+        .sec-narrative-body strong { color:#1a2230; }
+        .sec-narrative-body em { font-style:normal; color:#0063AC; font-weight:600; }
+
+        /* ── Flip KPI cards ── */
+        .kpi-flip { width:180px; flex-shrink:0; perspective:1100px; cursor:default; }
+        .kpi-flip-inner { position:relative; width:100%; transform-style:preserve-3d; }
+        @keyframes kpiNudge {
+            0%,70%,100% { transform:rotateY(0deg); }
+            78%          { transform:rotateY(-18deg); }
+            86%          { transform:rotateY(10deg); }
+            93%          { transform:rotateY(-6deg); }
+        }
+        @keyframes kpiFlipIn {
+            0%   { transform:rotateY(0deg);    animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+            50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+            100% { transform:rotateY(-180deg); }
+        }
+        @keyframes kpiFlipOut {
+            0%   { transform:rotateY(-180deg); animation-timing-function:cubic-bezier(0.55,0.055,0.675,0.19); }
+            50%  { transform:rotateY(-90deg);  animation-timing-function:cubic-bezier(0.215,0.61,0.355,1); }
+            100% { transform:rotateY(0deg); }
+        }
+        .kpi-front, .kpi-back { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+        .kpi-front { border-radius:12px; border-top-width:4px !important; width:100%; }
+        .kpi-back {
+            position:absolute; inset:0; transform:rotateY(180deg); border-radius:12px;
+            border-top:4px solid var(--ansell-blue); background:#fff;
+            box-shadow:0 1px 4px rgba(0,0,0,.07);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            text-align:center; padding:16px 14px; gap:4px;
+        }
+        .kpi-back.teal   { border-top-color:#00A28F; }
+        .kpi-back.orange { border-top-color:#D97706; }
+        .kpi-back.red    { border-top-color:#c62828; }
+        .kpi-back.purple { border-top-color:#7C3AED; }
+        .kpi-back.green  { border-top-color:#2e7d32; }
+        .kpi-back.dark   { border-top-color:#7f1d1d; }
+        .kpi-back-eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:2px; }
+        .kpi-back-val { font-size:26px; font-weight:700; color:var(--ansell-dark); line-height:1.1; }
+        .kpi-back-note { font-size:10px; color:#6b7280; line-height:1.35; margin-top:4px; }
     </style>
 </head>
 <body>
@@ -354,13 +412,8 @@
                 <a class="nav-sub-link" href="#card-acq-trend">New Names Over Time</a>
             </div>
             <div class="nav-group">
-                <div class="nav-group-label">Cost &amp; ROI</div>
-                <a class="nav-link" href="#sec-cost">Cost &amp; ROI</a>
-                <a class="nav-sub-link" href="#card-cost-scatter">Cost vs Pipeline scatter</a>
-            </div>
-            <div class="nav-group">
                 <div class="nav-group-label">Pipeline &amp; Revenue</div>
-                <a class="nav-link" href="#sec-attribution">Program Attribution</a>
+                <a class="nav-link" href="#sec-attribution">Pipeline &amp; Revenue</a>
                 <a class="nav-sub-link" href="#card-top-programs">Top Programs by Pipeline</a>
                 <a class="nav-sub-link" href="#card-top-programs">Top Programs by Revenue Won</a>
                 <a class="nav-sub-link" href="#card-ftmt">FT vs MT vs LT</a>
@@ -372,6 +425,11 @@
                 <a class="nav-sub-link" href="#card-opp-type">Pipeline by Opp Type</a>
             </div>
             <div class="nav-group">
+                <div class="nav-group-label">Cost &amp; ROI</div>
+                <a class="nav-link" href="#sec-cost">Cost &amp; ROI</a>
+                <a class="nav-sub-link" href="#card-cost-scatter">Cost vs Pipeline scatter</a>
+            </div>
+            <div class="nav-group">
                 <div class="nav-group-label">Dimensions</div>
                 <a class="nav-link" href="#sec-channels">Channels &amp; Regions</a>
                 <a class="nav-sub-link" href="#sec-channels">Success by Channel</a>
@@ -380,16 +438,17 @@
                 <a class="nav-link" href="#sec-comparison">Comparison Tool</a>
             </div>
             <div class="nav-group">
-                <div class="nav-group-label">Tools</div>
-                <a class="nav-link" href="#sec-programs">Program Summary</a>
-                <a class="nav-sub-link" href="#card-prog-table">All Programs</a>
-                <a class="nav-sub-link" href="#card-prog-health">Program Health</a>
+                <div class="nav-group-label">Other Tools</div>
                 <a class="nav-link" href="#sec-nc">Naming Convention</a>
                 <a class="nav-sub-link" href="#ncHealthCard">Compliance Score</a>
+                <a class="nav-link" href="#sec-prog-health">Program Health</a>
+                <a class="nav-sub-link" href="#card-prog-health">Health Cards</a>
                 <a class="nav-link" href="#sec-icapture">iCapture</a>
                 <a class="nav-sub-link" href="#sec-icapture">Platform Economics</a>
                 <a class="nav-sub-link" href="#sec-icapture">Deal Performance</a>
                 <a class="nav-sub-link" href="#sec-icapture">Event Overview</a>
+                <a class="nav-link" href="#sec-programs">Program Summary</a>
+                <a class="nav-sub-link" href="#card-prog-table">All Programs</a>
             </div>
         </nav>
 
@@ -399,6 +458,57 @@
                 <div class="sec-header">
                     <span class="sec-title">Overview</span>
                     <span class="sec-desc">KPIs, membership trends and trendline chart</span>
+                </div>
+                <div class="sec-narrative-row">
+                    <div class="sec-narrative">
+                        <div class="sec-narrative-eyebrow">Program Performance</div>
+                        <div class="sec-narrative-title">How are our programs performing?</div>
+                        <p class="sec-narrative-body">This dashboard tracks <strong>all Marketo programs</strong> across the full marketing funnel — from first contact through to <em>closed revenue</em>. Use the filters to focus on a specific region, vertical, channel, or time period. Switch between <strong>First Touch</strong>, <strong>Multi Touch</strong>, and <strong>Last Touch</strong> to compare different views of program contribution.</p>
+                    </div>
+                    <div class="sec-narrative-kpis">
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card teal kpi-front">
+                                    <div class="kpi-label">Members</div>
+                                    <div class="kpi-val" id="narProgMembers">—</div>
+                                    <div class="kpi-sub">program members</div>
+                                </div>
+                                <div class="kpi-back teal">
+                                    <div class="kpi-back-eyebrow">Members</div>
+                                    <div class="kpi-back-val" id="narProgMembers2">—</div>
+                                    <div class="kpi-back-note">Total people who reached at least one program milestone</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card kpi-front" style="border-top-color:#ED7D31">
+                                    <div class="kpi-label">Pipeline</div>
+                                    <div class="kpi-val" id="narProgPipeline">—</div>
+                                    <div class="kpi-sub">attributed pipeline</div>
+                                </div>
+                                <div class="kpi-back orange">
+                                    <div class="kpi-back-eyebrow">Pipeline Created</div>
+                                    <div class="kpi-back-val" id="narProgPipeline2">—</div>
+                                    <div class="kpi-back-note">Opportunity value attributed to programs per current attribution mode</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card green kpi-front">
+                                    <div class="kpi-label">Revenue</div>
+                                    <div class="kpi-val" id="narProgRevenue">—</div>
+                                    <div class="kpi-sub">revenue won</div>
+                                </div>
+                                <div class="kpi-back green">
+                                    <div class="kpi-back-eyebrow">Revenue Won</div>
+                                    <div class="kpi-back-val" id="narProgRevenue2">—</div>
+                                    <div class="kpi-back-note">Closed-won deal value attributed to programs per current attribution mode</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                     <!-- KPI Cards -->
                     <div id="kpiGrid" class="kpi-grid" style="grid-template-columns:repeat(4,1fr)"></div>
@@ -424,6 +534,43 @@
                 <div class="sec-header">
                     <span class="sec-title">Acquisition</span>
                     <span class="sec-desc">New name volume and source channel mix</span>
+                </div>
+                <div class="sec-narrative-row">
+                    <div class="sec-narrative">
+                        <div class="sec-narrative-eyebrow">Acquisition</div>
+                        <div class="sec-narrative-title">Where are our new names coming from?</div>
+                        <p class="sec-narrative-body">New names are <strong>net-new contacts</strong> added to the Marketo database through a given program. The channel mix shows which acquisition sources drive database growth. <em>Organic web</em> and <em>Paid media</em> typically lead in volume, while <em>Events</em> and <em>Webinars</em> contribute highly engaged, lower-volume contacts.</p>
+                    </div>
+                    <div class="sec-narrative-kpis">
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card teal kpi-front">
+                                    <div class="kpi-label">New Names</div>
+                                    <div class="kpi-val" id="narProgNewNames">—</div>
+                                    <div class="kpi-sub">net new contacts</div>
+                                </div>
+                                <div class="kpi-back teal">
+                                    <div class="kpi-back-eyebrow">New Names</div>
+                                    <div class="kpi-back-val" id="narProgNewNames2">—</div>
+                                    <div class="kpi-back-note">Contacts acquired as a first touch by programs in the filter period</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card kpi-front">
+                                    <div class="kpi-label">Programs</div>
+                                    <div class="kpi-val" id="narProgPrograms">—</div>
+                                    <div class="kpi-sub">unique programs</div>
+                                </div>
+                                <div class="kpi-back">
+                                    <div class="kpi-back-eyebrow">Programs</div>
+                                    <div class="kpi-back-val" id="narProgPrograms2">—</div>
+                                    <div class="kpi-back-note">Unique Marketo programs with at least one member in the filter period</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                     <!-- Filter controls: Period + Groups on one compact row -->
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -475,32 +622,62 @@
                     </div>
             </div>
 
-            <!-- ══ Cost & ROI ═══════════════════════════════════════════════ -->
-            <div class="page-section" id="sec-cost">
-                <div class="sec-header">
-                    <span class="sec-title">Cost &amp; ROI</span>
-                    <span class="sec-desc">Budget breakdown and program cost efficiency</span>
-                </div>
-                    <div id="costKpiWrap"></div>
-                    <!-- Cost vs Pipeline scatter -->
-                    <div class="chart-card chart-anchor" id="card-cost-scatter" style="margin-top:16px">
-                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-                            <div class="chart-title" style="margin:0">Program Cost vs <span id="scatterMetricLabel">Pipeline</span></div>
-                            <div style="display:flex;gap:6px">
-                                <button id="btnScatterPipeline" class="quick-filter-btn active" onclick="setScatterMetric('pipeline')" style="margin:0;padding:3px 10px;font-size:11px">Pipeline</button>
-                                <button id="btnScatterRevenue"  class="quick-filter-btn"        onclick="setScatterMetric('revenue')"  style="margin:0;padding:3px 10px;font-size:11px">Revenue</button>
-                            </div>
-                        </div>
-                        <div style="position:relative;height:400px"><canvas id="chartCostScatter"></canvas></div>
-                        <div style="font-size:10px;color:#bbb;margin-top:8px">Bubble size = member count. Only programs with recorded cost shown. Attribution follows global FT / MT / LT setting.</div>
-                    </div>
-            </div>
-
-            <!-- ══ Program Attribution ══════════════════════════════════════ -->
+            <!-- ══ Pipeline & Revenue ════════════════════════════════════════ -->
             <div class="page-section" id="sec-attribution">
                 <div class="sec-header">
-                    <span class="sec-title">Program Attribution</span>
-                    <span class="sec-desc">Top programs ranked by FT, MT and LT pipeline</span>
+                    <span class="sec-title">Pipeline &amp; Revenue</span>
+                    <span class="sec-desc">Top programs ranked by attributed pipeline and revenue</span>
+                </div>
+                <div class="sec-narrative-row">
+                    <div class="sec-narrative">
+                        <div class="sec-narrative-eyebrow">Pipeline &amp; Revenue</div>
+                        <div class="sec-narrative-title">What pipeline are programs generating?</div>
+                        <p class="sec-narrative-body">Program attribution links <strong>Marketo programs</strong> to <em>Salesforce opportunities</em>. <strong>First Touch (FT)</strong> gives 100% credit to the first program a contact engaged with. <strong>Multi Touch (MT)</strong> shares credit across all touchpoints before an opportunity was created. <strong>Last Touch (LT)</strong> follows the Salesforce Primary Campaign Source field.</p>
+                    </div>
+                    <div class="sec-narrative-kpis">
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card kpi-front" style="border-top-color:#ED7D31">
+                                    <div class="kpi-label">Pipeline</div>
+                                    <div class="kpi-val" id="narProgAttrPipeline">—</div>
+                                    <div class="kpi-sub">attributed pipeline</div>
+                                </div>
+                                <div class="kpi-back orange">
+                                    <div class="kpi-back-eyebrow">Pipeline Created</div>
+                                    <div class="kpi-back-val" id="narProgAttrPipeline2">—</div>
+                                    <div class="kpi-back-note">Total opportunity value attributed to programs per current attribution mode</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card green kpi-front">
+                                    <div class="kpi-label">Revenue</div>
+                                    <div class="kpi-val" id="narProgAttrRevenue">—</div>
+                                    <div class="kpi-sub">revenue won</div>
+                                </div>
+                                <div class="kpi-back green">
+                                    <div class="kpi-back-eyebrow">Revenue Won</div>
+                                    <div class="kpi-back-val" id="narProgAttrRevenue2">—</div>
+                                    <div class="kpi-back-note">Closed-won deal value attributed to programs per current attribution mode</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card purple kpi-front">
+                                    <div class="kpi-label">Predicted</div>
+                                    <div class="kpi-val" id="narProgAttrPredicted">—</div>
+                                    <div class="kpi-sub">weighted revenue</div>
+                                </div>
+                                <div class="kpi-back purple">
+                                    <div class="kpi-back-eyebrow">Predicted Revenue</div>
+                                    <div class="kpi-back-val" id="narProgAttrPredicted2">—</div>
+                                    <div class="kpi-back-note">Open pipeline weighted by stage win probability</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                     <!-- Top Programs by Pipeline & Revenue -->
                     <div id="card-top-programs" class="chart-anchor" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -596,11 +773,88 @@
                     </div>
             </div>
 
+            <!-- ══ Cost & ROI ═══════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-cost">
+                <div class="sec-header">
+                    <span class="sec-title">Cost &amp; ROI</span>
+                    <span class="sec-desc">Budget breakdown and program cost efficiency</span>
+                </div>
+                <div class="sec-narrative-row">
+                    <div class="sec-narrative">
+                        <div class="sec-narrative-eyebrow">Cost &amp; ROI</div>
+                        <div class="sec-narrative-title">What are we spending and what's the return?</div>
+                        <p class="sec-narrative-body">Fixed program costs are loaded from the <strong>cost tracker spreadsheet</strong> and include agency fees, third-party spend, and other direct costs. <em>Revenue ROI</em> is calculated as attributed revenue divided by total tracked spend. Only programs with recorded costs appear in the cost analysis — untracked spend is not included.</p>
+                    </div>
+                    <div class="sec-narrative-kpis">
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card kpi-front" style="border-top-color:#e11d48">
+                                    <div class="kpi-label">Total Spend</div>
+                                    <div class="kpi-val" id="narProgCost">—</div>
+                                    <div class="kpi-sub">tracked fixed cost</div>
+                                </div>
+                                <div class="kpi-back dark">
+                                    <div class="kpi-back-eyebrow">Total Spend</div>
+                                    <div class="kpi-back-val" id="narProgCost2">—</div>
+                                    <div class="kpi-back-note">Agency + other + third-party spend for programs in the filter period</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card green kpi-front">
+                                    <div class="kpi-label">Revenue ROI</div>
+                                    <div class="kpi-val" id="narProgRoi">—</div>
+                                    <div class="kpi-sub">revenue ÷ spend</div>
+                                </div>
+                                <div class="kpi-back green">
+                                    <div class="kpi-back-eyebrow">Revenue ROI</div>
+                                    <div class="kpi-back-val" id="narProgRoi2">—</div>
+                                    <div class="kpi-back-note">Attributed revenue divided by tracked fixed spend</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-flip">
+                            <div class="kpi-flip-inner">
+                                <div class="kpi-card teal kpi-front">
+                                    <div class="kpi-label">Cost / Member</div>
+                                    <div class="kpi-val" id="narProgCostPerMember">—</div>
+                                    <div class="kpi-sub">per program member</div>
+                                </div>
+                                <div class="kpi-back teal">
+                                    <div class="kpi-back-eyebrow">Cost per Member</div>
+                                    <div class="kpi-back-val" id="narProgCostPerMember2">—</div>
+                                    <div class="kpi-back-note">Total tracked spend divided by total program member count</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    <div id="costKpiWrap"></div>
+                    <!-- Cost vs Pipeline scatter -->
+                    <div class="chart-card chart-anchor" id="card-cost-scatter" style="margin-top:16px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                            <div class="chart-title" style="margin:0">Program Cost vs <span id="scatterMetricLabel">Pipeline</span></div>
+                            <div style="display:flex;gap:6px">
+                                <button id="btnScatterPipeline" class="quick-filter-btn active" onclick="setScatterMetric('pipeline')" style="margin:0;padding:3px 10px;font-size:11px">Pipeline</button>
+                                <button id="btnScatterRevenue"  class="quick-filter-btn"        onclick="setScatterMetric('revenue')"  style="margin:0;padding:3px 10px;font-size:11px">Revenue</button>
+                            </div>
+                        </div>
+                        <div style="position:relative;height:400px"><canvas id="chartCostScatter"></canvas></div>
+                        <div style="font-size:10px;color:#bbb;margin-top:8px">Bubble size = member count. Only programs with recorded cost shown. Attribution follows global FT / MT / LT setting.</div>
+                    </div>
+            </div>
+
             <!-- ══ Channels, Verticals & Regions ════════════════════════════ -->
             <div class="page-section" id="sec-channels">
                 <div class="sec-header">
                     <span class="sec-title">Channels, Verticals &amp; Regions</span>
                     <span class="sec-desc">Performance breakdown across dimensions</span>
+                </div>
+                <div class="sec-narrative">
+                    <div class="sec-narrative-eyebrow">Dimensions</div>
+                    <div class="sec-narrative-title">How do results vary across segments?</div>
+                    <p class="sec-narrative-body">Break down <em>success</em>, <em>pipeline</em>, and <em>revenue</em> by acquisition channel, vertical (GBU), and region. Use these views to identify which segments are over- or under-performing and to guide budget allocation. The <strong>Comparison Tool</strong> below lets you run a side-by-side butterfly analysis between any two channel groups.</p>
                 </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="chart-card">
@@ -677,69 +931,16 @@
                     </div>
             </div>
 
-            <!-- ══ Program Summary ════════════════════════════════════════════ -->
-            <div class="page-section" id="sec-programs">
-                <div class="sec-header">
-                    <span class="sec-title">Program Summary</span>
-                    <span class="sec-desc">Detailed program table with sortable metrics</span>
-                </div>
-                    <div class="chart-card chart-anchor" id="card-prog-table">
-                        <div class="chart-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                            All Programs
-                            <button id="tqf-nc"      class="quick-filter-btn" onclick="toggleTableFilter('nc')"      title="Show only programs not following naming conventions">Naming conventions issues</button>
-                            <button id="tqf-members" class="quick-filter-btn" onclick="toggleTableFilter('members')" title="Hide programs with zero members">Has members</button>
-                            <button id="tqf-attr"    class="quick-filter-btn" onclick="toggleTableFilter('attr')"    title="Hide programs with no FT or MT attribution">Has attribution</button>
-                            <input id="tableSearch" type="text" placeholder="Search program…" oninput="filterTable()" style="display:none">
-                            <span id="tableCount" style="font-size:12px;color:#888;font-weight:400;margin-left:auto"></span>
-                            <button onclick="downloadTableCSV()" style="margin-left:8px;padding:4px 12px;font-size:11px;border:1px solid #dde0e7;border-radius:4px;background:#fff;color:#555;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Download table as CSV">
-                                ↓ CSV
-                            </button>
-                        </div>
-                        <div style="max-height:520px;overflow-y:auto;overflow-x:auto;margin-top:8px">
-                            <table class="prog-table">
-                                <thead>
-                                    <tr>
-                                        <th onclick="sortTable('nameValid')" id="th-nameValid" class="col-nc" style="text-align:center" title="Naming convention compliance">NC <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('program')" id="th-program" class="col-prog">Program <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('region')" id="th-region" class="col-sm">Region <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('gbu')" id="th-gbu" class="col-sm">Vertical <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('programChannel')" id="th-programChannel" class="col-ch">Channel <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('fy')" id="th-fy" class="col-xs">FY <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('subRegion')" id="th-subRegion" class="col-sm">Sub-region <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('landingPage')" id="th-landingPage" class="col-sm">Landing Page <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('brand')" id="th-brand" class="col-ch">Brand <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('members')" id="th-members" class="num-cell col-sm">Members <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('successTotal')" id="th-successTotal" class="num-cell col-sm">Success <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('qualified')" id="th-qualified" class="num-cell col-sm">Qualified <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('pipelineFT')" id="th-pipelineFT" class="usd-cell col-med" style="background:#e8f0fb">Pipeline FT <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('revenueFT')" id="th-revenueFT" class="usd-cell col-med" style="background:#e8f0fb">Revenue FT <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('pipelineMT')" id="th-pipelineMT" class="usd-cell col-med" style="background:#e6f4ee">Pipeline MT <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('revenueMT')" id="th-revenueMT" class="usd-cell col-med" style="background:#e6f4ee">Revenue MT <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('pipelineLT')" id="th-pipelineLT" class="usd-cell col-med" style="background:#f3eefb">Pipeline LT <span class="sort-arrow">↕</span></th>
-                                        <th onclick="sortTable('revenueLT')" id="th-revenueLT" class="usd-cell col-med" style="background:#f3eefb">Revenue LT <span class="sort-arrow">↕</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="progTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Program Health cards -->
-                    <div class="chart-card chart-anchor" id="card-prog-health" style="margin-top:16px;margin-bottom:0">
-                        <div class="chart-title">Program Health</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
-                            <div id="healthCard0"></div>
-                            <div id="healthCard1"></div>
-                            <div id="healthCard2"></div>
-                        </div>
-                    </div>
-            </div>
-
             <!-- ══ Naming Convention Health ═══════════════════════════════════ -->
             <div class="page-section" id="sec-nc">
                 <div class="sec-header">
                     <span class="sec-title">Naming Convention Health</span>
                     <span class="sec-desc">Program naming audit and compliance score</span>
+                </div>
+                <div class="sec-narrative">
+                    <div class="sec-narrative-eyebrow">Other Tools</div>
+                    <div class="sec-narrative-title">Are programs named correctly?</div>
+                    <p class="sec-narrative-body">Consistent program naming enables reliable filtering and segmentation. The compliance score shows what percentage of programs follow the <strong>current naming convention</strong> (<code>REGION_GBU_Channel_FY_Country_…</code>). Invalid values by field pinpoint exactly which segment is causing the most mismatches — use the table below to find specific programs to fix.</p>
                 </div>
                     <div class="chart-card chart-anchor" id="ncHealthCard">
                         <div style="display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start">
@@ -751,6 +952,22 @@
                                 <div class="chart-title" style="margin-bottom:14px">Invalid Values by Field <span style="font-size:11px;font-weight:400;color:#888">(unique programs)</span></div>
                                 <div id="ncFields"></div>
                             </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- ══ Program Health ═════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-prog-health">
+                <div class="sec-header">
+                    <span class="sec-title">Program Health</span>
+                    <span class="sec-desc">Engagement quality and conversion health per program</span>
+                </div>
+                    <div class="chart-card chart-anchor" id="card-prog-health">
+                        <div class="chart-title">Program Health</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+                            <div id="healthCard0"></div>
+                            <div id="healthCard1"></div>
+                            <div id="healthCard2"></div>
                         </div>
                     </div>
             </div>
@@ -832,6 +1049,54 @@
                         <div class="chart-card">
                             <div class="chart-title">Top Users by Leads Captured</div>
                             <div id="chartIcUsersWrap"><canvas id="chartIcUsers"></canvas></div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- ══ Program Summary ════════════════════════════════════════════ -->
+            <div class="page-section" id="sec-programs">
+                <div class="sec-header">
+                    <span class="sec-title">Program Summary</span>
+                    <span class="sec-desc">Detailed program table with sortable metrics</span>
+                </div>
+                    <div class="chart-card chart-anchor" id="card-prog-table">
+                        <div class="chart-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                            All Programs
+                            <button id="tqf-nc"      class="quick-filter-btn" onclick="toggleTableFilter('nc')"      title="Show only programs not following naming conventions">Naming conventions issues</button>
+                            <button id="tqf-members" class="quick-filter-btn" onclick="toggleTableFilter('members')" title="Hide programs with zero members">Has members</button>
+                            <button id="tqf-attr"    class="quick-filter-btn" onclick="toggleTableFilter('attr')"    title="Hide programs with no FT or MT attribution">Has attribution</button>
+                            <input id="tableSearch" type="text" placeholder="Search program…" oninput="filterTable()" style="display:none">
+                            <span id="tableCount" style="font-size:12px;color:#888;font-weight:400;margin-left:auto"></span>
+                            <button onclick="downloadTableCSV()" style="margin-left:8px;padding:4px 12px;font-size:11px;border:1px solid #dde0e7;border-radius:4px;background:#fff;color:#555;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap" title="Download table as CSV">
+                                ↓ CSV
+                            </button>
+                        </div>
+                        <div style="max-height:520px;overflow-y:auto;overflow-x:auto;margin-top:8px">
+                            <table class="prog-table">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortTable('nameValid')" id="th-nameValid" class="col-nc" style="text-align:center" title="Naming convention compliance">NC <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('program')" id="th-program" class="col-prog">Program <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('region')" id="th-region" class="col-sm">Region <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('gbu')" id="th-gbu" class="col-sm">Vertical <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('programChannel')" id="th-programChannel" class="col-ch">Channel <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('fy')" id="th-fy" class="col-xs">FY <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('subRegion')" id="th-subRegion" class="col-sm">Sub-region <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('landingPage')" id="th-landingPage" class="col-sm">Landing Page <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('brand')" id="th-brand" class="col-ch">Brand <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('members')" id="th-members" class="num-cell col-sm">Members <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('successTotal')" id="th-successTotal" class="num-cell col-sm">Success <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('qualified')" id="th-qualified" class="num-cell col-sm">Qualified <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('pipelineFT')" id="th-pipelineFT" class="usd-cell col-med" style="background:#e8f0fb">Pipeline FT <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('revenueFT')" id="th-revenueFT" class="usd-cell col-med" style="background:#e8f0fb">Revenue FT <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('pipelineMT')" id="th-pipelineMT" class="usd-cell col-med" style="background:#e6f4ee">Pipeline MT <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('revenueMT')" id="th-revenueMT" class="usd-cell col-med" style="background:#e6f4ee">Revenue MT <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('pipelineLT')" id="th-pipelineLT" class="usd-cell col-med" style="background:#f3eefb">Pipeline LT <span class="sort-arrow">↕</span></th>
+                                        <th onclick="sortTable('revenueLT')" id="th-revenueLT" class="usd-cell col-med" style="background:#f3eefb">Revenue LT <span class="sort-arrow">↕</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="progTableBody"></tbody>
+                            </table>
                         </div>
                     </div>
             </div>
@@ -2673,6 +2938,14 @@
             ? _lastLTOpps.filter(r => !r.isClosed).length
             : new Set(pipes.filter(r => !r.isClosed && (isFT ? r.ftCreated : r.mtCreated)).map(r => r.opportunityId)).size;
 
+        // Wire narrative KPI elements
+        ['narProgMembers','narProgMembers2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(totalMembers); });
+        ['narProgPipeline','narProgPipeline2','narProgAttrPipeline','narProgAttrPipeline2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPipeline); });
+        ['narProgRevenue','narProgRevenue2','narProgAttrRevenue','narProgAttrRevenue2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalRevenue); });
+        ['narProgAttrPredicted','narProgAttrPredicted2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPredicted); });
+        ['narProgNewNames','narProgNewNames2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(totalNewNames); });
+        ['narProgPrograms','narProgPrograms2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(uniquePrograms); });
+
         document.getElementById('kpiGrid').innerHTML =
             '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
 
@@ -2739,6 +3012,11 @@
 
         var costPerMember = (totalCost > 0 && totalMembers > 0) ? totalCost / totalMembers : null;
         var roi = (totalCost > 0 && totalRevenue > 0) ? totalRevenue / totalCost : null;
+
+        // Wire narrative cost KPI elements
+        ['narProgCost','narProgCost2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalCost)||'—'; });
+        ['narProgRoi','narProgRoi2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=roi!==null ? roi.toFixed(1)+'x' : '—'; });
+        ['narProgCostPerMember','narProgCostPerMember2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=costPerMember!==null ? fmtUSD(costPerMember) : '—'; });
 
         // Biggest spenders by agency
         var ownerTotals = {};
@@ -5134,6 +5412,52 @@
     }
 
     window.addEventListener('load', () => loadAllFiles());
+
+    // ── Flip card animations ────────────────────────────────────
+    (function initFlipCards() {
+        var NUDGE_DELAY = 1800;
+        var NUDGE_STAGGER = 340;
+        document.querySelectorAll('.kpi-flip').forEach(function(card, i) {
+            var inner = card.querySelector('.kpi-flip-inner');
+            if (!inner) return;
+            var flipped = false;
+            var nudgeTimer = null;
+
+            function scheduleNudge() {
+                nudgeTimer = setTimeout(function() {
+                    if (!flipped) {
+                        inner.style.animation = 'none';
+                        inner.offsetHeight; // reflow
+                        inner.style.animation = 'kpiNudge 1.4s ease forwards';
+                        inner.addEventListener('animationend', function onEnd() {
+                            inner.removeEventListener('animationend', onEnd);
+                            inner.style.animation = 'none';
+                            scheduleNudge();
+                        });
+                    }
+                }, NUDGE_DELAY + i * NUDGE_STAGGER);
+            }
+            scheduleNudge();
+
+            card.addEventListener('mouseenter', function() {
+                clearTimeout(nudgeTimer);
+                if (!flipped) {
+                    flipped = true;
+                    inner.style.animation = 'kpiFlipIn .55s ease forwards';
+                }
+            });
+            card.addEventListener('mouseleave', function() {
+                if (flipped) {
+                    flipped = false;
+                    inner.style.animation = 'kpiFlipOut .55s ease forwards';
+                    inner.addEventListener('animationend', function onOut() {
+                        inner.removeEventListener('animationend', onOut);
+                        scheduleNudge();
+                    });
+                }
+            });
+        });
+    })();
     </script>
 </body>
 </html>
