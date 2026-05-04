@@ -167,6 +167,22 @@
         .kpi-back-eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:2px; }
         .kpi-back-val { font-size:26px; font-weight:700; color:var(--ansell-dark); line-height:1.1; }
         .kpi-back-note { font-size:10px; color:#6b7280; line-height:1.35; margin-top:4px; }
+
+        /* ── KPI benchmark overlay (hover on scale-aware kpiGrid cards) ── */
+        .kpi-card-benchable { position: relative; }
+        .kpi-bench {
+            display: none; position: absolute; inset: 0; z-index: 5; border-radius: 4px;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; gap: 3px; padding: 12px 10px; pointer-events: none;
+            background: rgba(0,162,143,0.97); color: #fff;
+        }
+        .kpi-card-benchable:hover .kpi-bench { display: flex; }
+        .kpi-bench-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .8; margin-bottom: 2px; }
+        .kpi-bench-avg   { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+        .kpi-bench-row   { font-size: 10px; opacity: .8; }
+
+        /* ── Acquisition drill panel ── */
+        #acqDrillPanel { margin-top: 12px; background: #f8f9fa; border: 1px solid #e5e7eb; padding: 16px 20px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -547,26 +563,12 @@
                                 <div class="kpi-card teal kpi-front">
                                     <div class="kpi-label">New Names</div>
                                     <div class="kpi-val" id="narProgNewNames">—</div>
-                                    <div class="kpi-sub">net new contacts</div>
+                                    <div class="kpi-sub" id="narProgNewNamesSub">current period</div>
                                 </div>
                                 <div class="kpi-back teal">
-                                    <div class="kpi-back-eyebrow">New Names</div>
+                                    <div class="kpi-back-eyebrow">3-Period Avg</div>
                                     <div class="kpi-back-val" id="narProgNewNames2">—</div>
-                                    <div class="kpi-back-note">Contacts acquired as a first touch by programs in the filter period</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="kpi-flip">
-                            <div class="kpi-flip-inner">
-                                <div class="kpi-card kpi-front">
-                                    <div class="kpi-label">Programs</div>
-                                    <div class="kpi-val" id="narProgPrograms">—</div>
-                                    <div class="kpi-sub">unique programs</div>
-                                </div>
-                                <div class="kpi-back">
-                                    <div class="kpi-back-eyebrow">Programs</div>
-                                    <div class="kpi-back-val" id="narProgPrograms2">—</div>
-                                    <div class="kpi-back-note">Unique Marketo programs with at least one member in the filter period</div>
+                                    <div class="kpi-back-note" id="narProgNewNamesNote">avg of prior periods</div>
                                 </div>
                             </div>
                         </div>
@@ -614,12 +616,13 @@
 
                     <!-- Acquisition trendline — separate card -->
                     <div class="chart-card chart-anchor" id="card-acq-trend" style="margin-top:16px">
-                        <div class="chart-title">New Names Over Time</div>
+                        <div class="chart-title">New Names Over Time <span style="font-size:10px;font-weight:400;color:#bbb;text-transform:none;letter-spacing:0">· click a bar for top 10 programs</span></div>
                         <div style="font-size:10px;color:#bbb;margin-bottom:14px">scale follows global filter</div>
                         <div style="position:relative;height:220px">
                             <canvas id="chartAcqTrend"></canvas>
                         </div>
                     </div>
+                    <div id="acqDrillPanel" style="display:none"></div>
             </div>
 
             <!-- ══ Pipeline & Revenue ════════════════════════════════════════ -->
@@ -2489,9 +2492,14 @@
         renderAcqTrend(mems);
     }
 
+    var _lastAcqTrendData = null; // { filtered, allBuckets, labels }
+    var _acqDrillKey      = null;
+
     function renderAcqTrend(mems) {
         var canvas = document.getElementById('chartAcqTrend');
         if (!canvas) return;
+
+        hideAcqDrill();
 
         var filtered = _applyNewNamesDateFilter(mems);
         var visibleGroups = ACQ_GROUPS.filter(function(g) { return newNamesActiveGroups.has(g); });
@@ -2508,6 +2516,7 @@
         });
 
         var labels = Object.keys(allBuckets).sort();
+        _lastAcqTrendData = { filtered: filtered, allBuckets: allBuckets, labels: labels };
 
         var datasets = visibleGroups.map(function(g) {
             return {
@@ -2534,7 +2543,7 @@
                         callbacks: {
                             footer: function(items) {
                                 var total = items.reduce(function(s, i) { return s + i.parsed.y; }, 0);
-                                return 'Total: ' + fmt(total);
+                                return 'Total: ' + fmt(total) + '  ·  click to see top programs';
                             }
                         }
                     }
@@ -2542,6 +2551,15 @@
                 scales: {
                     x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
                     y: { stacked: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 }, callback: function(v) { return fmt(v); } }, beginAtZero: true }
+                },
+                onHover: function(event, activeElements) {
+                    event.native.target.style.cursor = activeElements.length ? 'pointer' : 'default';
+                },
+                onClick: function(event, elements) {
+                    if (!elements.length || !_lastAcqTrendData) { hideAcqDrill(); return; }
+                    var key = _lastAcqTrendData.labels[elements[0].index];
+                    if (key === _acqDrillKey) { hideAcqDrill(); return; }
+                    showAcqDrill(key);
                 }
             }
         });
@@ -2938,34 +2956,84 @@
             ? _lastLTOpps.filter(r => !r.isClosed).length
             : new Set(pipes.filter(r => !r.isClosed && (isFT ? r.ftCreated : r.mtCreated)).map(r => r.opportunityId)).size;
 
+        // ── Scale-aware buckets for KPI card 2 and acquisition narrative ──
+        // newNames buckets (always, for acquisition narrative flip card)
+        var nnBktByScale = {};
+        mems.forEach(function(r) {
+            var key = getBucket(r.membershipDate, timeScale);
+            if (!key) return;
+            nnBktByScale[key] = (nnBktByScale[key] || 0) + (r.newNames || 0);
+        });
+        var nnBktKeys   = Object.keys(nnBktByScale).sort();
+        var todayBktKey = getBucket(new Date(), timeScale);
+        var nnCurKey    = nnBktByScale[todayBktKey] !== undefined ? todayBktKey : (nnBktKeys.length ? nnBktKeys[nnBktKeys.length - 1] : null);
+        var nnCurVal    = nnCurKey ? (nnBktByScale[nnCurKey] || 0) : 0;
+        var nnCurIdx    = nnBktKeys.indexOf(nnCurKey);
+        var nnPrev3     = nnCurIdx > 0 ? nnBktKeys.slice(Math.max(0, nnCurIdx - 3), nnCurIdx) : [];
+        var nnBenchAvg  = nnPrev3.length ? nnPrev3.reduce(function(s, k) { return s + (nnBktByScale[k] || 0); }, 0) / nnPrev3.length : null;
+
+        // attribution-dependent buckets for kpiGrid card 2 (FT=newNames, MT=success)
+        var smBktByScale = isFT ? nnBktByScale : {};
+        if (!isLT && !isFT) {
+            mems.forEach(function(r) {
+                var key = getBucket(r.membershipDate, timeScale);
+                if (!key) return;
+                smBktByScale[key] = (smBktByScale[key] || 0) + r.successTotal;
+            });
+        }
+        var smBktKeys   = Object.keys(smBktByScale).sort();
+        var smCurKey    = smBktByScale[todayBktKey] !== undefined ? todayBktKey : (smBktKeys.length ? smBktKeys[smBktKeys.length - 1] : null);
+        var smCurVal    = smCurKey ? (smBktByScale[smCurKey] || 0) : 0;
+        var smCurIdx    = smBktKeys.indexOf(smCurKey);
+        var smPrev3     = smCurIdx > 0 ? smBktKeys.slice(Math.max(0, smCurIdx - 3), smCurIdx) : [];
+        var smBenchAvg  = smPrev3.length ? smPrev3.reduce(function(s, k) { return s + (smBktByScale[k] || 0); }, 0) / smPrev3.length : null;
+
+        var scalePeriodLabels = { week: 'This week', month: 'This month', quarter: 'This quarter', year: 'This year', fy: 'Current FY' };
+        var scalePeriodLabel  = scalePeriodLabels[timeScale] || 'Current period';
+
+        // Build kpiGrid card 2 HTML (FT/MT only)
+        function buildBenchCard(label, curVal, benchAvg, prev3keys, bkt) {
+            var delta = benchAvg !== null ? curVal - benchAvg : null;
+            var deltaHtml = delta !== null
+                ? ' · <span style="color:' + (delta > 0 ? '#1a7a4a' : delta < 0 ? '#c0392b' : '#888') + ';font-weight:600">'
+                  + (delta > 0 ? '▲' : delta < 0 ? '▼' : '=') + ' avg ' + fmt(Math.round(benchAvg)) + '</span>'
+                : '';
+            var benchRows = prev3keys.map(function(k) {
+                return '<div class="kpi-bench-row"><span style="opacity:.65">' + formatBucketLabel(k, timeScale) + '</span>&nbsp;&nbsp;<strong>' + fmt(bkt[k] || 0) + '</strong></div>';
+            }).join('');
+            var benchContent = benchAvg !== null
+                ? '<div class="kpi-bench-title">3-period avg</div><div class="kpi-bench-avg">' + fmt(Math.round(benchAvg)) + '</div>' + benchRows
+                : '<div class="kpi-bench-title" style="opacity:.8">No prior data</div>';
+            return '<div class="kpi-card teal kpi-card-benchable" title="Hover for benchmark">'
+                + '<div class="kpi-label">' + label + '</div>'
+                + '<div class="kpi-value" style="font-size:28px">' + fmt(curVal) + '</div>'
+                + '<div class="kpi-sub" style="margin-top:3px">' + scalePeriodLabel + deltaHtml + '</div>'
+                + '<div class="kpi-bench">' + benchContent + '</div>'
+                + '</div>';
+        }
+        var smLabel   = isFT ? 'New Names' : 'Success';
+        var smCardHtml = isLT ? '' : buildBenchCard(smLabel, smCurVal, smBenchAvg, smPrev3, smBktByScale);
+
         // Wire narrative KPI elements
         ['narProgMembers','narProgMembers2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(totalMembers); });
         ['narProgPipeline','narProgPipeline2','narProgAttrPipeline','narProgAttrPipeline2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPipeline); });
         ['narProgRevenue','narProgRevenue2','narProgAttrRevenue','narProgAttrRevenue2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalRevenue); });
         ['narProgAttrPredicted','narProgAttrPredicted2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPredicted); });
-        ['narProgNewNames','narProgNewNames2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(totalNewNames); });
-        ['narProgPrograms','narProgPrograms2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(uniquePrograms); });
 
-        document.getElementById('kpiGrid').innerHTML =
+        // Acquisition narrative New Names — scale-aware
+        var nnEl = document.getElementById('narProgNewNames');        if (nnEl) nnEl.textContent = fmt(nnCurVal);
+        var nnEl2 = document.getElementById('narProgNewNames2');      if (nnEl2) nnEl2.textContent = nnBenchAvg !== null ? fmt(Math.round(nnBenchAvg)) : '—';
+        var nnSubEl = document.getElementById('narProgNewNamesSub');  if (nnSubEl) nnSubEl.textContent = scalePeriodLabel;
+        var nnNoteEl = document.getElementById('narProgNewNamesNote');
+        if (nnNoteEl) nnNoteEl.textContent = nnBenchAvg !== null
+            ? 'avg of ' + nnPrev3.length + ' prior ' + timeScale + (nnPrev3.length !== 1 ? 's' : '')
+            : 'no prior periods';
+
+        var kpiGrid = document.getElementById('kpiGrid');
+        kpiGrid.style.gridTemplateColumns = isLT ? 'repeat(3,1fr)' : 'repeat(4,1fr)';
+        kpiGrid.innerHTML =
             '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
-
-            '<div class="kpi-card teal">' +
-                '<div class="kpi-label" style="margin-bottom:10px">Membership</div>' +
-                '<div style="display:flex">' +
-                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
-                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalMembers) + '</div>' +
-                        '<div class="kpi-sub" style="margin-top:3px">Members</div>' +
-                    '</div>' +
-                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding:0 12px;text-align:center">' +
-                        '<div class="kpi-value" style="font-size:22px">' + fmt(isFT ? totalNewNames : totalSuccess) + '</div>' +
-                        '<div class="kpi-sub" style="margin-top:3px">' + (isFT ? 'New Names' : 'Success') + '</div>' +
-                    '</div>' +
-                    '<div style="flex:1;padding-left:12px;text-align:right">' +
-                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalQualified) + '</div>' +
-                        '<div class="kpi-sub" style="margin-top:3px">Qualified</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
+            smCardHtml +
 
             '<div class="kpi-card amber">' +
                 '<div class="kpi-label" style="margin-bottom:10px">Attribution: ' + attrLabel + '</div>' +
@@ -5409,6 +5477,63 @@
             + mkRow('Avg Deal Length', 'Days to close (won deals)',                icAvgLen,   alAvgLen,   v => v+'d',              v => v+'d',                          true)
             + mkRow('Avg Deal Size',   'Won deal value',                           icAvgSz,    alAvgSz,    v => fmtUSD(v),          v => fmtUSD(v),                      false)
             + '</div>';
+    }
+
+    // ── Acquisition drill: top 10 programs for a clicked bucket ─────────
+    function showAcqDrill(bucketKey) {
+        if (!_lastAcqTrendData) return;
+        _acqDrillKey = bucketKey;
+
+        var filtered = _lastAcqTrendData.filtered;
+        var bucketLabel = formatBucketLabel(bucketKey, timeScale);
+
+        // Sum new names per program for this bucket
+        var progTotals = {};
+        filtered.forEach(function(r) {
+            if (!r.newNames) return;
+            if (getBucket(r.membershipDate, timeScale) !== bucketKey) return;
+            var prog = r.programName || '(unknown)';
+            progTotals[prog] = (progTotals[prog] || 0) + r.newNames;
+        });
+
+        var top10 = Object.entries(progTotals).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 10);
+        var panel = document.getElementById('acqDrillPanel');
+        if (!panel) return;
+
+        if (!top10.length) {
+            panel.style.display = 'none';
+            _acqDrillKey = null;
+            return;
+        }
+
+        var maxVal = top10[0][1];
+        panel.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+                '<div style="font-size:12px;font-weight:700;color:#374151">Top Programs &mdash; New Names in ' + bucketLabel + '</div>' +
+                '<button onclick="hideAcqDrill()" style="background:none;border:none;cursor:pointer;font-size:14px;color:#9ca3af;padding:0;line-height:1;flex-shrink:0" title="Close">&#x2715;</button>' +
+            '</div>' +
+            top10.map(function(entry, i) {
+                var prog = entry[0], val = entry[1];
+                var barW = Math.round(val / maxVal * 100);
+                return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f3f4f6">' +
+                    '<span style="font-size:10px;color:#9ca3af;width:14px;text-align:right;flex-shrink:0">' + (i + 1) + '</span>' +
+                    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#374151" title="' + prog.replace(/"/g,'&quot;') + '">' + prog + '</div>' +
+                    '<div style="width:80px;height:5px;background:#e5e7eb;border-radius:3px;flex-shrink:0">' +
+                        '<div style="height:100%;width:' + barW + '%;background:#00A28F;border-radius:3px"></div>' +
+                    '</div>' +
+                    '<span style="font-size:11px;font-weight:600;color:#374151;width:36px;text-align:right;flex-shrink:0">' + fmt(val) + '</span>' +
+                '</div>';
+            }).join('') +
+            '<div style="margin-top:8px;font-size:10px;color:#bbb">New names in this ' + timeScale + ' · showing top ' + top10.length + ' of ' + Object.keys(progTotals).length + ' programs</div>';
+
+        panel.style.display = '';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideAcqDrill() {
+        _acqDrillKey = null;
+        var panel = document.getElementById('acqDrillPanel');
+        if (panel) panel.style.display = 'none';
     }
 
     window.addEventListener('load', () => loadAllFiles());
