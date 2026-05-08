@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../ansell.digital.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
         .filter-bar { position: static; flex-direction: column; padding: 0; gap: 0; }
         .header     { position: static !important; }
@@ -222,8 +223,13 @@
     <!-- ═══ FILTER BAR ═══════════════════════════════════════════════════ -->
     <div class="filter-bar" id="filterBar" style="display:none">
 
-        <!-- Row 1: Attribution + Time Scale + Reset -->
+        <!-- Row 1: Source + Attribution + Time Scale + Reset -->
         <div class="fb-row">
+            <span class="filter-label">Source:</span>
+            <button class="quick-filter-btn active" id="btnSrcLegacy" onclick="setDataSource('legacy')" style="margin:0" title="Load from Manual export files">Manual</button>
+            <button class="quick-filter-btn" id="btnSrcCloud" onclick="setDataSource('cloud')" style="margin:0" title="Load from unified Cloud Export file (Imports.xlsx)">Cloud Export (Cloud Ready)</button>
+
+            <span style="width:1px;background:#e0e0e0;align-self:stretch;margin:0 6px;flex-shrink:0"></span>
             <span class="filter-label">Attribution:</span>
             <button class="quick-filter-btn" id="btnAttrFT" onclick="setAttrMode('ft')" style="margin:0">First Touch</button>
             <button class="quick-filter-btn active" id="btnAttrMT" onclick="setAttrMode('mt')" style="margin:0">Multi Touch</button>
@@ -405,7 +411,7 @@
     <div id="emptyState" style="padding:80px 30px;text-align:center">
         <svg viewBox="0 0 64 64" width="56" height="56" style="margin-bottom:16px;opacity:.25"><rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="#0063AC" stroke-width="3"/><line x1="20" y1="24" x2="44" y2="24" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="32" x2="44" y2="32" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="34" y2="40" stroke="#0063AC" stroke-width="3" stroke-linecap="round"/></svg>
         <h2 style="margin:0 0 8px;font-size:20px;color:#333">No data found</h2>
-        <p style="color:#888;font-size:14px;margin:0">Place Supermetrics export files in <code>Reports/omnichannel/</code> and reload.</p>
+        <p style="color:#888;font-size:14px;margin:0">Place Manual export files in <code>Reports/omnichannel/</code> and reload.</p>
     </div>
 
     <!-- ═══ DASHBOARD CONTENT ════════════════════════════════════════════ -->
@@ -482,17 +488,17 @@
                         <p class="sec-narrative-body">This dashboard tracks <strong>all Marketo programs</strong> across the full marketing funnel — from first contact through to <em>closed revenue</em>. Use the filters to focus on a specific region, vertical, channel, or time period. Switch between <strong>First Touch</strong>, <strong>Multi Touch</strong>, and <strong>Last Touch</strong> to compare different views of program contribution.</p>
                     </div>
                     <div class="sec-narrative-kpis">
-                        <div class="kpi-flip">
+                        <div class="kpi-flip" id="narProgScaleFlip">
                             <div class="kpi-flip-inner">
                                 <div class="kpi-card teal kpi-front">
-                                    <div class="kpi-label">Members</div>
-                                    <div class="kpi-val" id="narProgMembers">—</div>
-                                    <div class="kpi-sub">program members</div>
+                                    <div class="kpi-label" id="narProgScaleLabel">New Names</div>
+                                    <div class="kpi-val" id="narProgScaleMetric">—</div>
+                                    <div class="kpi-sub" id="narProgScaleMetricSub">current period</div>
                                 </div>
                                 <div class="kpi-back teal">
-                                    <div class="kpi-back-eyebrow">Members</div>
-                                    <div class="kpi-back-val" id="narProgMembers2">—</div>
-                                    <div class="kpi-back-note">Total people who reached at least one program milestone</div>
+                                    <div class="kpi-back-eyebrow">3-Period Avg</div>
+                                    <div class="kpi-back-val" id="narProgScaleMetric2">—</div>
+                                    <div class="kpi-back-note" id="narProgScaleMetricNote">avg of prior periods</div>
                                 </div>
                             </div>
                         </div>
@@ -504,9 +510,9 @@
                                     <div class="kpi-sub">attributed pipeline</div>
                                 </div>
                                 <div class="kpi-back orange">
-                                    <div class="kpi-back-eyebrow">Pipeline Created</div>
-                                    <div class="kpi-back-val" id="narProgPipeline2">—</div>
-                                    <div class="kpi-back-note">Opportunity value attributed to programs per current attribution mode</div>
+                                    <div class="kpi-back-eyebrow" id="narProgPipelinePeriodEyebrow">This Period</div>
+                                    <div class="kpi-back-val" id="narProgPipelinePeriodVal">—</div>
+                                    <div class="kpi-back-note" id="narProgPipelinePeriodNote">—</div>
                                 </div>
                             </div>
                         </div>
@@ -518,9 +524,9 @@
                                     <div class="kpi-sub">revenue won</div>
                                 </div>
                                 <div class="kpi-back green">
-                                    <div class="kpi-back-eyebrow">Revenue Won</div>
-                                    <div class="kpi-back-val" id="narProgRevenue2">—</div>
-                                    <div class="kpi-back-note">Closed-won deal value attributed to programs per current attribution mode</div>
+                                    <div class="kpi-back-eyebrow" id="narProgRevenuePeriodEyebrow">This Period</div>
+                                    <div class="kpi-back-val" id="narProgRevenuePeriodVal">—</div>
+                                    <div class="kpi-back-note" id="narProgRevenuePeriodNote">—</div>
                                 </div>
                             </div>
                         </div>
@@ -1127,6 +1133,8 @@
     var costMap        = {};   // programName → { agencyCosts, otherCosts, thirdPartySpend, owner, serviceType }
     var exportDateStr  = '';
     var loadedFileInfo = [];
+    var dataSourceMode = 'legacy';  // 'legacy' | 'cloud'
+    var cloudWarnings  = [];        // list of { field, reason } — populated by loadCloudFile()
     var newNamesPeriod = 'all';       // 'all' | 'FY26' | ... | 'custom'
     var newNamesDateFrom = null;       // Date for custom range start
     var newNamesDateTo   = null;       // Date for custom range end
@@ -1198,6 +1206,17 @@
     function parseDate(v) {
         if (!v) return null;
         if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000));
+        var s = String(v).trim();
+        // Format 1: YYYY-MM-DD [time] — ISO
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) { var d = new Date(s.slice(0, 10)); return isNaN(d) ? null : d; }
+        // Format 2: DD-MM-YYYY [HH:MM:SS AM|PM] — legacy 4-digit year
+        // Format 3: DD-MM-YY [HH:MM[:SS]]       — current Marketo export (2-digit year → 2000+YY)
+        var m = s.match(/^(\d{1,2})-(\d{1,2})-(\d{2,4})/);
+        if (m) {
+            var dd = parseInt(m[1], 10), mo = parseInt(m[2], 10), yr = parseInt(m[3], 10);
+            if (yr < 100) yr += 2000;
+            return new Date(yr, mo - 1, dd);
+        }
         var d = new Date(v); return isNaN(d) ? null : d;
     }
     function ordinal(d) {
@@ -1587,8 +1606,9 @@
         return null;
     }
 
-    async function loadAllFiles() {
-        showLoading('Detecting latest Supermetrics exports…');
+    async function loadLegacyFiles() {
+        cloudWarnings = [];
+        showLoading('Detecting latest Manual exports…');
         // Each file may have a different export date — detect independently
         const [dateMb, dateQl, datePc, datePw] = await Promise.all([
             detectLatestDateFor(' - Membership v2.xlsx'),
@@ -1616,7 +1636,6 @@
                 membershipDate: parseDate(r['Membership Date']),
                 gbu:            parsed.valid ? parsed.vertical  : '(Non-standard)',
                 region:         parsed.valid ? parsed.region    : '(Non-standard)',
-                emailType:      String(r['Email Type'] || '').trim(),
                 programChannel: parsed.valid ? parsed.channel   : '(Non-standard)',
                 progStage:      parsed.valid ? parsed.progStage : '',
                 fy:             parsed.valid ? parsed.fy        : '',
@@ -1661,7 +1680,6 @@
                 subRegion:      parsed.valid ? parsed.subRegion  : '',
                 landingPage:    parsed.valid ? parsed.landingPage : '',
                 brand:          parsed.valid ? parsed.brand      : '',
-                emailType:      String(r['Email Type'] || '').trim(),
                 nameValid:      parsed.valid,
                 mtCreated:      parseNum(r['(MT) Opportunities Created']),
                 mtWon:          parseNum(r['(MT) Opportunities Won']),
@@ -1816,9 +1834,8 @@
                     const oc   = toUSD(parseMoney(cr['Other costs']), ccy);
                     const tp   = toUSD(parseMoney(cr['Spent_3rd_party_publisher']), ccy);
                     const owner       = String(cr['Agency name/ Publisher name'] || '').trim();
-                    const personOwner = String(cr['Owner'] || '').trim();
                     const serviceType = String(cr['Service type'] || '').trim();
-                    if (!costMap[prog]) costMap[prog] = { agencyCosts: 0, otherCosts: 0, thirdPartySpend: 0, owner, personOwner, serviceType };
+                    if (!costMap[prog]) costMap[prog] = { agencyCosts: 0, otherCosts: 0, thirdPartySpend: 0, owner, serviceType };
                     costMap[prog].agencyCosts     += ac;
                     costMap[prog].otherCosts      += oc;
                     costMap[prog].thirdPartySpend += tp;
@@ -1845,6 +1862,233 @@
         showDash();  // make container visible first so Chart.js reads correct dimensions
         requestAnimationFrame(function() {
             // Double-rAF: first frame makes dashContent visible, second frame guarantees layout is flushed
+            requestAnimationFrame(function() {
+                try { renderAll(); } catch(e) { console.error('[renderAll]', e); }
+            });
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DATA SOURCE SWITCHING
+    // ═══════════════════════════════════════════════════════════
+    function setDataSource(mode) {
+        if (mode === dataSourceMode) return;
+        dataSourceMode = mode;
+        document.getElementById('btnSrcLegacy').classList.toggle('active', mode === 'legacy');
+        document.getElementById('btnSrcCloud').classList.toggle('active', mode === 'cloud');
+        rawMembership = []; rawQualified = []; rawOppsCreate = []; rawOppsWon = []; rawLTOpps = []; costMap = {};
+        // Clear filter state so old selections don't bleed into the new source
+        if (Object.keys(msState).length) resetFilters();
+        loadData();
+    }
+
+    async function loadData() {
+        if (dataSourceMode === 'cloud') {
+            await loadCloudFile();
+        } else {
+            await loadLegacyFiles();
+        }
+    }
+
+    async function loadCloudFile() {
+        cloudWarnings = [];
+        showLoading('Detecting latest Cloud Export file…');
+
+        // Detect YYYY-MM-DD Imports_slim.csv (or .csv.tmp during PS1 regeneration) in Reports/omnichannel v2/
+        // Run Preprocess-CloudImport.ps1 to generate this file from the raw Imports.csv
+        const today = new Date();
+        let cloudPath = null, cloudDate = null;
+        for (let i = 0; i < 90; i++) {
+            const d = new Date(today); d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            const base = '../Reports/omnichannel%20v2/' + dateStr + '%20Imports_slim.csv';
+            // Prefer .tmp (in-progress PS1 write) then fall back to .csv
+            for (const path of [base + '.tmp', base]) {
+                try {
+                    const r = await fetch(path, { method: 'HEAD' });
+                    if (r.ok) { cloudPath = path; cloudDate = dateStr; break; }
+                } catch {}
+            }
+            if (cloudPath) break;
+        }
+
+        if (!cloudPath) {
+            showLoading('Cloud Export file not found. Run Preprocess-CloudImport.ps1 first to generate the slim file.');
+            setTimeout(showEmpty, 3000);
+            return;
+        }
+
+        showLoading('Loading Cloud Export…');
+        let raw = [];
+        try {
+            raw = await new Promise((resolve, reject) => {
+                Papa.parse(cloudPath, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: false,
+                    complete: results => resolve(results.data),
+                    error:    err    => reject(err)
+                });
+            });
+        } catch(e) {
+            console.error('[Cloud] Failed to load slim CSV:', e);
+            showEmpty(); return;
+        }
+        if (!raw.length) { showEmpty(); return; }
+
+        function str(v) { return String(v === null || v === undefined ? '' : v).trim(); }
+        function normOppType(t) { return t === 'Recurring Business' ? 'Recurring' : t; }
+        // Derive channel from program name (same logic as Supermetrics mode) so getAcqGroup
+        // can recognise it. Falls back to raw PROGRAM_CHANNEL if name doesn't parse.
+        function cloudChannel(r) {
+            var parsed = parseProgramName(str(r.PROGRAM_NAME));
+            if (parsed.valid) return parsed.channel;
+            return str(r.PROGRAM_CHANNEL) || str(r.T_CHANNEL_CIMP) || '(Non-standard)';
+        }
+
+        // DATA_SOURCE_NAME tells us what CUSTOM_IMPORTS_DATE represents:
+        //   "4. V8 ..." → opportunity created date  (pipeline rows)
+        //   "5. V10 ..." → opportunity closed/won date  (revenue rows)
+        //   others → membership date  (members, new names, qualified rows)
+        var _hasDs = Object.keys(raw[0] || {}).includes('DATA_SOURCE_NAME');
+        function _isV8(r)  { return !_hasDs || str(r.DATA_SOURCE_NAME).startsWith('4.'); }
+        function _isV10(r) { return !_hasDs || str(r.DATA_SOURCE_NAME).startsWith('5.'); }
+        function _isOpp(r) { return _hasDs && (str(r.DATA_SOURCE_NAME).startsWith('4.') || str(r.DATA_SOURCE_NAME).startsWith('5.')); }
+
+        // ── rawMembership ──────────────────────────────────────────
+        rawMembership = raw.filter(r => !_isOpp(r)).map(r => ({
+            programName:     str(r.PROGRAM_NAME),
+            membershipDate:  parseDate(r.CUSTOM_IMPORTS_DATE),
+            gbu:             str(r.GBU) || str(r.T_VERTICAL_CIMP) || '(Non-standard)',
+            region:          str(r.REGION) || str(r.T_CIMP_REGION) || '(Non-standard)',
+            programChannel:  cloudChannel(r),
+            progStage:       '',
+            fy:              str(r.T_FISCAL_YEAR_CIMP),
+            subRegion:       str(r.T_SUB_REGION_CIMP),
+            landingPage:     str(r.T_LANDING_PAGE_TYPE_CIMP),
+            brand:           str(r.T_BRAND_SERVICE_CIMP),
+            cc1:             str(r.T_CAMPAIGN_OPEN_PRIMARY_FIELD_1_CIMP),
+            cc2:             str(r.T_CAMPAIGN_NAME_FIELD_2_CIMP),
+            nameValid:       parseProgramName(str(r.PROGRAM_NAME)).valid,
+            members:         parseNum(r.MEMBERS),
+            newNames:        parseNum(r.NEW_NAMES),
+            successTotal:    parseNum(r.SUCCESS_TOTAL),
+            successNewNames: parseNum(r.SUCCESS_NEW_NAMES)
+        })).filter(r => r.programName);
+
+        // ── rawQualified (from QUALIFIED_ columns — no separate file needed) ──
+        rawQualified = raw.map(r => ({
+            programName:    str(r.PROGRAM_NAME),
+            membershipDate: parseDate(r.CUSTOM_IMPORTS_DATE),
+            members:        parseNum(r.QUALIFIED_MEMBERS),
+            newNames:       parseNum(r.QUALIFIED_NEW_NAMES)
+        })).filter(r => r.programName && (r.members || r.newNames));
+
+        // ── shared opp row builder ─────────────────────────────────
+        // TOTAL_OPP_COUNT is the raw row count per aggregated group (added by PS1).
+        // Dividing FT/MT counts by it normalises them back to 0–1 fractions so that
+        // the standard formula  ftCreated * amountUSD  gives correct attributed pipeline.
+        function buildOppRow(r, amountField, dateField) {
+            var oppCount = Math.max(1, parseNum(r.TOTAL_OPP_COUNT) || 1);
+            return {
+                opportunityId:  str(r.OPPORTUNITY_ID_18),
+                programName:    str(r.PROGRAM_NAME),
+                amountUSD:      parseNum(r[amountField]),
+                stage:          str(r.OPPORTUNITY_STAGE),
+                oppType:        normOppType(str(r.OPPORTUNITY_TYPE)),
+                isClosed:       str(r.OPPORTUNITY_CLOSED).toLowerCase() === 'yes',
+                createdDate:    parseDate(r.CUSTOM_IMPORTS_DATE),
+                closedDate:     dateField ? parseDate(r[dateField]) : null,
+                gbu:            str(r.GBU) || str(r.T_VERTICAL_CIMP) || '(Non-standard)',
+                region:         str(r.REGION) || str(r.T_CIMP_REGION) || '(Non-standard)',
+                year:           str(r.YEAR_FROM_FILE),
+                programChannel: cloudChannel(r),
+                progStage:      '',
+                fy:             str(r.T_FISCAL_YEAR_CIMP),
+                subRegion:      str(r.T_SUB_REGION_CIMP),
+                landingPage:    str(r.T_LANDING_PAGE_TYPE_CIMP),
+                brand:          str(r.T_BRAND_SERVICE_CIMP),
+                nameValid:      parseProgramName(str(r.PROGRAM_NAME)).valid,
+                oppCount:       oppCount,
+                mtCreated:      parseNum(r.MT_OPPORTUNITIES_CREATED) / oppCount,
+                mtWon:          parseNum(r.MT_OPPORTUNITIES_WON)     / oppCount,
+                ftCreated:      parseNum(r.FT_OPPORTUNITIES_CREATED) / oppCount,
+                ftWon:          parseNum(r.FT_OPPORTUNITIES_WON)     / oppCount
+            };
+        }
+
+        // ── rawOppsCreate (V8 rows: CUSTOM_IMPORTS_DATE = opportunity created date) ──
+        rawOppsCreate = raw.filter(r => _isV8(r))
+                           .map(r => buildOppRow(r, 'AMOUNT_USD_CREATED', null))
+                           .filter(r => r.programName && r.amountUSD > 0);
+
+        // ── rawOppsWon (V10 rows: CUSTOM_IMPORTS_DATE = opportunity close/won date) ──
+        rawOppsWon = raw.filter(r => _isV10(r))
+                        .map(r => buildOppRow(r, 'AMOUNT_USD_WON', 'CUSTOM_IMPORTS_DATE'))
+                        .filter(r => r.programName && r.amountUSD > 0);
+
+        // ── costMap ────────────────────────────────────────────────
+        costMap = {};
+        raw.forEach(r => {
+            const pn = str(r.PROGRAM_NAME);
+            if (!pn) return;
+            if (!costMap[pn]) costMap[pn] = { agencyCosts: 0, otherCosts: 0, thirdPartySpend: 0, owner: '', serviceType: '' };
+            costMap[pn].agencyCosts     += parseNum(r.T_CIMP_USD_AGENCY_COSTS);
+            costMap[pn].otherCosts      += parseNum(r.T_CIMP_USD_OTHER_COSTS);
+            costMap[pn].thirdPartySpend += parseNum(r.T_CIMP_USD_SPENT_THIRD_PARTY_PUBLISHER);
+            if (str(r.OWNER)) costMap[pn].owner = str(r.OWNER);
+        });
+
+        // ── Last Touch — no equivalent in cloud file ───────────────
+        rawLTOpps = [];
+
+        // ── iCapture — still loaded from separate files ────────────
+        const icDateStr = await detectIcaptureDate();
+        if (icDateStr) {
+            const icBase = '../Reports/' + icDateStr + ' iCapture ';
+            const [icEvRaw, icUsRaw] = await Promise.all([
+                readFile(icBase + 'Events.csv').catch(() => []),
+                readFile(icBase + 'Users.csv').catch(() => [])
+            ]);
+            rawIcEvents = icEvRaw.map(r => ({
+                eventName:    String(r['Event Name']    || '').trim(),
+                campaignName: String(r['Campaign Name'] || '').trim(),
+                startDate:    parseDate(r['Start Date']),
+                eventSize:    String(r['Event Size']    || '').trim(),
+                budget:       parseMoney(r['Budget']),
+                leads:        parseNum(r['# Leads']),
+                leadCost:     parseMoney(r['$ Lead']),
+                teamMembers:  parseNum(r['# Team Members'])
+            })).filter(r => r.eventName);
+            rawIcUsers = icUsRaw.map(r => ({
+                name:   String(r['Name']   || '').trim(),
+                events: parseNum(r['Events']),
+                leads:  parseNum(r['Leads'])
+            })).filter(r => r.name);
+            icapturePrograms = new Set(rawIcEvents.map(e => e.campaignName).filter(Boolean));
+        }
+
+        // ── Detect which cloud columns were actually present ───────
+        const sampleKeys = Object.keys(raw[0] || {});
+        function colMissing(col) { return !sampleKeys.includes(col); }
+        if (colMissing('PROGRAM_CHANNEL'))   cloudWarnings.push({ field: 'Channel', reason: 'PROGRAM_CHANNEL column not found — falling back to T_CHANNEL_CIMP' });
+        if (colMissing('GBU'))               cloudWarnings.push({ field: 'Vertical (GBU)', reason: 'GBU column not found — falling back to T_VERTICAL_CIMP' });
+        if (colMissing('REGION'))            cloudWarnings.push({ field: 'Region', reason: 'REGION column not found — falling back to T_CIMP_REGION' });
+        cloudWarnings.push({ field: 'Program Stage filter', reason: 'not available in cloud file' });
+        cloudWarnings.push({ field: 'Last Touch attribution', reason: 'no Salesforce Primary Campaign Source in cloud file — LT mode shows no data' });
+        if (!_hasDs) cloudWarnings.push({ field: 'DATA_SOURCE_NAME missing', reason: 'Re-run Preprocess-CloudImport.ps1 — without this column, pipeline and revenue dates may be inaccurate' });
+
+        // ── File manifest ──────────────────────────────────────────
+        exportDateStr = cloudDate;
+        loadedFileInfo = [
+            { name: 'Imports.xlsx', date: cloudDate, found: true, optional: false }
+        ];
+
+        initFilters();
+        initButterflyLists();
+        showDash();
+        requestAnimationFrame(function() {
             requestAnimationFrame(function() {
                 try { renderAll(); } catch(e) { console.error('[renderAll]', e); }
             });
@@ -2213,7 +2457,7 @@
         includeSalesCRM = false;
         var sBtn = document.getElementById('btnIncludeSales');
         if (sBtn) sBtn.classList.remove('active');
-        if (icaptureMode) {
+        if (typeof icaptureMode !== 'undefined' && icaptureMode) {
             icaptureMode = false;
             var icBtn = document.getElementById('btnIcapture');
             if (icBtn) icBtn.classList.remove('active');
@@ -2946,15 +3190,23 @@
                 return s + (attr || 0) * prob * r.amountUSD;
             }, 0);
 
+        // Cloud mode: no individual opportunityId — recover opp counts by un-normalising
+        // (ftCreated was divided by oppCount in buildOppRow; multiply back to get integer FT count)
         const oppsPipeline = isLT
             ? _lastLTOpps.length
-            : new Set(pipes.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
+            : dataSourceMode === 'cloud'
+                ? Math.round(pipes.reduce((s, r) => s + (isFT ? r.ftCreated : r.mtCreated) * (r.oppCount || 1), 0))
+                : new Set(pipes.filter(r => isFT ? r.ftCreated : r.mtCreated).map(r => r.opportunityId)).size;
         const oppsWon = isLT
             ? _lastLTOpps.filter(r => r.isWon).length
-            : new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
+            : dataSourceMode === 'cloud'
+                ? Math.round(revs.reduce((s, r) => s + (isFT ? r.ftWon : r.mtWon) * (r.oppCount || 1), 0))
+                : new Set(revs.filter(r => isFT ? r.ftWon : r.mtWon).map(r => r.opportunityId)).size;
         const oppsOpen = isLT
             ? _lastLTOpps.filter(r => !r.isClosed).length
-            : new Set(pipes.filter(r => !r.isClosed && (isFT ? r.ftCreated : r.mtCreated)).map(r => r.opportunityId)).size;
+            : dataSourceMode === 'cloud'
+                ? Math.round(pipes.filter(r => !r.isClosed).reduce((s, r) => s + (isFT ? r.ftCreated : r.mtCreated) * (r.oppCount || 1), 0))
+                : new Set(pipes.filter(r => !r.isClosed && (isFT ? r.ftCreated : r.mtCreated)).map(r => r.opportunityId)).size;
 
         // ── Scale-aware buckets for KPI card 2 and acquisition narrative ──
         // newNames buckets (always, for acquisition narrative flip card)
@@ -2966,7 +3218,8 @@
         });
         var nnBktKeys   = Object.keys(nnBktByScale).sort();
         var todayBktKey = getBucket(new Date(), timeScale);
-        var nnCurKey    = nnBktByScale[todayBktKey] !== undefined ? todayBktKey : (nnBktKeys.length ? nnBktKeys[nnBktKeys.length - 1] : null);
+        var nnNonZero   = nnBktKeys.filter(function(k) { return (nnBktByScale[k] || 0) > 0; });
+        var nnCurKey    = (nnBktByScale[todayBktKey] || 0) > 0 ? todayBktKey : (nnNonZero.length ? nnNonZero[nnNonZero.length - 1] : (nnBktKeys.length ? nnBktKeys[nnBktKeys.length - 1] : null));
         var nnCurVal    = nnCurKey ? (nnBktByScale[nnCurKey] || 0) : 0;
         var nnCurIdx    = nnBktKeys.indexOf(nnCurKey);
         var nnPrev3     = nnCurIdx > 0 ? nnBktKeys.slice(Math.max(0, nnCurIdx - 3), nnCurIdx) : [];
@@ -2982,7 +3235,8 @@
             });
         }
         var smBktKeys   = Object.keys(smBktByScale).sort();
-        var smCurKey    = smBktByScale[todayBktKey] !== undefined ? todayBktKey : (smBktKeys.length ? smBktKeys[smBktKeys.length - 1] : null);
+        var smNonZero   = smBktKeys.filter(function(k) { return (smBktByScale[k] || 0) > 0; });
+        var smCurKey    = (smBktByScale[todayBktKey] || 0) > 0 ? todayBktKey : (smNonZero.length ? smNonZero[smNonZero.length - 1] : (smBktKeys.length ? smBktKeys[smBktKeys.length - 1] : null));
         var smCurVal    = smCurKey ? (smBktByScale[smCurKey] || 0) : 0;
         var smCurIdx    = smBktKeys.indexOf(smCurKey);
         var smPrev3     = smCurIdx > 0 ? smBktKeys.slice(Math.max(0, smCurIdx - 3), smCurIdx) : [];
@@ -2991,49 +3245,137 @@
         var scalePeriodLabels = { week: 'This week', month: 'This month', quarter: 'This quarter', year: 'This year', fy: 'Current FY' };
         var scalePeriodLabel  = scalePeriodLabels[timeScale] || 'Current period';
 
-        // Build kpiGrid card 2 HTML (FT/MT only)
-        function buildBenchCard(label, curVal, benchAvg, prev3keys, bkt) {
-            var delta = benchAvg !== null ? curVal - benchAvg : null;
-            var deltaHtml = delta !== null
-                ? ' · <span style="color:' + (delta > 0 ? '#1a7a4a' : delta < 0 ? '#c0392b' : '#888') + ';font-weight:600">'
-                  + (delta > 0 ? '▲' : delta < 0 ? '▼' : '=') + ' avg ' + fmt(Math.round(benchAvg)) + '</span>'
-                : '';
-            var benchRows = prev3keys.map(function(k) {
-                return '<div class="kpi-bench-row"><span style="opacity:.65">' + formatBucketLabel(k, timeScale) + '</span>&nbsp;&nbsp;<strong>' + fmt(bkt[k] || 0) + '</strong></div>';
-            }).join('');
-            var benchContent = benchAvg !== null
-                ? '<div class="kpi-bench-title">3-period avg</div><div class="kpi-bench-avg">' + fmt(Math.round(benchAvg)) + '</div>' + benchRows
-                : '<div class="kpi-bench-title" style="opacity:.8">No prior data</div>';
-            return '<div class="kpi-card teal kpi-card-benchable" title="Hover for benchmark">'
-                + '<div class="kpi-label">' + label + '</div>'
-                + '<div class="kpi-value" style="font-size:28px">' + fmt(curVal) + '</div>'
-                + '<div class="kpi-sub" style="margin-top:3px">' + scalePeriodLabel + deltaHtml + '</div>'
-                + '<div class="kpi-bench">' + benchContent + '</div>'
-                + '</div>';
+        // ── Scale-aware pipeline/revenue buckets for flip card backs ──
+        var pipeBktByScale = {};
+        if (!isLT) {
+            pipes.forEach(function(r) {
+                var key = getBucket(r.createdDate, timeScale);
+                if (!key) return;
+                pipeBktByScale[key] = (pipeBktByScale[key] || 0) + (isFT ? r.ftCreated : r.mtCreated) * r.amountUSD;
+            });
         }
-        var smLabel   = isFT ? 'New Names' : 'Success';
-        var smCardHtml = isLT ? '' : buildBenchCard(smLabel, smCurVal, smBenchAvg, smPrev3, smBktByScale);
+        var pipeBktKeys  = Object.keys(pipeBktByScale).sort();
+        var pipeNonZero  = pipeBktKeys.filter(function(k) { return (pipeBktByScale[k] || 0) > 0; });
+        var pipeCurKey   = (pipeBktByScale[todayBktKey] || 0) > 0 ? todayBktKey : (pipeNonZero.length ? pipeNonZero[pipeNonZero.length - 1] : (pipeBktKeys.length ? pipeBktKeys[pipeBktKeys.length - 1] : null));
+        var pipeCurVal   = pipeCurKey ? (pipeBktByScale[pipeCurKey] || 0) : 0;
+        var pipeCurIdx   = pipeBktKeys.indexOf(pipeCurKey);
+        var pipePrev3    = pipeCurIdx > 0 ? pipeBktKeys.slice(Math.max(0, pipeCurIdx - 3), pipeCurIdx) : [];
+        var pipeBenchAvg = pipePrev3.length ? pipePrev3.reduce(function(s, k) { return s + (pipeBktByScale[k] || 0); }, 0) / pipePrev3.length : null;
+
+        var revBktByScale = {};
+        if (!isLT) {
+            revs.forEach(function(r) {
+                var key = getBucket(r.closedDate, timeScale);
+                if (!key) return;
+                revBktByScale[key] = (revBktByScale[key] || 0) + (isFT ? r.ftWon : r.mtWon) * r.amountUSD;
+            });
+        }
+        var revBktKeys  = Object.keys(revBktByScale).sort();
+        var revNonZero  = revBktKeys.filter(function(k) { return (revBktByScale[k] || 0) > 0; });
+        var revCurKey   = (revBktByScale[todayBktKey] || 0) > 0 ? todayBktKey : (revNonZero.length ? revNonZero[revNonZero.length - 1] : (revBktKeys.length ? revBktKeys[revBktKeys.length - 1] : null));
+        var revCurVal   = revCurKey ? (revBktByScale[revCurKey] || 0) : 0;
+        var revCurIdx   = revBktKeys.indexOf(revCurKey);
+        var revPrev3    = revCurIdx > 0 ? revBktKeys.slice(Math.max(0, revCurIdx - 3), revCurIdx) : [];
+        var revBenchAvg = revPrev3.length ? revPrev3.reduce(function(s, k) { return s + (revBktByScale[k] || 0); }, 0) / revPrev3.length : null;
 
         // Wire narrative KPI elements
         ['narProgMembers','narProgMembers2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmt(totalMembers); });
-        ['narProgPipeline','narProgPipeline2','narProgAttrPipeline','narProgAttrPipeline2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPipeline); });
-        ['narProgRevenue','narProgRevenue2','narProgAttrRevenue','narProgAttrRevenue2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalRevenue); });
+        ['narProgPipeline','narProgAttrPipeline','narProgAttrPipeline2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPipeline); });
+        ['narProgRevenue','narProgAttrRevenue','narProgAttrRevenue2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalRevenue); });
+
+        // Pipeline back face — scale-aware current period vs 3-period avg
+        var pipeEyebrowEl = document.getElementById('narProgPipelinePeriodEyebrow');
+        if (pipeEyebrowEl) pipeEyebrowEl.textContent = isLT ? 'Pipeline Created'
+            : (pipeCurKey === todayBktKey ? scalePeriodLabel : (pipeCurKey ? formatBucketLabel(pipeCurKey, timeScale) : scalePeriodLabel));
+        var pipeValEl = document.getElementById('narProgPipelinePeriodVal');
+        if (pipeValEl) pipeValEl.textContent = isLT ? fmtUSD(totalPipeline) : fmtUSD(pipeCurVal);
+        var pipeNoteEl = document.getElementById('narProgPipelinePeriodNote');
+        if (pipeNoteEl) {
+            if (isLT) {
+                pipeNoteEl.textContent = 'Opportunity value attributed to programs';
+            } else {
+                var pipeDeltaStr = pipeBenchAvg !== null
+                    ? '3-period avg: ' + fmtUSD(Math.round(pipeBenchAvg))
+                      + (pipePrev3.length ? ' · ' + pipePrev3.map(function(k) { return formatBucketLabel(k, timeScale) + ': ' + fmtUSD(Math.round(pipeBktByScale[k] || 0)); }).join(' · ') : '')
+                    : 'no prior periods';
+                pipeNoteEl.textContent = pipeDeltaStr;
+            }
+        }
+
+        // Revenue back face — scale-aware current period vs 3-period avg
+        var revEyebrowEl = document.getElementById('narProgRevenuePeriodEyebrow');
+        if (revEyebrowEl) revEyebrowEl.textContent = isLT ? 'Revenue Won'
+            : (revCurKey === todayBktKey ? scalePeriodLabel : (revCurKey ? formatBucketLabel(revCurKey, timeScale) : scalePeriodLabel));
+        var revValEl = document.getElementById('narProgRevenuePeriodVal');
+        if (revValEl) revValEl.textContent = isLT ? fmtUSD(totalRevenue) : fmtUSD(revCurVal);
+        var revNoteEl = document.getElementById('narProgRevenuePeriodNote');
+        if (revNoteEl) {
+            if (isLT) {
+                revNoteEl.textContent = 'Closed-won revenue attributed to programs';
+            } else {
+                var revDeltaStr = revBenchAvg !== null
+                    ? '3-period avg: ' + fmtUSD(Math.round(revBenchAvg))
+                      + (revPrev3.length ? ' · ' + revPrev3.map(function(k) { return formatBucketLabel(k, timeScale) + ': ' + fmtUSD(Math.round(revBktByScale[k] || 0)); }).join(' · ') : '')
+                    : 'no prior periods';
+                revNoteEl.textContent = revDeltaStr;
+            }
+        }
         ['narProgAttrPredicted','narProgAttrPredicted2'].forEach(id => { var el=document.getElementById(id); if(el) el.textContent=fmtUSD(totalPredicted); });
 
         // Acquisition narrative New Names — scale-aware
         var nnEl = document.getElementById('narProgNewNames');        if (nnEl) nnEl.textContent = fmt(nnCurVal);
         var nnEl2 = document.getElementById('narProgNewNames2');      if (nnEl2) nnEl2.textContent = nnBenchAvg !== null ? fmt(Math.round(nnBenchAvg)) : '—';
-        var nnSubEl = document.getElementById('narProgNewNamesSub');  if (nnSubEl) nnSubEl.textContent = scalePeriodLabel;
+        var nnSubEl = document.getElementById('narProgNewNamesSub');
+        if (nnSubEl) nnSubEl.textContent = nnCurKey === todayBktKey ? scalePeriodLabel : (nnCurKey ? formatBucketLabel(nnCurKey, timeScale) : scalePeriodLabel);
         var nnNoteEl = document.getElementById('narProgNewNamesNote');
         if (nnNoteEl) nnNoteEl.textContent = nnBenchAvg !== null
             ? 'avg of ' + nnPrev3.length + ' prior ' + timeScale + (nnPrev3.length !== 1 ? 's' : '')
             : 'no prior periods';
 
+        // Scale-aware metric flip card in overview narrative (FT=New Names, MT=Success, hidden for LT)
+        var smFlipEl = document.getElementById('narProgScaleFlip');
+        if (smFlipEl) smFlipEl.style.display = isLT ? 'none' : '';
+        var smLabelEl = document.getElementById('narProgScaleLabel');
+        if (smLabelEl) smLabelEl.textContent = isFT ? 'New Names' : 'Success';
+        var smMetricEl = document.getElementById('narProgScaleMetric');
+        if (smMetricEl) smMetricEl.textContent = fmt(smCurVal);
+        var smMetricEl2 = document.getElementById('narProgScaleMetric2');
+        if (smMetricEl2) smMetricEl2.textContent = smBenchAvg !== null ? fmt(Math.round(smBenchAvg)) : '—';
+        var smSubEl = document.getElementById('narProgScaleMetricSub');
+        if (smSubEl) {
+            var smActualLabel = smCurKey === todayBktKey ? scalePeriodLabel : (smCurKey ? formatBucketLabel(smCurKey, timeScale) : scalePeriodLabel);
+            var smDelta = smBenchAvg !== null ? smCurVal - smBenchAvg : null;
+            smSubEl.innerHTML = smActualLabel + (smDelta !== null
+                ? ' · <span style="color:' + (smDelta > 0 ? '#1a7a4a' : smDelta < 0 ? '#c0392b' : '#888') + ';font-weight:600">'
+                  + (smDelta > 0 ? '▲' : smDelta < 0 ? '▼' : '=') + ' avg ' + fmt(Math.round(smBenchAvg)) + '</span>'
+                : '');
+        }
+        var smNoteEl = document.getElementById('narProgScaleMetricNote');
+        if (smNoteEl) smNoteEl.textContent = smBenchAvg !== null
+            ? smPrev3.map(function(k) { return formatBucketLabel(k, timeScale) + ': ' + fmt(smBktByScale[k] || 0); }).join(' · ')
+            : 'no prior periods';
+
         var kpiGrid = document.getElementById('kpiGrid');
-        kpiGrid.style.gridTemplateColumns = isLT ? 'repeat(3,1fr)' : 'repeat(4,1fr)';
+        kpiGrid.style.gridTemplateColumns = 'repeat(4,1fr)';
         kpiGrid.innerHTML =
             '<div class="kpi-card blue"><div class="kpi-value">' + fmt(uniquePrograms) + '</div><div class="kpi-label">Programs</div><div class="kpi-sub">unique programs</div></div>' +
-            smCardHtml +
+            '<div class="kpi-card teal">' +
+                '<div class="kpi-label" style="margin-bottom:10px">Membership</div>' +
+                '<div style="display:flex">' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding-right:12px">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalMembers) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Members</div>' +
+                    '</div>' +
+                    '<div style="flex:1;border-right:1px solid #f0f0f0;padding:0 12px;text-align:center">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(isFT ? totalNewNames : (isLT ? totalMembers : totalSuccess)) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">' + (isFT ? 'New Names' : isLT ? 'Members' : 'Success') + '</div>' +
+                    '</div>' +
+                    '<div style="flex:1;padding-left:12px;text-align:right">' +
+                        '<div class="kpi-value" style="font-size:22px">' + fmt(totalQualified) + '</div>' +
+                        '<div class="kpi-sub" style="margin-top:3px">Qualified</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
 
             '<div class="kpi-card amber">' +
                 '<div class="kpi-label" style="margin-bottom:10px">Attribution: ' + attrLabel + '</div>' +
@@ -3098,18 +3440,6 @@
         var topOwners = Object.entries(ownerTotals).sort((a,b) => b[1]-a[1]).slice(0, 5);
         var maxOwnerCost = topOwners.length ? topOwners[0][1] : 1;
 
-        // Top budget owners (internal person owning the spend)
-        var personOwnerTotals = {};
-        Object.entries(costMap).forEach(function([prog, c]) {
-            if (!matchedPrograms.has(prog)) return;
-            var po   = c.personOwner || '';
-            var cost = getCostTotal(c);
-            if (!cost || !po) return;
-            personOwnerTotals[po] = (personOwnerTotals[po] || 0) + cost;
-        });
-        var topPersonOwners    = Object.entries(personOwnerTotals).sort((a,b) => b[1]-a[1]).slice(0, 5);
-        var maxPersonOwnerCost = topPersonOwners.length ? topPersonOwners[0][1] : 1;
-
         var costKpiWrap = document.getElementById('costKpiWrap');
         if (totalCost > 0 && costKpiWrap) {
             costKpiWrap.innerHTML = (
@@ -3129,7 +3459,7 @@
                             (costPerMember !== null ? '<div class="kpi-value" style="font-size:22px">' + fmtUSD(costPerMember) + '</div><div class="kpi-sub" style="margin-top:3px">Cost / Member</div>' : '') +
                             (roi !== null ? '<div style="margin-top:10px"><div class="kpi-value" style="font-size:22px;color:#70ad47">' + roi.toFixed(1) + 'x</div><div class="kpi-sub" style="margin-top:3px">Revenue ROI (' + attrLabel + ')</div></div>' : '') +
                         '</div>' +
-                        '<div style="flex:2;padding-left:14px;border-right:1px solid #f0f0f0;padding-right:14px">' +
+                        '<div style="flex:2;padding-left:14px">' +
                             '<div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Top Agencies</div>' +
                             (topOwners.length ? topOwners.map(function([owner, cost]) {
                                 var barW = Math.round(cost / maxOwnerCost * 100);
@@ -3143,21 +3473,6 @@
                                     '</div>' +
                                 '</div>';
                             }).join('') : '<div style="font-size:10px;color:#bbb">No agency data</div>') +
-                        '</div>' +
-                        '<div style="flex:2;padding-left:14px">' +
-                            '<div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Budget Owners</div>' +
-                            (topPersonOwners.length ? topPersonOwners.map(function([person, cost]) {
-                                var barW = Math.round(cost / maxPersonOwnerCost * 100);
-                                return '<div style="margin-bottom:6px">' +
-                                    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">' +
-                                        '<span style="color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%">' + person + '</span>' +
-                                        '<span style="color:#666;font-weight:600">' + fmtUSD(cost) + '</span>' +
-                                    '</div>' +
-                                    '<div style="height:4px;background:#f0f0f0;border-radius:2px">' +
-                                        '<div style="height:100%;width:' + barW + '%;background:#0063AC;border-radius:2px"></div>' +
-                                    '</div>' +
-                                '</div>';
-                            }).join('') : '<div style="font-size:10px;color:#bbb">No owner data</div>') +
                         '</div>' +
                     '</div>' +
                 '</div>'
@@ -4293,10 +4608,37 @@
         let datasets, isStacked = false;
 
         if (oppTypeChartMode === 'overview') {
+            isStacked = true;
             datasets = [
-                { label: 'Pipeline Created',  data: labels.map(l => byTypePl[l]   || 0), backgroundColor: 'rgba(0,99,172,0.72)',   borderRadius: 3 },
-                { label: 'Predicted Revenue', data: labels.map(l => byTypePred[l] || 0), backgroundColor: 'rgba(243,156,18,0.72)', borderRadius: 3 },
-                { label: 'Revenue Won',        data: labels.map(l => byTypeRv[l]   || 0), backgroundColor: 'rgba(39,174,96,0.72)',  borderRadius: 3 }
+                {
+                    label: 'Pipeline Created',
+                    data:            labels.map(l => byTypePl[l]   || 0),
+                    backgroundColor: 'rgba(237,125,49,0.80)',
+                    borderColor:     '#ED7D31',
+                    borderWidth:     1,
+                    borderRadius:    3,
+                    stack:           'pipeline'
+                },
+                {
+                    label: 'Revenue Won',
+                    data:            labels.map(l => byTypeRv[l]   || 0),
+                    backgroundColor: 'rgba(112,173,71,0.82)',
+                    borderColor:     '#70AD47',
+                    borderWidth:     1,
+                    borderRadius:    0,
+                    stack:           'revenue'
+                },
+                {
+                    label: 'Predicted Revenue',
+                    data:            labels.map(l => byTypePred[l] || 0),
+                    backgroundColor: 'rgba(112,173,71,0.20)',
+                    borderColor:     '#70AD47',
+                    borderWidth:     2,
+                    borderDash:      [5, 3],
+                    borderSkipped:   false,
+                    borderRadius:    3,
+                    stack:           'revenue'
+                }
             ];
         } else {
             // Stacked by opportunity stage
@@ -5077,12 +5419,21 @@
         const fileBadgeWrap = document.getElementById('fileBadgeWrap');
         if (fileBadgeWrap && loadedFileInfo.length) {
             fileBadgeWrap.style.display = 'flex';
-            fileBadgeWrap.innerHTML = loadedFileInfo.map(f => {
+            let badgeHtml = loadedFileInfo.map(f => {
                 const dot  = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${f.found ? '#00A28F' : '#ccc'};flex-shrink:0;margin-top:1px"></span>`;
                 const name = `<code style="font-size:10px;color:${f.found ? '#444' : '#aaa'}">${f.date ? f.date + ' ' : ''}${f.name}</code>`;
                 const opt  = f.optional ? `<span style="font-size:9px;color:#aaa;font-style:italic">optional</span>` : '';
                 return `<div style="display:flex;align-items:flex-start;gap:5px;padding:1px 0">${dot}${name}${opt}</div>`;
             }).join('');
+            if (cloudWarnings.length) {
+                badgeHtml += `<div style="flex-basis:100%;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">` +
+                    cloudWarnings.map(w =>
+                        `<span title="${w.reason}" style="display:inline-flex;align-items:center;gap:4px;background:#fff7ed;border:1px solid #fed7aa;border-radius:3px;padding:1px 7px;font-size:9px;font-weight:600;color:#c2410c;cursor:default">` +
+                        `<span style="font-size:10px">&#9888;</span> ${w.field}</span>`
+                    ).join('') +
+                    `</div>`;
+            }
+            fileBadgeWrap.innerHTML = badgeHtml;
         }
         initNavObserver();
     }
@@ -5487,16 +5838,18 @@
         var filtered = _lastAcqTrendData.filtered;
         var bucketLabel = formatBucketLabel(bucketKey, timeScale);
 
-        // Sum new names per program for this bucket
-        var progTotals = {};
+        // Sum new names per program for this bucket, tracking channel
+        var progData = {};
         filtered.forEach(function(r) {
             if (!r.newNames) return;
             if (getBucket(r.membershipDate, timeScale) !== bucketKey) return;
             var prog = r.programName || '(unknown)';
-            progTotals[prog] = (progTotals[prog] || 0) + r.newNames;
+            if (!progData[prog]) progData[prog] = { count: 0, channel: r.programChannel || '' };
+            progData[prog].count += r.newNames;
+            if (!progData[prog].channel && r.programChannel) progData[prog].channel = r.programChannel;
         });
 
-        var top10 = Object.entries(progTotals).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 10);
+        var top10 = Object.entries(progData).sort(function(a, b) { return b[1].count - a[1].count; }).slice(0, 10);
         var panel = document.getElementById('acqDrillPanel');
         if (!panel) return;
 
@@ -5506,25 +5859,33 @@
             return;
         }
 
-        var maxVal = top10[0][1];
+        var maxVal = top10[0][1].count;
         panel.innerHTML =
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
                 '<div style="font-size:12px;font-weight:700;color:#374151">Top Programs &mdash; New Names in ' + bucketLabel + '</div>' +
                 '<button onclick="hideAcqDrill()" style="background:none;border:none;cursor:pointer;font-size:14px;color:#9ca3af;padding:0;line-height:1;flex-shrink:0" title="Close">&#x2715;</button>' +
             '</div>' +
             top10.map(function(entry, i) {
-                var prog = entry[0], val = entry[1];
+                var prog = entry[0], val = entry[1].count, ch = entry[1].channel;
                 var barW = Math.round(val / maxVal * 100);
+                var group = getAcqGroup(ch);
+                var groupColor = ACQ_GROUP_COLORS[group] || '#9CA3AF';
+                var chBadge = ch ? '<span style="font-size:9px;background:#e8f4fd;color:#0063AC;border-radius:3px;padding:1px 5px;margin-left:5px;white-space:nowrap;flex-shrink:0">' + ch + '</span>' : '';
+                var catBadge = '<span style="font-size:9px;background:' + groupColor + '22;color:' + groupColor + ';border-radius:3px;padding:1px 5px;margin-left:4px;white-space:nowrap;flex-shrink:0;font-weight:600">' + group + '</span>';
                 return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f3f4f6">' +
                     '<span style="font-size:10px;color:#9ca3af;width:14px;text-align:right;flex-shrink:0">' + (i + 1) + '</span>' +
-                    '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#374151" title="' + prog.replace(/"/g,'&quot;') + '">' + prog + '</div>' +
+                    '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:0;overflow:hidden">' +
+                        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#374151" title="' + prog.replace(/"/g,'&quot;') + '">' + prog + '</span>' +
+                        chBadge +
+                        catBadge +
+                    '</div>' +
                     '<div style="width:80px;height:5px;background:#e5e7eb;border-radius:3px;flex-shrink:0">' +
                         '<div style="height:100%;width:' + barW + '%;background:#00A28F;border-radius:3px"></div>' +
                     '</div>' +
                     '<span style="font-size:11px;font-weight:600;color:#374151;width:36px;text-align:right;flex-shrink:0">' + fmt(val) + '</span>' +
                 '</div>';
             }).join('') +
-            '<div style="margin-top:8px;font-size:10px;color:#bbb">New names in this ' + timeScale + ' · showing top ' + top10.length + ' of ' + Object.keys(progTotals).length + ' programs</div>';
+            '<div style="margin-top:8px;font-size:10px;color:#bbb">New names in this ' + timeScale + ' · showing top ' + top10.length + ' of ' + Object.keys(progData).length + ' programs</div>';
 
         panel.style.display = '';
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5536,7 +5897,7 @@
         if (panel) panel.style.display = 'none';
     }
 
-    window.addEventListener('load', () => loadAllFiles());
+    window.addEventListener('load', () => loadData());
 
     // ── Flip card animations ────────────────────────────────────
     (function initFlipCards() {

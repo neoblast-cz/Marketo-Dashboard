@@ -354,18 +354,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-title">Opt-In Acquisitions by Year</div>
-                    <div class="chart-wrap" style="height:250px">
-                        <canvas id="chartOptInGrowth"></canvas>
-                    </div>
-                    <div id="optInMonthWrap" class="expand-month-wrap">
-                        <div class="expand-month-inner">
-                            <div class="expand-month-label" id="optInMonthLabel"></div>
-                            <div class="chart-wrap" style="height:200px"><canvas id="chartOptInMonthly"></canvas></div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Geography -->
@@ -966,8 +954,6 @@
             deliverability:(r['Deliverability Segment'] || '').trim(),
             language:     (r['Language 2025 Segment'] || '').trim(),
             org:          (r['Organisation'] || '').trim(),
-            optInYear:    parseYear(r['1. Current Opt-In Timestamp']),
-            optInMonth:   parseMonth(r['1. Current Opt-In Timestamp']),
             vertical:     (r['Vertical'] || '').trim(),
             subVertical:  (r['Sub Vertical'] || '').trim(),
             gbu:          (r['1. GBU'] || '').trim(),
@@ -1260,7 +1246,6 @@
         renderRecordType(data);
         renderChannel(data);
         renderGrowth(data);
-        renderOptInGrowth(data);
         renderCountries(data);
         renderRegion(data);
         renderRoleDescription(data);
@@ -1919,16 +1904,13 @@
     let expandedGrowthMonth = null;
     let growthYears = [];
     let growthMonths = [];
-    let currentOptInData  = [];
-    let expandedOptInYear = null;
-    let optInYears = [];
+
     let currentVerticalData = [];
     let expandedVertical    = null;
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const GROWTH_COLOR     = '#0063AC';
     const GROWTH_COLOR_SEL = '#0096D6';
-    const OPTIN_COLOR      = '#00A28F';
-    const OPTIN_COLOR_SEL  = '#00C4AA';
+
 
     function makeGrowthChart(canvasId, labels, datasets, onClickFn) {
         const ctx = document.getElementById(canvasId).getContext('2d');
@@ -2069,49 +2051,6 @@
         if (wrap) wrap.classList.add('open');
     }
 
-    function updateOptInYearColors(activeYear) {
-        const gc = charts['chartOptInGrowth'];
-        if (gc && gc.data.datasets.length === 1) {
-            gc.data.datasets[0].backgroundColor = activeYear !== null
-                ? optInYears.map(y => y === activeYear ? OPTIN_COLOR_SEL : OPTIN_COLOR)
-                : OPTIN_COLOR;
-            gc.update('none');
-        }
-    }
-
-    function renderOptInGrowth(data) {
-        currentOptInData = data;
-        expandedOptInYear = null;
-        const wrap = document.getElementById('optInMonthWrap');
-        if (wrap) wrap.classList.remove('open');
-        const { matrix, drillKeys } = buildDrillMatrix(data, r => r.optInYear);
-        const counts = {};
-        data.forEach(r => { if (r.optInYear) counts[r.optInYear] = (counts[r.optInYear] || 0) + 1; });
-        optInYears = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-        makeGrowthChart('chartOptInGrowth', optInYears.map(String), growthDatasets(optInYears, matrix, drillKeys, counts, OPTIN_COLOR),
-            (evt, elements) => { if (!elements.length) return; toggleOptInMonthly(optInYears[elements[0].index]); });
-    }
-
-    function toggleOptInMonthly(year) {
-        const wrap = document.getElementById('optInMonthWrap');
-        if (expandedOptInYear === year) {
-            expandedOptInYear = null;
-            if (wrap) wrap.classList.remove('open');
-            updateOptInYearColors(null);
-        } else {
-            expandedOptInYear = year;
-            updateOptInYearColors(year);
-            const lbl = document.getElementById('optInMonthLabel');
-            if (lbl) lbl.textContent = `Monthly breakdown — ${year}`;
-            const yearData = currentOptInData.filter(r => r.optInYear === year);
-            const { matrix, drillKeys } = buildDrillMatrix(yearData, r => r.optInMonth);
-            const counts = {};
-            yearData.forEach(r => { if (r.optInMonth) counts[r.optInMonth] = (counts[r.optInMonth] || 0) + 1; });
-            const months = [...new Set([...Object.keys(matrix), ...Object.keys(counts)].map(Number))].sort((a, b) => a - b);
-            makeGrowthChart('chartOptInMonthly', months.map(m => MONTH_NAMES[m - 1]), growthDatasets(months, matrix, drillKeys, counts, OPTIN_COLOR_SEL));
-            if (wrap) wrap.classList.add('open');
-        }
-    }
 
     function renderCountries(data) {
         const counts = countBy(data, 'country');

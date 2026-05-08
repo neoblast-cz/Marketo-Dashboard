@@ -177,14 +177,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Load Data
             </button>
-            <button class="export-btn" id="exportBtn" onclick="exportDashboard()" style="display:none" title="Export as standalone HTML">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Export
-            </button>
-            <button class="api-btn" id="apiBtn" onclick="toggleApiPanel()" title="Marketo API Settings">
-                <span class="api-btn-dot"></span>
-                Marketo API
-            </button>
             <a href="../index.html" class="home-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Hub
@@ -192,37 +184,6 @@
         </div>
     </header>
 
-    <!-- Marketo API Settings Bar -->
-    <div class="mkto-settings-bar" id="mktoSettingsBar">
-        <div class="mkto-settings-inner">
-            <div class="mkto-field">
-                <label for="mktoMunchkin">Munchkin ID</label>
-                <input type="text" id="mktoMunchkin" placeholder="xxx-XXX-xxx" autocomplete="off">
-            </div>
-            <div class="mkto-field">
-                <label for="mktoClientId">Client ID</label>
-                <input type="text" id="mktoClientId" placeholder="xxxxxxxx-…" autocomplete="off">
-            </div>
-            <div class="mkto-field">
-                <label for="mktoClientSecret">Client Secret</label>
-                <input type="password" id="mktoClientSecret" placeholder="••••••••" autocomplete="new-password">
-            </div>
-            <div class="mkto-field mkto-field-narrow">
-                <label for="mktoAdobeOrg">Adobe Org</label>
-                <input type="text" id="mktoAdobeOrg" placeholder="ansell" autocomplete="off">
-            </div>
-            <div class="mkto-actions">
-                <button class="mkto-save-btn" onclick="saveMktoConfig()">Save</button>
-                <button class="mkto-test-btn" onclick="testMktoConnection()">Test</button>
-                <span class="mkto-status" id="mktoStatus"></span>
-            </div>
-            <div class="mkto-proxy-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Requires local proxy for browser CORS — run once:
-                <code>powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1</code>
-            </div>
-        </div>
-    </div>
 
 
     <!-- Filter Bar -->
@@ -1589,87 +1550,6 @@
         e.target.value = '';
     }
 
-    async function exportDashboard() {
-        if (!allData.length) { alert('Please load data first.'); return; }
-
-        const btn = document.getElementById('exportBtn');
-        const origText = btn.innerHTML;
-        btn.innerHTML = '…';
-        btn.disabled = true;
-
-        // ── Inline the CSS so the export is fully self-contained ──
-        let cssText = '';
-        try {
-            cssText = await fetch('../ansell.digital.css').then(r => r.text());
-        } catch (_) {
-            try {
-                const sheet = Array.from(document.styleSheets)
-                    .find(s => s.href && s.href.includes('ansell'));
-                if (sheet) cssText = Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
-            } catch (_2) {}
-        }
-
-        // ── Freeze live canvases to PNG before cloning ──
-        // (canvas pixel data is only accessible on the live DOM)
-        const canvasSnapshots = {};
-        document.querySelectorAll('canvas[id]').forEach(c => {
-            try { canvasSnapshots[c.id] = c.toDataURL('image/png'); } catch (_) {}
-        });
-
-        // ── Clone the full DOM ──
-        const clone = document.documentElement.cloneNode(true);
-        const rm    = sel => { const el = clone.querySelector(sel); if (el) el.remove(); };
-        const rmAll = sel => clone.querySelectorAll(sel).forEach(el => el.remove());
-
-        rm('#exportBtn');        // don't include the export button itself
-        rm('#apiBtn');           // Marketo API button
-        rm('#mktoSettingsBar');  // settings panel
-        rm('#dqFixPanel');       // DQ Fix floating panel
-        rm('.load-btn');         // Load Data button
-        rm('#fileInput');        // file input
-        rm('.home-btn');         // Hub link (relative path breaks when shared)
-        rm('#filterBar');        // filter bar needs JS to function
-        rm('#tabNav');           // tab nav needs JS to function
-
-        // ── Replace canvases with frozen PNG images ──
-        clone.querySelectorAll('canvas[id]').forEach(cloneCanvas => {
-            const src = canvasSnapshots[cloneCanvas.id];
-            if (src) {
-                const img = document.createElement('img');
-                img.src = src;
-                img.style.cssText = 'width:100%;height:100%;display:block;';
-                cloneCanvas.replaceWith(img);
-            }
-        });
-
-        // ── Remove all scripts and CDN links (static snapshot needs none) ──
-        rmAll('script');
-
-        // ── Clear multi-select panel contents (populated from data, not needed) ──
-        clone.querySelectorAll('.ms-list').forEach(el => { el.innerHTML = ''; });
-
-        // ── Replace <link rel="stylesheet"> with inline <style> ──
-        const linkEl = clone.querySelector('link[rel="stylesheet"]');
-        if (linkEl && cssText) {
-            const styleEl = document.createElement('style');
-            styleEl.textContent = cssText;
-            linkEl.replaceWith(styleEl);
-        }
-
-        // ── Serialize and download ──
-        const html = '<!DOCTYPE html>\n' + clone.outerHTML;
-        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'marketo-dashboard-' + (exportDateStr || new Date().toISOString().slice(0, 10)) + '.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-
-        btn.innerHTML = origText;
-        btn.disabled = false;
-    }
 
     function loadCSV(path, dateStr) {
         exportDateStr = dateStr;
@@ -2929,7 +2809,6 @@
         document.getElementById('emptyState').style.display     = 'none';
         document.getElementById('demandContent').style.display  = 'block';
         document.getElementById('demandFilterBar').style.display = 'flex';
-        document.getElementById('exportBtn').style.display      = 'flex';
         document.getElementById('footerEl').style.display       = 'block';
 
         // Export date badge
@@ -5532,61 +5411,11 @@
         catch { return {}; }
     }
 
-    function saveMktoConfig() {
-        const cfg = {
-            munchkin:    document.getElementById('mktoMunchkin').value.trim(),
-            clientId:    document.getElementById('mktoClientId').value.trim(),
-            clientSecret:document.getElementById('mktoClientSecret').value.trim(),
-            adobeOrg:    document.getElementById('mktoAdobeOrg').value.trim()
-        };
-        sessionStorage.setItem(MKTO_SS_KEY, JSON.stringify(cfg));
-        updateApiBtn();
-    }
-
     const MKTO_DEFAULTS = {
         munchkin:   '615-TNW-071',
         clientId:   '3ccf3b31-aa0c-4755-94b7-32890b8e324a',
         adobeOrg:   'ansell'
     };
-
-    function loadMktoConfig() {
-        const cfg = getMktoConfig();
-        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
-        set('mktoMunchkin',     cfg.munchkin    || MKTO_DEFAULTS.munchkin);
-        set('mktoClientId',     cfg.clientId    || MKTO_DEFAULTS.clientId);
-        set('mktoClientSecret', cfg.clientSecret || ''); // never pre-populated
-        set('mktoAdobeOrg',     cfg.adobeOrg    || MKTO_DEFAULTS.adobeOrg);
-        updateApiBtn();
-    }
-
-    function updateApiBtn() {
-        const cfg = getMktoConfig();
-        const btn = document.getElementById('apiBtn');
-        if (!btn) return;
-        const configured = !!(cfg.munchkin && cfg.clientId && cfg.clientSecret);
-        btn.classList.toggle('configured', configured);
-        btn.title = configured ? 'Marketo API configured (session only)' : 'Marketo API — enter credentials';
-    }
-
-    function toggleApiPanel() {
-        const bar = document.getElementById('mktoSettingsBar');
-        if (!bar) return;
-        const opening = !bar.classList.contains('open');
-        bar.classList.toggle('open', opening);
-        if (opening) loadMktoConfig();
-        // Clear status when closing
-        if (!opening) {
-            const st = document.getElementById('mktoStatus');
-            if (st) { st.className = 'mkto-status'; st.textContent = ''; }
-        }
-    }
-
-    function setMktoStatus(msg, ok) {
-        const el = document.getElementById('mktoStatus');
-        if (!el) return;
-        el.className = 'mkto-status ' + (ok ? 'ok' : 'err');
-        el.textContent = msg;
-    }
 
     const MKTO_PROXY = 'http://localhost:3791';
 
@@ -5610,22 +5439,6 @@
         return json.access_token;
     }
 
-    async function testMktoConnection() {
-        const btn = document.querySelector('.mkto-test-btn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Testing…'; }
-        setMktoStatus('', false);
-        try {
-            const cfg = getMktoConfig();
-            if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret)
-                throw new Error('Save your credentials first.');
-            const token = await mktoGetToken(cfg);
-            setMktoStatus('Connected ✓ (token obtained)', true);
-        } catch (err) {
-            setMktoStatus('Error: ' + err.message, false);
-        } finally {
-            if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
-        }
-    }
 
     async function mktoCloneCampaign(token, munchkin, templateId, name, description) {
         const targetUrl = `https://${munchkin}.mktorest.com/rest/asset/v1/smartCampaign/${templateId}/clone.json`;
@@ -5658,7 +5471,7 @@
     function openDqFix(e, field, fieldLabel, value, mktoField, templateId) {
         const cfg = getMktoConfig();
         if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
-            alert('Please configure your Marketo API credentials first (click "Marketo API" in the header).');
+            alert('Marketo API credentials are not configured.');
             return;
         }
 
@@ -5718,7 +5531,7 @@
 
         const cfg = getMktoConfig();
         if (!cfg.munchkin || !cfg.clientId || !cfg.clientSecret) {
-            setDqFixStatus('Marketo API not configured. Click "Marketo API" in the header.', false);
+            setDqFixStatus('Marketo API not configured.', false);
             return;
         }
 
@@ -5775,7 +5588,6 @@
     });
 
     window.addEventListener('load', async () => {
-        updateApiBtn(); // restore API button state from sessionStorage
         const allExports = await detectAllExports();
         if (allExports.length) {
             const sel = document.getElementById('exportDateSelect');

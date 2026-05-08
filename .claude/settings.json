@@ -6,7 +6,9 @@
       "Bash(curl -si -X OPTIONS \"https://615-TNW-071.mktorest.com/identity/oauth/token\" -H \"Origin: null\" -H \"Access-Control-Request-Method: GET\")",
       "Bash(git commit -m ' *)",
       "Bash(grep -v \"^+.*nav-\\\\|^+.*kpi-\\\\|^+.*sec-narrative\\\\|^+.*kpi-flip\\\\|^+.*kpiNudge\\\\|^+.*kpiFlip\\\\|^+.*kpi-back\\\\|^+.*kpi-front\\\\|^+.*kpi-val\\\\|^+.*score-matrix-cell\\\\|^+.*drill-th\\\\|^+.*drill-sort\\\\|^+.*ah-\\\\|^+.*@media\\\\|^+.*@keyframes\\\\|^+.*scoring.*Info\\\\|^+ \\\\{$\\\\|^+ \\\\}$\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\brudhum1\\\\Ansell Healthcare\\\\Team-Marketo - Documents\\\\Marketo Documentation\\\\Marketo-Dashboard\" -Recurse -Name)",
+      "Bash(Select-Object -First 30)"
     ]
   }
 }

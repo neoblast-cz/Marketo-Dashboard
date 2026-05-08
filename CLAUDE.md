@@ -8,9 +8,9 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 
 **Hub:** `index.html` → links to all dashboards
 
-**Design system:** See [`DESIGN.md`](docs/DESIGN.md) for the full visual language — colors, typography, component patterns, grids, and the page skeleton to use when building new pages.
+**Design system:** See [`DESIGN.md`](resources/DESIGN.md) for the full visual language — colors, typography, component patterns, grids, and the page skeleton to use when building new pages.
 
-**Data dictionary:** See [`DATA-DICTIONARY.md`](docs/DATA-DICTIONARY.md) for exact column names, types, and notes for every CSV/xlsx source and the Marketo REST API.
+**Data dictionary:** See [`DATA-DICTIONARY.md`](resources/DATA-DICTIONARY.md) for exact column names, types, and notes for every CSV/xlsx source and the Marketo REST API.
 
 ---
 
@@ -20,7 +20,7 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 |------|---------|
 | `index.html` | Navigation hub with dashboard cards and FAQ |
 | `pages/marketo-analytics-email.html` | Email performance: KPIs, trendline, engagement heatmap, hour-of-day, reputation, content topics, country map |
-| `pages/marketo-analytics-program.html` | Program performance: KPIs, trendline, butterfly (FT/MT attribution), iCapture events, fixed costs |
+| `pages/marketo-analytics-program.html` | Program performance: KPIs, trendline, butterfly (FT/MT attribution), iCapture events, fixed costs. Has **dual source mode** (Manual / Cloud Export — see below). |
 | `pages/marketo-analytics-lead-generation.html` | Lead gen funnel: pipeline stages (People→MQL→SQL→Converted), transitions, multi-touch programs, omnichannel |
 | `pages/marketo-analytics-user-activity.html` | Marketo audit trail viewer |
 | `pages/marketo-db-analysis.html` | Database analysis: deliverability, GBU, acquisition channel, growth trends, record types. Has People/Leads/Contacts quick-filter buttons in filter bar. |
@@ -33,8 +33,10 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 | `TEST-marketo-analytics.html` | Dev sandbox (do not deploy) |
 | `ansell.digital.css` | Shared Ansell brand design system (never edit unless explicitly asked) |
 | `resources/world.svg` | SVG world map used by country choropleth charts |
+| `resources/DESIGN.md` | Full visual design system reference |
+| `resources/DATA-DICTIONARY.md` | Column names, types, and notes for all data sources |
 | `mkto-proxy.ps1` | Local CORS proxy on port 3791 for Marketo API calls |
-| `Preprocess-DashboardExport.ps1` | Pre-processing script: reads latest `Dashboard_Export.csv` → writes `_slim.csv` + `_agg.json` to Reports/ |
+| `Preprocess-CloudImport.ps1` | Pre-processing script: reads latest `* Imports.csv` from `Reports/omnichannel v2/` → writes `*_slim.csv` |
 
 ---
 
@@ -48,19 +50,23 @@ A collection of standalone single-page HTML dashboards for Ansell Healthcare's M
 
 ---
 
-## Pre-processing Pipeline (marketo-db-analysis.html)
+## Pre-processing Pipelines
 
-`Preprocess-DashboardExport.ps1` converts the large raw export into two fast-loading files. Run it each time a new `Dashboard_Export.csv` lands in `Reports/`:
+### Cloud Export pipeline (`marketo-analytics-program.html` — Cloud Export mode)
+
+`Preprocess-CloudImport.ps1` aggregates the large raw Imports CSV into a slim file. Run it each time a new `* Imports.csv` lands in `Reports/omnichannel v2/`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File Preprocess-DashboardExport.ps1
+powershell -ExecutionPolicy Bypass -File Preprocess-CloudImport.ps1
 ```
 
-Outputs (same date prefix as input):
-- `YYYY-MM-DD Dashboard_Export_agg.json` (~50 KB) — pre-computed aggregates for instant KPI render
-- `YYYY-MM-DD Dashboard_Export_slim.csv` (~30–50 MB) — only the columns the dashboard uses, with channel/record-type lookups pre-applied
+Output: `YYYY-MM-DD Imports_slim.csv` in the same folder. The script groups by all dimension columns and sums all metric columns. It also filters to the last 4 years.
 
-The PS1 contains its own copies of `Get-Channel`, `LEAD_RT_MAP`, `RECORD_TYPE_MAP`, `CHANNEL_EXCEPTIONS`, and `CHANNEL_PICKLIST` that **must be kept in sync** with the JS equivalents in `marketo-db-analysis.html` and `marketo-analytics-lead-generation.html`.
+> **File-lock note:** The script writes to a `.tmp` file first, then `Move-Item` to the final name. This avoids errors when Live Server has the slim CSV open in the browser.
+
+### Database analysis pipeline (`marketo-db-analysis.html`)
+
+There was previously a `Preprocess-DashboardExport.ps1` for this page. If a new equivalent is added in future, it must keep `Get-Channel`, `LEAD_RT_MAP`, `RECORD_TYPE_MAP`, `CHANNEL_EXCEPTIONS`, and `CHANNEL_PICKLIST` **in sync** with the JS equivalents in `marketo-db-analysis.html` and `marketo-analytics-lead-generation.html`.
 
 ---
 
@@ -87,13 +93,19 @@ YYYY-MM-DD iCapture Revenue Created.xlsx
 
 `Dashboard_Export_Consent.csv` uses underscore-separated date prefix (`YYYY_MM_DD_`) in addition to the standard space-separated form. The consent page tries both variants when auto-detecting.
 
-### Reports/omnichannel/
+### Reports/omnichannel/ (Manual mode files)
 ```
 YYYY-MM-DD Supermetrics - Membership v2.xlsx
 YYYY-MM-DD Supermetrics - Qualified v3.xlsx
 YYYY-MM-DD Supermetrics - Opp Create v8.xlsx
 YYYY-MM-DD Supermetrics - Opps Won v10.xlsx
 YYYY-MM-DD umt-builder-cost.xlsx
+```
+
+### Reports/omnichannel v2/ (Cloud Export mode file)
+```
+YYYY-MM-DD Imports.csv           ← raw cloud export (large — do not load directly)
+YYYY-MM-DD Imports_slim.csv      ← preprocessed by Preprocess-CloudImport.ps1
 ```
 
 **Date detection pattern:** `detectLatestDateFor(suffix)` scans backwards up to 90 days via sequential HEAD requests, returns the most recent date with a matching file.
@@ -104,6 +116,48 @@ const buf = await fetch(path).then(r => r.arrayBuffer());
 const wb  = XLSX.read(buf, { type: 'array', cellDates: true });
 const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
 ```
+
+---
+
+## Dual Data Source Architecture (`marketo-analytics-program.html`)
+
+The program analytics page has two source modes toggled by buttons in the filter bar:
+
+| Button label | Internal key | Source |
+|---|---|---|
+| **Manual** | `'legacy'` | 4 Supermetrics xlsx files from `Reports/omnichannel/` |
+| **Cloud Export (Cloud Ready)** | `'cloud'` | Single `Imports_slim.csv` from `Reports/omnichannel v2/` |
+
+### `DATA_SOURCE_NAME` column semantics (cloud mode only)
+
+The slim CSV contains a `DATA_SOURCE_NAME` column that determines what `CUSTOM_IMPORTS_DATE` represents for each row:
+
+| `DATA_SOURCE_NAME` starts with | Row type | `CUSTOM_IMPORTS_DATE` meaning |
+|---|---|---|
+| `4.` | Opportunity created | Created date (use for pipeline) |
+| `5.` | Opportunity won | Closed/won date (use for revenue) |
+| anything else | Membership / qualified | Membership date |
+
+These helpers (defined after the raw data is loaded) handle the column safely even when it's absent from an older slim file:
+
+```js
+var _hasDs = Object.keys(raw[0] || {}).includes('DATA_SOURCE_NAME');
+function _isV8(r)  { return !_hasDs || str(r.DATA_SOURCE_NAME).startsWith('4.'); }
+function _isV10(r) { return !_hasDs || str(r.DATA_SOURCE_NAME).startsWith('5.'); }
+function _isOpp(r) { return _hasDs && (str(r.DATA_SOURCE_NAME).startsWith('4.') || str(r.DATA_SOURCE_NAME).startsWith('5.')); }
+```
+
+- `rawMembership` is pre-filtered to `!_isOpp(r)` rows
+- `rawOppsCreate` is filtered to `_isV8(r)` rows only
+- `rawOppsWon` is filtered to `_isV10(r)` rows only
+
+### Channel derivation in cloud mode
+
+`cloudChannel(r)` runs `parseProgramName()` on the program name first (same channel logic as Manual mode), then falls back to raw `PROGRAM_CHANNEL` / `T_CHANNEL_CIMP` fields if the name doesn't parse. This ensures `getAcqGroup()` receives parsed channel format (e.g. `Paid-social-LN`), not raw Marketo picklist values.
+
+### `TOTAL_OPP_COUNT` normalization
+
+The slim CSV stores FT/MT opportunity counts as integers (one per opportunity row). When building `rawOppsCreate`/`rawOppsWon`, divide FT and MT counts by `TOTAL_OPP_COUNT` to restore the 0–1 fractional attribution values.
 
 ---
 
@@ -155,6 +209,17 @@ records.forEach(r => {
 });
 ```
 
+### KPI period fallback pattern
+
+When computing "current period" KPIs, the current bucket may be zero because the period just started. Use a non-zero fallback:
+
+```js
+var nonZero = bktKeys.filter(k => (bktByScale[k] || 0) > 0);
+var curKey  = (bktByScale[todayBktKey] || 0) > 0
+    ? todayBktKey
+    : (nonZero.length ? nonZero[nonZero.length - 1] : (bktKeys.length ? bktKeys[bktKeys.length - 1] : null));
+```
+
 ---
 
 ## Key Conventions
@@ -171,6 +236,7 @@ records.forEach(r => {
 | `getBucket(date, scale)` | Date → bucket key string (e.g. `2025-03`) |
 | `getCostTotal(c)` | `agencyCosts + otherCosts + thirdPartySpend` |
 | `toUSD(amount, currency)` | EUR→USD using `EUR_USD_RATE = 0.917431` |
+| `parseProgramName(name)` | Returns `{ valid, channel, region, gbu, ... }` from program name string |
 | `STAGE_PROB` | File-level constant: stage → win probability |
 
 **`parseDate` handles three formats** (in priority order):
@@ -278,7 +344,7 @@ Both `marketo-analytics-email.html` and `marketo-analytics-lead-generation.html`
 
 ## Acquisition Channel Derivation
 
-`deriveChannel(name)` in `pages/marketo-db-analysis.html` and `pages/marketo-analytics-lead-generation.html` derives a channel from the **Acquisition Program Name** field (not a stored Marketo field). The same logic also lives in `Preprocess-DashboardExport.ps1` as `Get-Channel`. All three must be kept in sync.
+`deriveChannel(name)` in `pages/marketo-db-analysis.html` and `pages/marketo-analytics-lead-generation.html` derives a channel from the **Acquisition Program Name** field (not a stored Marketo field). In `marketo-analytics-program.html`, the equivalent is `parseProgramName()` (which also returns region, GBU, and validity). All implementations must be kept in sync with each other.
 
 **Logic order (first match wins):**
 
@@ -322,7 +388,7 @@ Both `marketo-analytics-email.html` and `marketo-analytics-lead-generation.html`
 
 ## Marketo API (CORS Proxy)
 - Proxy: `mkto-proxy.ps1` → listens on `http://localhost:3791`
-- Run: `powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1`
+- Run as Administrator: `powershell -ExecutionPolicy Bypass -File mkto-proxy.ps1`
 - Credentials stored in `localStorage` (plain text): `mktoMunchkin`, `mktoClientId`, `mktoClientSecret`, `mktoAdobeOrg`
 
 ---

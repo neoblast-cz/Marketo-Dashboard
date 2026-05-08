@@ -13,7 +13,7 @@
         .header h1 { font-size: 30px; font-weight: bolder; }
         .header p { font-size: 12px; color: var(--ansell-gray); }
 
-        .main { max-width: 1100px; padding: 40px 30px; }
+        .main { max-width: 1100px; padding: 40px 30px; margin-left: auto; margin-right: auto; }
 
         .section-title {
             font-size: 13px;
@@ -94,6 +94,46 @@
         }
 
         .footer { padding: 30px; }
+
+        /* -- SETUP VIDEO -- */
+        .video-section {
+            margin-bottom: 32px;
+        }
+
+        .video-card {
+            background: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--ansell-teal);
+            overflow: hidden;
+        }
+
+        .video-card-header {
+            padding: 20px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .video-card-icon {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            background: #e0f5f2;
+            color: var(--ansell-teal);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .video-card-icon svg { width: 22px; height: 22px; }
+
+        .video-card-header h2 { font-size: 18px; font-weight: 700; margin: 0; }
+        .video-card-header p  { font-size: 13px; color: var(--ansell-gray); margin: 0; }
+
+        .video-card video {
+            display: block;
+            width: 100%;
+            max-height: 520px;
+            background: #000;
+        }
     </style>
 </head>
 <body>
@@ -211,13 +251,9 @@
                 </div>
                 <h2>Email Analytics</h2>
                 <p>Email performance by program — delivery rate, open rate, click rate, click-to-open, bounce rate, unsubscribes, and complaints across all sending channels.</p>
-                <div class="data-file">
-                    <span class="status-dot" id="dotEmail"></span>
-                    <code id="emailFileLabel">Dashboard_Emails_Performance.xlsx</code>
-                </div>
-                <div class="data-file">
-                    <span class="status-dot" id="dotEmailURL"></span>
-                    <code id="emailURLFileLabel">Dashboard_Emails_URL.xlsx</code>
+                <div class="data-file" style="display:flex;flex-direction:column;gap:4px">
+                    <div><span class="status-dot" id="dotEmail"></span><code id="emailFileLabel">Dashboard_Emails_Performance.xlsx</code></div>
+                    <div><span class="status-dot" id="dotEmailURL"></span><code id="emailURLFileLabel">Dashboard_Emails_URL.xlsx</code></div>
                 </div>
             </a>
 
@@ -243,6 +279,28 @@
                     <div><span class="status-dot" id="dotAn6"></span><code id="anFile6">iCapture Users.csv</code> <span style="font-size:10px;color:#aaa;font-style:italic">optional</span></div>
                 </div>
             </a>
+        </div>
+
+        <!-- Setup Video -->
+        <div class="section-title">Getting Started</div>
+        <div class="video-section">
+            <div class="video-card">
+                <div class="video-card-header">
+                    <div class="video-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>How to Install Visual Studio Code and Live Server</h2>
+                        <p>Step-by-step setup guide to get the dashboards running locally on your machine.</p>
+                    </div>
+                </div>
+                <video controls preload="metadata">
+                    <source src="resources/How to Install Visual Studio Code and Live Server Extension.webm" type="video/webm">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
         </div>
 
         <div class="faq-header">
@@ -688,6 +746,139 @@
                 a: 'Person Status (<code>Person_Status__c</code> in Salesforce, template ID 71508 in Marketo) is a critical lead routing field. Non-standard values — anything outside the seven valid stages — indicate data quality issues that need correcting in Marketo.<br><br>' +
                    'The DQ check is scoped to <b>SFDC Leads and blank SFDC Type only</b>. Contacts are excluded because Person Status is a leads-only concept.<br><br>' +
                    'A <b>blank Person Status is treated as clean</b> — it represents the Demand Generation pool (leads not yet assigned to a sales stage), which is a valid state. Only non-standard values count as dirty.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            // ── Email Analytics ─────────────────────────────────────────
+            {
+                q: 'What does the Email Analytics dashboard show?',
+                a: 'Email Analytics covers every email send exported from Marketo RCE. Data comes from two files:<br><br>' +
+                   '— <b>Dashboard_Emails_Performance.xlsx</b>: one row per email × device type × send date — Sent, Delivered, Opened, Unique Clicks, Hard Bounced, Soft Bounced, Unsubscribed, Complaints<br>' +
+                   '— <b>Dashboard_Emails_URL.xlsx</b>: one row per URL × email × clicked date — used for the Top Clicked Links treemap and URL Topics section<br><br>' +
+                   'Sections on the page: <b>Overview KPIs</b> (aggregate rates), <b>Trendline</b> (rates over time), <b>Engagement Heatmap</b> (day × hour), <b>Scatter</b> (time-slot performance clusters), ' +
+                   '<b>Reputation</b> (unsub / hard bounce / complaint by region with watchlist), <b>URL Topics</b> (click distribution by content category), <b>Country Map</b>.<br><br>' +
+                   'Filter bar: Date range, Program, Email Name, and Batch vs. Nurture toggle.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How are the email rate KPIs calculated?',
+                a: 'All rates are computed from aggregate totals across the filtered dataset:<br><br>' +
+                   '<b>Delivery Rate</b> = Delivered ÷ Sent × 100<br>' +
+                   '<b>Open Rate</b> = Opened ÷ Delivered × 100<br>' +
+                   '<b>Click Rate</b> = Unique Clicks ÷ Delivered × 100<br>' +
+                   '<b>Click-to-Open (CTO)</b> = Unique Clicks ÷ Opened × 100<br>' +
+                   '<b>Hard Bounce Rate</b> = Hard Bounced ÷ Sent × 100<br>' +
+                   '<b>Soft Bounce Rate</b> = max(0, Sent − Delivered − Hard Bounced) ÷ Sent × 100<br>' +
+                   '<b>Unsubscribe Rate</b> = Unsubscribed ÷ Delivered × 100<br>' +
+                   '<b>Complaint Rate</b> = Complaints ÷ Delivered × 100<br><br>' +
+                   '<b>Note on Soft Bounce:</b> Marketo exports a <code>Soft Bounce</code> column, but for aggregate KPIs the dashboard derives it as <code>Sent − Delivered − Hard Bounced</code> (capped at 0). This avoids double-counting when row-level soft bounce values diverge from the send totals.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How does the dashboard classify Nurture vs. Batch emails?',
+                a: 'An email is classified as <b>Nurture</b> when the same email name appears on <b>2 or more distinct send dates</b> in the dataset. This indicates a drip or automation sequence — the same content delivered to different contacts over time.<br><br>' +
+                   'A <b>Batch</b> email appears on only one send date — a single campaign blast to a list.<br><br>' +
+                   'Use the Nurture / Batch toggle in the filter bar to isolate each type. The classification is derived automatically from the data; there is no "Nurture" flag in the Marketo export.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What are the email reputation thresholds?',
+                a: 'Three metrics are tracked in the Reputation section. Industry-standard warning levels are shown on the flip side of each KPI card:<br><br>' +
+                   '<b>Unsubscribe Rate</b>: stay below <b>0.5%</b> of delivered. Above this level suggests audience-content mismatch or over-sending.<br><br>' +
+                   '<b>Hard Bounce Rate</b>: ISPs may throttle or block senders who exceed their threshold. Persistently high hard bounce rates damage sender reputation and reduce inbox placement across the entire programme.<br><br>' +
+                   '<b>Complaint Rate</b>: stay below <b>0.08%</b> of delivered. Google and Yahoo enforce a 0.08–0.1% threshold before inbox filtering kicks in — even a handful of spam reports can have disproportionate impact on deliverability.<br><br>' +
+                   'The Watchlist table surfaces individual sends sitting above these thresholds so they can be investigated immediately.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How does the hour-of-day heatmap work?',
+                a: 'The heatmap plots email opens across <b>day of week (rows)</b> × <b>hour of day (columns)</b>. All timestamps come from Marketo RCE in <b>Brussels time (CET/CEST)</b>.<br><br>' +
+                   'A <b>Timezone Offset</b> control in the filter bar shifts hours relative to Brussels so you can view the heatmap from any region\'s perspective. The offset is an integer number of hours; hour wrapping is handled correctly so midnight crossovers shift the day of week too.<br><br>' +
+                   'Fixed offsets from Brussels (both regions observe DST together, so these are constant year-round): London/Lisbon −1 · US Eastern −6 · US Central −7 · US Pacific −9 · UAE/Gulf +2 · Singapore +6 · Tokyo/Seoul +7 · Sydney AEST +8 · Sydney AEDT +10.<br><br>' +
+                   'The <b>scatter chart</b> groups sends by time slot × email type (batch/nurture) and hides groups with fewer than <b>200 delivered messages</b> to prevent noisy outliers from distorting the chart.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How are URL topics classified in the email click analysis?',
+                a: 'The URL Topics section groups every clicked link into a content category by matching the URL path:<br><br>' +
+                   '<code>/product</code> → <b>Product</b><br>' +
+                   '<code>/sectors</code> → <b>Sectors</b><br>' +
+                   '<code>/blog</code> → <b>Blogs</b><br>' +
+                   'Locale-root paths (<code>/us/en</code>, <code>/gb/en</code>, <code>/int/en</code>, etc.) or single-segment paths → <b>Homepage</b><br>' +
+                   'Everything else → <b>Other</b><br><br>' +
+                   'The following link types are <b>excluded entirely</b> from the Topics chart: unsubscribe links, "view in browser" links, social media links, and homepage links. They are still counted in the raw click totals.<br><br>' +
+                   'The <b>Repeat-Click Factor</b> shown in the clicks KPI is <code>Total Clicks ÷ Unique Clicks</code> — a value above 1 means recipients clicked links multiple times on average.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            // ── Program Analytics ────────────────────────────────────────
+            {
+                q: 'What does the Program Analytics dashboard show?',
+                a: 'Program Analytics is an omnichannel view of how every marketing program (across all channels) contributes to pipeline and revenue. Data comes from four Supermetrics exports:<br><br>' +
+                   '— <b>Membership v2</b>: program members and new names<br>' +
+                   '— <b>Qualified v3</b>: leads that reached MQL stage<br>' +
+                   '— <b>Opp Create v8</b>: opportunities created, with FT/MT attribution flags and deal amount<br>' +
+                   '— <b>Opps Won v10</b>: closed-won opportunities<br><br>' +
+                   'Optional: <b>utm-builder-cost.xlsx</b> (agency/event spend per program), <b>iCapture Events/Users</b> (event-level detail), <b>Salesforce - Opps with Primary Campaign Src</b>.<br><br>' +
+                   'Sections: Overview KPIs · Trendline · Butterfly Chart (iCapture vs. non-iCapture by deal tier) · iCapture event table · Fixed Costs breakdown.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How does the Butterfly chart work on Program Analytics?',
+                a: 'The Butterfly chart compares <b>iCapture event programs</b> against <b>all other channels</b> side by side across five deal-size tiers:<br><br>' +
+                   '&lt; $10K · $10K – $50K · $50K – $100K · $100K – $250K · $250K+<br><br>' +
+                   'For each tier, bars extend left (iCapture) and right (Other) and are scaled to the larger of the two values. A <b>minimum bar width of 3%</b> is enforced so small values remain visible — this means very small bars appear slightly wider than their true proportion.<br><br>' +
+                   'Each row shows either pipeline created or revenue won (depending on the active tab), and a <b>Win Rate</b> column computed as:<br>' +
+                   '<code>Win Rate = Closed Won opps ÷ All Closed opps × 100</code><br>' +
+                   '(Closed Won = stage includes "closed" but not "lost"; All Closed = any stage containing "closed".)<br><br>' +
+                   'Toggle <b>FT / MT</b> to switch which attribution column is used.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What is the scale-aware KPI on Program Analytics?',
+                a: 'Three KPI cards (New Names / Success, Pipeline, Revenue) show a <b>current period</b> value on the front and a <b>benchmark</b> on the flip side.<br><br>' +
+                   'The benchmark is the <b>average of up to 3 prior periods</b> at the currently selected time scale (week / month / quarter / year / FY). If fewer than 3 prior periods exist in the data, it averages however many are available and notes the count.<br><br>' +
+                   'The "New Names" label switches to "Success" when Multi-Touch mode is active, because successes (rather than new names) are the relevant acquisition metric under MT attribution.<br><br>' +
+                   'Pipeline and Revenue flip sides also show the current-period value in isolation alongside the rolling average, making it easy to spot whether the latest period is trending above or below the historical baseline.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'How are ROI and Cost per Member calculated on Program Analytics?',
+                a: 'These metrics are available when <b>utm-builder-cost.xlsx</b> is loaded (the fixed cost file).<br><br>' +
+                   '<b>Total Spend</b> = Agency Costs + Other Costs + Third-Party Spend per program, converted to USD (EUR → USD using fixed rate 0.917431)<br><br>' +
+                   '<b>ROI</b> = Revenue Won ÷ Total Spend (shown as a multiplier, e.g. 4.2× means every $1 spent generated $4.20 in closed revenue)<br><br>' +
+                   '<b>Cost per Member</b> = Total Spend ÷ Total Program Members<br><br>' +
+                   'Programs without a matching cost entry contribute to membership and attribution totals but are excluded from the spend and ROI calculations.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            // ── Consent Analysis ────────────────────────────────────────
+            {
+                q: 'What does the Consent Analysis dashboard show?',
+                a: 'Consent Analysis uses the <b>Dashboard_Export_Consent.csv</b> file to track opt-in status across the database. It is separate from the main Database Export.<br><br>' +
+                   'Key sections:<br>' +
+                   '— <b>Overview KPIs</b>: total records, Opted-In count/rate, Opted-Out count, No Response count<br>' +
+                   '— <b>Opt-In Trend</b>: how consent status has changed over time (by Created At date)<br>' +
+                   '— <b>By Country / GBU</b>: opt-in rate heatmap and table with colour-coded rate badges<br>' +
+                   '— <b>By Program</b>: which programs are driving opt-ins (toggle: Opted-In vs. Opted-Out view)<br>' +
+                   '— <b>Inconsistency Checks</b>: records where the three raw consent fields conflict with the derived Opted-In status<br><br>' +
+                   'Three consent statuses are recognised: <b>Opted-In</b>, <b>Opted-Out</b>, <b>No Response</b>.',
+                tag: 'data', tagLabel: 'Data'
+            },
+            {
+                q: 'How is the opt-in rate calculated and what do the rate badge colours mean?',
+                a: '<b>Opt-In Rate</b> = Opted-In records ÷ Total records in the filtered view × 100<br><br>' +
+                   'Rate badges in the country/GBU table are colour-coded by threshold:<br><br>' +
+                   '<span style="background:#e0f5f2;color:#007a6a;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">≥ 60%</span> — Green: strong consent coverage<br>' +
+                   '<span style="background:#fff3e0;color:#ef6c00;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">30 – 59%</span> — Amber: moderate, worth improving<br>' +
+                   '<span style="background:#fbe9e7;color:#c62828;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">&lt; 30%</span> — Red: low consent, high proportion non-contactable<br><br>' +
+                   'These thresholds are fixed in the dashboard and apply to both the country table and the GBU breakdown.',
+                tag: 'method', tagLabel: 'Methodology'
+            },
+            {
+                q: 'What are the consent inconsistency checks?',
+                a: 'The Inconsistency Checks section cross-validates three raw fields from the export (<b>1. Email Opt-In</b>, <b>Unsubscribed</b>) against the derived <b>Opted-In</b> status field to flag records where they contradict each other:<br><br>' +
+                   '<b>Check 1 — Opt-In field says Yes but status ≠ Opted-In:</b> When "1. Email Opt-In" = Yes, the Opted-In status should be Opted-In. A mismatch may indicate a sync issue.<br><br>' +
+                   '<b>Check 2 — Unsubscribed = True but status ≠ Opted-Out:</b> If a record is flagged as unsubscribed, the status should be Opted-Out. A mismatch means the record could still be treated as active.<br><br>' +
+                   '<b>Check 3 — Unsubscribed False/blank and Email Opt-In blank, but status ≠ No Response:</b> Records with no opt-in signal and no unsubscribe should default to No Response.<br><br>' +
+                   'Each check expands to show the affected records and provides a CSV export. The popup is limited to <b>50 rows</b> in the browser; use the export for the full list.',
                 tag: 'method', tagLabel: 'Methodology'
             }
         ];
